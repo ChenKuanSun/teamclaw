@@ -17,8 +17,9 @@ export const createApp = (): App => {
     deployEnv,
   });
 
+  // Amplify always deploys to PROD region (ap-southeast-1), matching Affiora pattern
   new AmplifyStack(app, stackPrefix + 'AmplifyStack', {
-    env,
+    env: TC_AWS_CLOUD[ENVIRONMENT.PROD],
     deployEnv,
   });
 

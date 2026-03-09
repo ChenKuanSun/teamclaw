@@ -33,6 +33,6 @@ export const TC_SECRET_MANAGER_ARN = {
   },
   [ENVIRONMENT.DEV]: {
     GITHUB_OAUTH_TOKEN:
-      'arn:aws:secretsmanager:us-west-1:023371593417:secret:prod/CHD/github/oauth-Tf3qVq',
+      'arn:aws:secretsmanager:ap-southeast-1:023371593417:secret:prod/CHD/github/oauth-Tf3qVq',
   },
 };

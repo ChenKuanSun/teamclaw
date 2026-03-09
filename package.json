@@ -63,5 +63,8 @@
     "typescript-eslint": "^8.40.0",
     "zone.js": "~0.15.0"
   },
+  "optionalDependencies": {
+    "@swc/core-linux-x64-gnu": "~1.15.5"
+  },
   "packageManager": "yarn@1.22.22"
 }

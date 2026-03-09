@@ -1,7 +1,11 @@
 import { Environment } from 'aws-cdk-lib';
-import { ENVIRONMENT } from '@OpenClaw/core/constants';
 
-export const OC_AWS_CLOUD = {
+export enum ENVIRONMENT {
+  DEV = 'dev',
+  PROD = 'prod',
+}
+
+export const TC_AWS_CLOUD = {
   [ENVIRONMENT.PROD]: {
     account: process.env['CDK_DEFAULT_ACCOUNT'] ?? '',
     region: 'ap-southeast-1',
@@ -12,12 +16,12 @@ export const OC_AWS_CLOUD = {
   } as Environment,
 };
 
-export const OC_STACK_PREFIX = {
-  [ENVIRONMENT.PROD]: 'ProdOc',
-  [ENVIRONMENT.DEV]: 'DevOc',
+export const TC_STACK_PREFIX = {
+  [ENVIRONMENT.PROD]: 'ProdTc',
+  [ENVIRONMENT.DEV]: 'DevTc',
 };
 
-export const OC_SERVICE_NAME_PREFIX = {
-  [ENVIRONMENT.PROD]: 'Prod_Oc_',
-  [ENVIRONMENT.DEV]: 'Dev_Oc_',
+export const TC_SERVICE_NAME_PREFIX = {
+  [ENVIRONMENT.PROD]: 'Prod_Tc_',
+  [ENVIRONMENT.DEV]: 'Dev_Tc_',
 };

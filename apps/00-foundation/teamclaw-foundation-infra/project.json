@@ -1,0 +1,214 @@
+{
+  "name": "teamclaw-foundation-infra",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/00-foundation/teamclaw-foundation-infra/cdk",
+  "projectType": "application",
+  "tags": ["cdk-app"],
+  "implicitDependencies": [],
+  "targets": {
+    "deploy": {
+      "executor": "nx:run-commands",
+      "description": "Deploy all stacks to AWS",
+      "options": {
+        "commands": ["cdk deploy --all --require-approval never"],
+        "parallel": false,
+        "cwd": "apps/00-foundation/teamclaw-foundation-infra"
+      },
+      "configurations": {
+        "dev": {
+          "commands": [
+            "DEPLOY_ENV=dev cdk deploy --all --require-approval never"
+          ]
+        },
+        "prod": {
+          "commands": [
+            "DEPLOY_ENV=prod cdk deploy --all --require-approval never"
+          ]
+        }
+      }
+    },
+    "diff": {
+      "executor": "nx:run-commands",
+      "description": "Compare stacks against current state",
+      "options": {
+        "commands": ["cdk diff --all"],
+        "parallel": false,
+        "cwd": "apps/00-foundation/teamclaw-foundation-infra"
+      },
+      "configurations": {
+        "dev": {
+          "commands": ["DEPLOY_ENV=dev cdk diff --all"]
+        },
+        "prod": {
+          "commands": ["DEPLOY_ENV=prod cdk diff --all"]
+        }
+      }
+    },
+    "synth": {
+      "executor": "nx:run-commands",
+      "description": "Synthesize CloudFormation templates",
+      "options": {
+        "commands": ["cdk synth --all"],
+        "parallel": false,
+        "cwd": "apps/00-foundation/teamclaw-foundation-infra"
+      },
+      "configurations": {
+        "dev": {
+          "commands": ["DEPLOY_ENV=dev cdk synth --all"]
+        },
+        "prod": {
+          "commands": ["DEPLOY_ENV=prod cdk synth --all"]
+        }
+      }
+    },
+    "list": {
+      "executor": "nx:run-commands",
+      "description": "List all stacks in the application",
+      "options": {
+        "commands": ["cdk list"],
+        "parallel": false,
+        "cwd": "apps/00-foundation/teamclaw-foundation-infra"
+      },
+      "configurations": {
+        "dev": {
+          "commands": ["DEPLOY_ENV=dev cdk list"]
+        },
+        "prod": {
+          "commands": ["DEPLOY_ENV=prod cdk list"]
+        }
+      }
+    },
+    "watch": {
+      "executor": "nx:run-commands",
+      "description": "Watch for changes and automatically deploy",
+      "options": {
+        "commands": ["cdk watch --all"],
+        "parallel": false,
+        "cwd": "apps/00-foundation/teamclaw-foundation-infra"
+      },
+      "configurations": {
+        "dev": {
+          "commands": ["DEPLOY_ENV=dev cdk watch --all"]
+        },
+        "prod": {
+          "commands": ["DEPLOY_ENV=prod cdk watch --all"]
+        }
+      }
+    },
+    "destroy": {
+      "executor": "nx:run-commands",
+      "description": "Destroy all stacks",
+      "options": {
+        "commands": ["cdk destroy --all --force"],
+        "parallel": false,
+        "cwd": "apps/00-foundation/teamclaw-foundation-infra"
+      },
+      "configurations": {
+        "dev": {
+          "commands": ["DEPLOY_ENV=dev cdk destroy --all --force"]
+        },
+        "prod": {
+          "commands": ["DEPLOY_ENV=prod cdk destroy --all --force"]
+        }
+      }
+    },
+    "bootstrap": {
+      "executor": "nx:run-commands",
+      "description": "Deploy CDK bootstrap stack",
+      "options": {
+        "commands": ["cdk bootstrap"],
+        "parallel": false,
+        "cwd": "apps/00-foundation/teamclaw-foundation-infra"
+      },
+      "configurations": {
+        "dev": {
+          "commands": ["DEPLOY_ENV=dev cdk bootstrap"]
+        },
+        "prod": {
+          "commands": ["DEPLOY_ENV=prod cdk bootstrap"]
+        }
+      }
+    },
+    "doctor": {
+      "executor": "nx:run-commands",
+      "description": "Check environment and configurations",
+      "options": {
+        "commands": ["cdk doctor"],
+        "parallel": false,
+        "cwd": "apps/00-foundation/teamclaw-foundation-infra"
+      }
+    },
+    "notices": {
+      "executor": "nx:run-commands",
+      "description": "Show relevant notices",
+      "options": {
+        "commands": ["cdk notices"],
+        "parallel": false,
+        "cwd": "apps/00-foundation/teamclaw-foundation-infra"
+      }
+    },
+    "drift": {
+      "executor": "nx:run-commands",
+      "description": "Detect drift in deployed stacks",
+      "options": {
+        "commands": ["cdk drift --all"],
+        "parallel": false,
+        "cwd": "apps/00-foundation/teamclaw-foundation-infra"
+      },
+      "configurations": {
+        "dev": {
+          "commands": ["DEPLOY_ENV=dev cdk drift --all"]
+        },
+        "prod": {
+          "commands": ["DEPLOY_ENV=prod cdk drift --all"]
+        }
+      }
+    },
+    "docs": {
+      "executor": "nx:run-commands",
+      "description": "Open CDK documentation",
+      "options": {
+        "commands": ["cdk docs"],
+        "parallel": false,
+        "cwd": "apps/00-foundation/teamclaw-foundation-infra"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "description": "Run ESLint on TypeScript files",
+      "options": {
+        "commands": [
+          "eslint apps/00-foundation/teamclaw-foundation-infra/**/*.ts --fix"
+        ],
+        "parallel": false
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "description": "Run unit tests",
+      "options": {
+        "commands": ["jest"],
+        "parallel": false,
+        "cwd": "apps/00-foundation/teamclaw-foundation-infra"
+      }
+    },
+    "test:watch": {
+      "executor": "nx:run-commands",
+      "description": "Run unit tests in watch mode",
+      "options": {
+        "commands": ["jest --watch"],
+        "parallel": false,
+        "cwd": "apps/00-foundation/teamclaw-foundation-infra"
+      }
+    },
+    "test:coverage": {
+      "executor": "nx:run-commands",
+      "description": "Run unit tests with coverage",
+      "options": {
+        "commands": ["jest --coverage"],
+        "parallel": false,
+        "cwd": "apps/00-foundation/teamclaw-foundation-infra"
+      }
+    }
+  }
+}

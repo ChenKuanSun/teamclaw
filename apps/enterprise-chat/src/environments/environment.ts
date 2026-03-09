@@ -4,5 +4,5 @@ export const environment = {
     userPoolId: 'ap-southeast-1_XXXXXXXXX',
     clientId: 'XXXXXXXXXXXXXXXXXXXXXXXXXX',
   },
-  openclawGatewayUrl: 'ws://localhost:18789',
+  teamclawGatewayUrl: 'ws://localhost:18789',
 };

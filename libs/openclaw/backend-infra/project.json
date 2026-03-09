@@ -1,7 +1,0 @@
-{
-  "name": "lib-openclaw-backend-infra",
-  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "libs/openclaw/backend-infra/src",
-  "projectType": "library",
-  "tags": []
-}

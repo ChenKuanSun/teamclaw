@@ -1,0 +1,264 @@
+import { ECSClient, RunTaskCommand, StopTaskCommand, DescribeTasksCommand } from '@aws-sdk/client-ecs';
+import { EFSClient, CreateAccessPointCommand } from '@aws-sdk/client-efs';
+import { DynamoDBClient, GetItemCommand, PutItemCommand } from '@aws-sdk/client-dynamodb';
+import {
+  SchedulerClient,
+  CreateScheduleCommand,
+  DeleteScheduleCommand,
+  ListSchedulesCommand,
+} from '@aws-sdk/client-scheduler';
+
+const ecsClient = new ECSClient({});
+const efsClient = new EFSClient({});
+const ddbClient = new DynamoDBClient({});
+const schedulerClient = new SchedulerClient({});
+
+const SCHEDULE_GROUP = `teamclaw-cron-${process.env.DEPLOY_ENV}`;
+
+interface LifecycleEvent {
+  action: 'start' | 'stop' | 'provision' | 'status' | 'sync-cron-schedules';
+  userId: string;
+  teamId?: string;
+  cronSchedules?: string[];
+}
+
+export const handler = async (event: LifecycleEvent) => {
+  const { action, userId } = event;
+
+  switch (action) {
+    case 'provision':
+      return await provisionUser(userId, event.teamId);
+    case 'start':
+      return await startContainer(userId);
+    case 'stop':
+      return await stopContainer(userId);
+    case 'status':
+      return await getStatus(userId);
+    case 'sync-cron-schedules':
+      return await syncCronSchedules(userId, event.cronSchedules || []);
+    default:
+      return { statusCode: 400, body: 'Unknown action' };
+  }
+};
+
+async function provisionUser(userId: string, teamId?: string) {
+  const accessPoint = await efsClient.send(new CreateAccessPointCommand({
+    FileSystemId: process.env.EFS_FILE_SYSTEM_ID!,
+    PosixUser: { Uid: 1000, Gid: 1000 },
+    RootDirectory: {
+      Path: `/users/${userId}`,
+      CreationInfo: { OwnerUid: 1000, OwnerGid: 1000, Permissions: '0750' },
+    },
+    Tags: [
+      { Key: 'UserId', Value: userId },
+      { Key: 'TeamId', Value: teamId || '' },
+    ],
+  }));
+
+  await ddbClient.send(new PutItemCommand({
+    TableName: process.env.USER_TABLE_NAME!,
+    Item: {
+      userId: { S: userId },
+      teamId: { S: teamId || '' },
+      efsAccessPointId: { S: accessPoint.AccessPointId! },
+      status: { S: 'provisioned' },
+      createdAt: { S: new Date().toISOString() },
+    },
+  }));
+
+  return { statusCode: 200, body: JSON.stringify({ accessPointId: accessPoint.AccessPointId }) };
+}
+
+async function startContainer(userId: string) {
+  const userRecord = await ddbClient.send(new GetItemCommand({
+    TableName: process.env.USER_TABLE_NAME!,
+    Key: { userId: { S: userId } },
+  }));
+
+  if (!userRecord.Item) {
+    return { statusCode: 404, body: 'User not found' };
+  }
+
+  // Skip if already running
+  if (userRecord.Item.status?.S === 'running' && userRecord.Item.taskArn?.S) {
+    const desc = await ecsClient.send(new DescribeTasksCommand({
+      cluster: process.env.ECS_CLUSTER_NAME!,
+      tasks: [userRecord.Item.taskArn.S],
+    }));
+    const task = desc.tasks?.[0];
+    if (task && task.lastStatus !== 'STOPPED') {
+      return { statusCode: 200, body: JSON.stringify({ taskArn: task.taskArn, alreadyRunning: true }) };
+    }
+  }
+
+  const result = await ecsClient.send(new RunTaskCommand({
+    cluster: process.env.ECS_CLUSTER_NAME!,
+    taskDefinition: `teamclaw-user-${process.env.DEPLOY_ENV}`,
+    launchType: 'FARGATE',
+    networkConfiguration: {
+      awsvpcConfiguration: {
+        subnets: [],
+        securityGroups: [],
+        assignPublicIp: 'DISABLED',
+      },
+    },
+    overrides: {
+      containerOverrides: [{
+        name: 'teamclaw',
+        environment: [
+          { name: 'USER_ID', value: userId },
+          { name: 'TEAM_ID', value: userRecord.Item.teamId?.S || '' },
+          { name: 'KEY_POOL_PROXY_URL', value: process.env.KEY_POOL_PROXY_URL! },
+        ],
+      }],
+    },
+  }));
+
+  const taskArn = result.tasks?.[0]?.taskArn;
+
+  await ddbClient.send(new PutItemCommand({
+    TableName: process.env.USER_TABLE_NAME!,
+    Item: {
+      ...userRecord.Item,
+      taskArn: { S: taskArn || '' },
+      status: { S: 'running' },
+    },
+  }));
+
+  return { statusCode: 200, body: JSON.stringify({ taskArn }) };
+}
+
+async function stopContainer(userId: string) {
+  const userRecord = await ddbClient.send(new GetItemCommand({
+    TableName: process.env.USER_TABLE_NAME!,
+    Key: { userId: { S: userId } },
+  }));
+
+  if (!userRecord.Item?.taskArn?.S) {
+    return { statusCode: 404, body: 'No running container' };
+  }
+
+  await ecsClient.send(new StopTaskCommand({
+    cluster: process.env.ECS_CLUSTER_NAME!,
+    task: userRecord.Item.taskArn.S,
+    reason: 'User-initiated stop or idle timeout',
+  }));
+
+  await ddbClient.send(new PutItemCommand({
+    TableName: process.env.USER_TABLE_NAME!,
+    Item: {
+      ...userRecord.Item,
+      taskArn: { S: '' },
+      status: { S: 'stopped' },
+    },
+  }));
+
+  return { statusCode: 200, body: 'Stopped' };
+}
+
+async function getStatus(userId: string) {
+  const userRecord = await ddbClient.send(new GetItemCommand({
+    TableName: process.env.USER_TABLE_NAME!,
+    Key: { userId: { S: userId } },
+  }));
+
+  if (!userRecord.Item) {
+    return { statusCode: 404, body: 'User not found' };
+  }
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify({
+      userId,
+      status: userRecord.Item.status?.S,
+      taskArn: userRecord.Item.taskArn?.S || null,
+    }),
+  };
+}
+
+/**
+ * Sync EventBridge Scheduler rules for a user's OpenClaw CronJobs.
+ * Called when admin updates a user's openclaw.json cron configuration.
+ *
+ * Creates one EventBridge schedule per cron expression, each firing
+ * 2 minutes before the cron time to pre-wake the container.
+ * OpenClaw's internal cron scheduler then fires naturally.
+ */
+async function syncCronSchedules(userId: string, cronSchedules: string[]) {
+  const schedulePrefix = `${userId}-cron-`;
+
+  // Delete existing schedules for this user
+  const existing = await schedulerClient.send(new ListSchedulesCommand({
+    GroupName: SCHEDULE_GROUP,
+    NamePrefix: schedulePrefix,
+  }));
+
+  for (const schedule of existing.Schedules || []) {
+    await schedulerClient.send(new DeleteScheduleCommand({
+      Name: schedule.Name!,
+      GroupName: SCHEDULE_GROUP,
+    }));
+  }
+
+  // Create new schedules (each fires 2 min early to allow container boot)
+  const created: string[] = [];
+  for (let i = 0; i < cronSchedules.length; i++) {
+    const cronExpr = cronSchedules[i];
+    const scheduleName = `${schedulePrefix}${i}`;
+
+    await schedulerClient.send(new CreateScheduleCommand({
+      Name: scheduleName,
+      GroupName: SCHEDULE_GROUP,
+      ScheduleExpression: `cron(${shiftCronBack2Min(cronExpr)})`,
+      FlexibleTimeWindow: { Mode: 'OFF' },
+      Target: {
+        Arn: process.env.LIFECYCLE_LAMBDA_ARN!,
+        RoleArn: process.env.SCHEDULER_ROLE_ARN!,
+        Input: JSON.stringify({ action: 'start', userId }),
+      },
+    }));
+    created.push(scheduleName);
+  }
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify({
+      userId,
+      schedulesDeleted: existing.Schedules?.length || 0,
+      schedulesCreated: created.length,
+    }),
+  };
+}
+
+/**
+ * Shift a cron minute field back by 2 minutes for pre-wakeup.
+ * Input: standard cron expression (min hour dom month dow)
+ * Output: same expression with minute shifted back by 2.
+ *
+ * Examples:
+ *   "0 9 * * MON-FRI"  → "58 8 * * MON-FRI"
+ *   "30 14 * * *"      → "28 14 * * *"
+ *   "1 0 * * *"        → "59 23 * * *"
+ */
+function shiftCronBack2Min(cron: string): string {
+  const parts = cron.split(/\s+/);
+  if (parts.length < 5) return cron;
+
+  let minute = parseInt(parts[0], 10);
+  let hour = parseInt(parts[1], 10);
+
+  if (isNaN(minute) || isNaN(hour)) return cron;
+
+  minute -= 2;
+  if (minute < 0) {
+    minute += 60;
+    hour -= 1;
+    if (hour < 0) {
+      hour = 23;
+    }
+  }
+
+  parts[0] = String(minute);
+  parts[1] = String(hour);
+  return parts.join(' ');
+}

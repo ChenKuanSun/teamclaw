@@ -9,14 +9,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
-  selector: 'oc-login',
+  selector: 'tc-login',
   standalone: true,
   imports: [CommonModule, FormsModule, MatCardModule, MatInputModule, MatButtonModule, MatFormFieldModule],
   template: `
     <div class="login-container">
       <mat-card class="login-card">
         <mat-card-header>
-          <mat-card-title>OpenClaw Enterprise</mat-card-title>
+          <mat-card-title>TeamClaw</mat-card-title>
         </mat-card-header>
         <mat-card-content>
           @if (error) {

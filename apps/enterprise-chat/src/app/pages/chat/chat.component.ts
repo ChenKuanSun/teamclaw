@@ -1,28 +1,26 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatListModule } from '@angular/material/list';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { OpenClawWsService, ChatMessage } from '../../services/openclaw-ws.service';
+import { TeamClawWsService, ChatMessage } from '../../services/teamclaw-ws.service';
 import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 @Component({
-  selector: 'oc-chat',
+  selector: 'tc-chat',
   standalone: true,
   imports: [
     CommonModule, FormsModule,
-    MatCardModule, MatInputModule, MatButtonModule, MatIconModule, MatListModule, MatProgressSpinnerModule,
+    MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule,
   ],
   template: `
     <div class="chat-container">
       <div class="chat-header">
-        <h2>OpenClaw Enterprise</h2>
+        <h2>TeamClaw</h2>
         <span class="status" [class.connected]="connected">{{ connected ? 'Connected' : 'Disconnected' }}</span>
       </div>
 
@@ -81,12 +79,12 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   inputText = '';
   private subs: Subscription[] = [];
 
-  constructor(private ws: OpenClawWsService, private auth: AuthService) {}
+  constructor(private ws: TeamClawWsService, private auth: AuthService) {}
 
   ngOnInit(): void {
     const token = this.auth.getIdToken();
     if (token) {
-      this.ws.connect(environment.openclawGatewayUrl, token);
+      this.ws.connect(environment.teamclawGatewayUrl, token);
     }
     this.subs.push(
       this.ws.messages$.subscribe(msgs => this.messages = msgs),

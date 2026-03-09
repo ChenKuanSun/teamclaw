@@ -70,6 +70,34 @@
         "tsConfig": "apps/enterprise-chat/tsconfig.spec.json"
       }
     },
+    "i18n:init": {
+      "executor": "nx:run-commands",
+      "description": "Initialize i18n template file",
+      "options": {
+        "commands": [
+          "ngx-translate-extract --input ./src --output ./public/assets/i18n/template.json --key-as-default-value --replace --format json"
+        ],
+        "parallel": false,
+        "cwd": "apps/enterprise-chat"
+      }
+    },
+    "i18n:extract": {
+      "executor": "nx:run-commands",
+      "description": "Extract translation strings to locale files",
+      "options": {
+        "commands": [
+          "ngx-translate-extract --input ./src --output ./public/assets/i18n/{en,zh,ja,ko}.json --clean --format json"
+        ],
+        "parallel": false,
+        "cwd": "apps/enterprise-chat"
+      }
+    },
+    "extract-i18n": {
+      "executor": "@angular/build:extract-i18n",
+      "options": {
+        "buildTarget": "enterprise-chat:build"
+      }
+    },
     "serve-static": {
       "continuous": true,
       "executor": "@nx/web:file-server",

@@ -14,7 +14,7 @@ export interface TeamConfig {
   adminUserIds: string[];
 }
 
-export interface OpenClawConfig {
+export interface TeamClawConfig {
   gateway: {
     port: number;
     token: string;

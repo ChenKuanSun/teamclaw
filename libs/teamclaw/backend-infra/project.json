@@ -1,0 +1,7 @@
+{
+  "name": "lib-teamclaw-backend-infra",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/teamclaw/backend-infra/src",
+  "projectType": "library",
+  "tags": []
+}

@@ -66,7 +66,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "apps/enterprise-chat/jest.config.cts",
+        "jestConfig": "apps/enterprise-chat/jest.config.ts",
         "tsConfig": "apps/enterprise-chat/tsconfig.spec.json"
       }
     },

@@ -1,16 +1,8 @@
-/**
- * Production environment configuration for TeamClaw Admin Panel
- *
- * Admin Panel uses a separate Cognito User Pool from TeamClaw Chat App
- * to prevent password conflicts with OAuth flow.
- */
 export const environment = {
   isProduction: true,
   auth: {
-    // TODO: Update clientId after deploying AdminCognitoStack
-    // Get from SSM: /tc/prod/admin-cognito/userPoolClientId
-    clientId: '',
-    domain: '',
+    clientId: 'TODO_AFTER_DEPLOY',
+    domain: 'teamclaw-admin.auth.ap-southeast-1.amazoncognito.com',
   },
-  adminApiUrl: '',
+  adminApiUrl: 'TODO_AFTER_DEPLOY',
 };

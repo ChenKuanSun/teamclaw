@@ -1,0 +1,64 @@
+// =============================================
+// TeamClaw Admin App - Main Stylesheet
+// =============================================
+
+// 1. Angular Material core
+@use '@angular/material' as mat;
+
+// =============================================
+// Base Styles
+// =============================================
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// =============================================
+// Angular Material Global Overrides
+// =============================================
+
+.mat-mdc-card,
+.mat-mdc-dialog-container,
+.mat-mdc-snack-bar-container,
+.mat-mdc-menu-panel,
+.mat-mdc-select-panel,
+.mat-mdc-autocomplete-panel {
+  border-radius: 8px !important;
+}
+
+.mat-mdc-button,
+.mat-mdc-outlined-button,
+.mat-mdc-unelevated-button,
+.mat-mdc-raised-button,
+.mat-mdc-fab,
+.mat-mdc-mini-fab,
+.mat-mdc-icon-button {
+  border-radius: 4px !important;
+}
+
+// =============================================
+// Accessibility
+// =============================================
+
+:focus-visible {
+  outline: 2px solid var(--mat-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,13 +1,8 @@
-/**
- * Development environment configuration for TeamClaw Admin Panel
- */
 export const environment = {
   isProduction: false,
   auth: {
-    // TODO: Update clientId after deploying AdminCognitoStack
-    // Get from SSM: /tc/dev/admin-cognito/userPoolClientId
-    clientId: '',
-    domain: '',
+    clientId: 'TODO_AFTER_DEPLOY',
+    domain: 'teamclaw-admin-dev.auth.us-west-1.amazoncognito.com',
   },
-  adminApiUrl: 'http://localhost:3000/v1',
+  adminApiUrl: 'TODO_AFTER_DEPLOY',
 };

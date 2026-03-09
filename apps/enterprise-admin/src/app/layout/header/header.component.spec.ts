@@ -3,11 +3,18 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { signal } from '@angular/core';
 import { HeaderComponent } from './header.component';
 import { AdminAuthService } from '../../services/admin-auth.service';
+import { ThemeService } from '../../services/theme.service';
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;
   let fixture: ComponentFixture<HeaderComponent>;
   let authServiceMock: { userEmail: ReturnType<typeof signal>; signOut: jest.Mock };
+  let themeServiceMock: {
+    themeMode: ReturnType<typeof signal>;
+    effectiveTheme: ReturnType<typeof signal>;
+    toggleTheme: jest.Mock;
+    setTheme: jest.Mock;
+  };
 
   beforeEach(async () => {
     authServiceMock = {
@@ -15,10 +22,18 @@ describe('HeaderComponent', () => {
       signOut: jest.fn(),
     };
 
+    themeServiceMock = {
+      themeMode: signal('dark' as const),
+      effectiveTheme: signal('dark' as const),
+      toggleTheme: jest.fn(),
+      setTheme: jest.fn(),
+    };
+
     await TestBed.configureTestingModule({
       imports: [HeaderComponent, NoopAnimationsModule],
       providers: [
         { provide: AdminAuthService, useValue: authServiceMock },
+        { provide: ThemeService, useValue: themeServiceMock },
       ],
     }).compileComponents();
 
@@ -54,5 +69,10 @@ describe('HeaderComponent', () => {
 
   it('should not show menu button by default', () => {
     expect(component.showMenuButton()).toBe(false);
+  });
+
+  it('should toggle theme when toggleTheme is called', () => {
+    component.toggleTheme();
+    expect(themeServiceMock.toggleTheme).toHaveBeenCalled();
   });
 });

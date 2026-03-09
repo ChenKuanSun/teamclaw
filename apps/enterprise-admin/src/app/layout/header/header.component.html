@@ -9,6 +9,17 @@
 
   <span class="spacer"></span>
 
+  <button
+    mat-icon-button
+    class="theme-toggle"
+    (click)="toggleTheme()"
+    [matTooltip]="themeService.effectiveTheme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+  >
+    <mat-icon>
+      {{ themeService.effectiveTheme() === 'dark' ? 'light_mode' : 'dark_mode' }}
+    </mat-icon>
+  </button>
+
   <button mat-icon-button [matMenuTriggerFor]="userMenu">
     <mat-icon>account_circle</mat-icon>
   </button>

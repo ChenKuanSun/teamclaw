@@ -3,6 +3,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 import { LayoutComponent } from './layout.component';
 import { AdminAuthService } from '../services/admin-auth.service';
+import { ThemeService } from '../services/theme.service';
 import { signal } from '@angular/core';
 
 describe('LayoutComponent', () => {
@@ -17,11 +18,34 @@ describe('LayoutComponent', () => {
     idToken: signal('mock-id'),
   };
 
+  const mockThemeService = {
+    themeMode: signal('dark' as const),
+    effectiveTheme: signal('dark' as const),
+    toggleTheme: jest.fn(),
+    setTheme: jest.fn(),
+  };
+
   beforeEach(async () => {
+    // Mock matchMedia for JSDOM environment
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: jest.fn().mockImplementation((query: string) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+      })),
+    });
+
     await TestBed.configureTestingModule({
       imports: [LayoutComponent, NoopAnimationsModule, RouterModule.forRoot([])],
       providers: [
         { provide: AdminAuthService, useValue: mockAuthService },
+        { provide: ThemeService, useValue: mockThemeService },
       ],
     }).compileComponents();
 

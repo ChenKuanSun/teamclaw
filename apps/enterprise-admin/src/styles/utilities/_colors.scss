@@ -1,0 +1,77 @@
+// =============================================
+// Color Utilities
+// =============================================
+
+// Text colors
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-tertiary {
+  color: var(--text-tertiary);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-accent {
+  color: var(--accent);
+}
+
+.text-success {
+  color: var(--semantic-success);
+}
+
+.text-warning {
+  color: var(--semantic-high);
+}
+
+.text-danger {
+  color: var(--semantic-critical);
+}
+
+.text-info {
+  color: var(--semantic-info);
+}
+
+// Background colors
+.bg-base {
+  background-color: var(--bg-base);
+}
+
+.bg-surface {
+  background-color: var(--bg-surface);
+}
+
+.bg-elevated {
+  background-color: var(--bg-elevated);
+}
+
+.bg-overlay {
+  background-color: var(--bg-overlay);
+}
+
+.bg-accent {
+  background-color: var(--accent-bg);
+}
+
+.bg-success {
+  background-color: var(--semantic-success-bg);
+}
+
+.bg-warning {
+  background-color: var(--semantic-high-bg);
+}
+
+.bg-danger {
+  background-color: var(--semantic-critical-bg);
+}
+
+.bg-info {
+  background-color: var(--semantic-info-bg);
+}

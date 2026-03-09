@@ -5,6 +5,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AdminAuthService } from '../../services/admin-auth.service';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'tc-admin-header',
@@ -21,6 +22,7 @@ import { AdminAuthService } from '../../services/admin-auth.service';
 })
 export class HeaderComponent {
   private readonly authService = inject(AdminAuthService);
+  readonly themeService = inject(ThemeService);
 
   readonly showMenuButton = input(false);
   readonly menuToggle = output<void>();
@@ -33,5 +35,9 @@ export class HeaderComponent {
 
   signOut() {
     this.authService.signOut();
+  }
+
+  toggleTheme() {
+    this.themeService.toggleTheme();
   }
 }

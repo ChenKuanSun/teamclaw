@@ -1,13 +1,42 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="utf-8" />
     <title>TeamClaw Admin</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+    <!-- Preconnect to Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Load Inter and JetBrains Mono -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Material Icons -->
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Prevent FOUC with dark background -->
+    <style>
+      html[data-theme='dark'] {
+        background-color: #0a1929;
+        color-scheme: dark;
+      }
+      html[data-theme='light'] {
+        background-color: #ffffff;
+        color-scheme: light;
+      }
+    </style>
   </head>
   <body>
-    <app-root></app-root>
+    <tc-admin-root></tc-admin-root>
   </body>
 </html>

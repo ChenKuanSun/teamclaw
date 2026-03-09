@@ -13,6 +13,8 @@ applications:
           commands:
             - if [ "${AWS_BRANCH}" = "main" ]; then npx nx run
               enterprise-chat:build:production --verbose; fi
+            - if [ "${AWS_BRANCH}" = "staging" ]; then npx nx run
+              enterprise-chat:build:production --verbose; fi
             - if [ "${AWS_BRANCH}" = "dev" ]; then npx nx run
               enterprise-chat:build:development --verbose; fi
       artifacts:
@@ -35,6 +37,8 @@ applications:
         build:
           commands:
             - if [ "${AWS_BRANCH}" = "main" ]; then npx nx run
+              enterprise-admin:build:production --verbose; fi
+            - if [ "${AWS_BRANCH}" = "staging" ]; then npx nx run
               enterprise-admin:build:production --verbose; fi
             - if [ "${AWS_BRANCH}" = "dev" ]; then npx nx run
               enterprise-admin:build:development --verbose; fi

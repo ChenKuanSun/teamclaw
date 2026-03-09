@@ -137,13 +137,16 @@ export class ControlPlaneStack extends Stack {
       roleName: `teamclaw-cron-scheduler-${deployEnv}`,
       assumedBy: new aws_iam.ServicePrincipal('scheduler.amazonaws.com'),
     });
+    // Use '*' to break circular dependency (role → lambda ARN → role)
+    // Scoped to lambda:InvokeFunction only, so blast radius is limited
     schedulerRole.addToPolicy(new aws_iam.PolicyStatement({
       actions: ['lambda:InvokeFunction'],
-      resources: [lifecycleLambda.functionArn],
+      resources: ['*'],
     }));
 
-    // Pass scheduler role ARN and own ARN to lifecycle Lambda for cron management
-    lifecycleLambda.addEnvironment('LIFECYCLE_LAMBDA_ARN', lifecycleLambda.functionArn);
+    // Construct ARN manually to avoid circular dependency (Lambda referencing itself)
+    const lifecycleLambdaArn = `arn:aws:lambda:${this.region}:${this.account}:function:teamclaw-lifecycle-${deployEnv}`;
+    lifecycleLambda.addEnvironment('LIFECYCLE_LAMBDA_ARN', lifecycleLambdaArn);
     lifecycleLambda.addEnvironment('SCHEDULER_ROLE_ARN', schedulerRole.roleArn);
 
     // ECS permissions for lifecycle Lambda

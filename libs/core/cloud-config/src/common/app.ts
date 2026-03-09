@@ -7,12 +7,12 @@ export enum ENVIRONMENT {
 
 export const TC_AWS_CLOUD = {
   [ENVIRONMENT.PROD]: {
-    account: process.env['CDK_DEFAULT_ACCOUNT'] ?? '',
+    account: '023371593417',
     region: 'ap-southeast-1',
   } as Environment,
   [ENVIRONMENT.DEV]: {
-    account: process.env['CDK_DEFAULT_ACCOUNT'] ?? '',
-    region: 'ap-southeast-1',
+    account: '023371593417',
+    region: 'us-west-1',
   } as Environment,
 };
 

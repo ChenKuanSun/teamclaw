@@ -1,12 +1,15 @@
 {
   "app": "node ./start-cdk.mjs",
+  "profile": "chddev",
   "watch": {
-    "include": ["cdk/**/*", "src/**/*"],
+    "include": ["cdk/**/*", "shared/**/*", "src/**/*"],
     "exclude": [
       "cdk.out",
       "jest.config.ts",
       "cdk/**/*.spec.ts",
       "cdk/**/*.test.ts",
+      "shared/**/*.spec.ts",
+      "shared/**/*.test.ts",
       "src/**/*.spec.ts",
       "src/**/*.test.ts"
     ]
@@ -14,7 +17,7 @@
   "context": {
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
-    "@aws-cdk/core:target-partitions": ["aws"],
+    "@aws-cdk/core:target-partitions": ["aws", "aws-cn"],
     "@aws-cdk-containers/ecs-service-extensions:enableDefaultLogDriver": true,
     "@aws-cdk/aws-ec2:uniqueImdsv2TemplateName": true,
     "@aws-cdk/aws-ecs:arnFormatIncludesClusterName": true,

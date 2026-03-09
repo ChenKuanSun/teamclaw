@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/out-tsc",
+    "module": "es2022",
+    "target": "es2022",
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "esModuleInterop": true,
+    "importHelpers": true
+  },
+  "include": ["shared/**/*.ts", "src/**/*.ts"],
+  "exclude": [
+    "cdk",
+    "cdk.out",
+    "jest.config.ts",
+    "shared/**/*.spec.ts",
+    "shared/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts"
+  ]
+}

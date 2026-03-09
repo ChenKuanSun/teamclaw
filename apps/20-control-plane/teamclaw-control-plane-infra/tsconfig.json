@@ -1,12 +1,29 @@
 {
   "extends": "../../../tsconfig.base.json",
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "./tsconfig.cdk.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    },
+    {
+      "path": "./tsconfig.src.json"
+    }
+  ],
   "compilerOptions": {
-    "module": "commonjs",
-    "types": ["node"]
-  },
-  "include": ["cdk/**/*.ts"],
-  "ts-node": {
-    "preferTsExts": true,
-    "require": ["tsconfig-paths/register"]
+    "strict": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   }
 }

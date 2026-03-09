@@ -7,3 +7,5 @@ cdk.out/
 *.d.ts
 !jest.config.ts
 !start-cdk.mjs
+
+.angular

@@ -1,8 +1,8 @@
 export const environment = {
   isProduction: false,
   auth: {
-    clientId: 'TODO_AFTER_DEPLOY',
+    clientId: '44k5e77m24b00mkah09j435jb6',
     domain: 'teamclaw-admin-dev.auth.us-west-1.amazoncognito.com',
   },
-  adminApiUrl: 'TODO_AFTER_DEPLOY',
+  adminApiUrl: 'https://8g98kdb0eb.execute-api.us-west-1.amazonaws.com/v1',
 };

@@ -10,6 +10,7 @@
  * Authentication: Uses separate Admin Cognito User Pool with email whitelist
  */
 import {
+  AdminAmplifyStack,
   AdminApiGatewayStack,
   AdminApiGatewayRouteStack,
   AdminCognitoStack,
@@ -74,6 +75,14 @@ export const createApp = (): App => {
   adminApiGatewayRouteStack.addDependency(adminCognitoStack);
   adminApiGatewayRouteStack.addDependency(adminApiGatewayStack);
   adminApiGatewayRouteStack.addDependency(adminLambdaStack);
+
+  // ==========================================================
+  // Admin Amplify (always deploys to PROD region)
+  // ==========================================================
+  new AdminAmplifyStack(app, stackPrefix + 'AmplifyStack', {
+    env: TC_AWS_CLOUD[ENVIRONMENT.PROD],
+    deployEnv,
+  });
 
   return app;
 };

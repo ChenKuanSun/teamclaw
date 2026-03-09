@@ -1,0 +1,15 @@
+{
+  "app": "node ./start-cdk.mjs",
+  "watch": {
+    "include": ["cdk/**/*"],
+    "exclude": ["cdk.out", "**/*.spec.ts", "**/*.test.ts"]
+  },
+  "context": {
+    "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
+    "@aws-cdk/core:checkSecretUsage": true,
+    "@aws-cdk/core:target-partitions": ["aws"],
+    "@aws-cdk/aws-iam:minimizePolicies": true,
+    "@aws-cdk/aws-efs:denyAnonymousAccess": true,
+    "@aws-cdk/aws-ec2:restrictDefaultSecurityGroup": true
+  }
+}

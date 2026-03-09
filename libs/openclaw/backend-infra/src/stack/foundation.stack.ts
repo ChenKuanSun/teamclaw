@@ -24,6 +24,7 @@ export class FoundationStack extends Stack {
     const vpc = new aws_ec2.Vpc(this, 'Vpc', {
       maxAzs: 2,
       natGateways: 1,
+      vpcName: `openclaw-${deployEnv}`,
       subnetConfiguration: [
         { name: 'Public', subnetType: aws_ec2.SubnetType.PUBLIC, cidrMask: 24 },
         { name: 'Private', subnetType: aws_ec2.SubnetType.PRIVATE_WITH_EGRESS, cidrMask: 24 },

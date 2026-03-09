@@ -1,4 +1,5 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, signal, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
@@ -126,6 +127,7 @@ import { AddApiKeyDialogComponent } from './add-api-key-dialog.component';
 export class ApiKeysComponent implements OnInit {
   private readonly adminApi = inject(AdminApiService);
   private readonly dialog = inject(MatDialog);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly keys = signal<ApiKey[]>([]);
   readonly usageStats = signal<KeyUsageStats | null>(null);
@@ -140,7 +142,7 @@ export class ApiKeysComponent implements OnInit {
 
   loadKeys(): void {
     this.loading.set(true);
-    this.adminApi.getApiKeys().subscribe({
+    this.adminApi.getApiKeys().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.keys.set(res.keys);
         this.loading.set(false);
@@ -150,7 +152,7 @@ export class ApiKeysComponent implements OnInit {
   }
 
   loadUsageStats(): void {
-    this.adminApi.getKeyUsageStats().subscribe({
+    this.adminApi.getKeyUsageStats().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (stats) => this.usageStats.set(stats),
     });
   }
@@ -160,9 +162,9 @@ export class ApiKeysComponent implements OnInit {
       width: '480px',
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
       if (result) {
-        this.adminApi.addApiKey(result).subscribe({
+        this.adminApi.addApiKey(result).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
           next: () => {
             this.loadKeys();
             this.loadUsageStats();
@@ -174,7 +176,7 @@ export class ApiKeysComponent implements OnInit {
 
   removeKey(key: ApiKey): void {
     if (!confirm(`Remove API key for ${key.provider}?`)) return;
-    this.adminApi.removeApiKey(key.keyId).subscribe({
+    this.adminApi.removeApiKey(key.keyId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.loadKeys();
         this.loadUsageStats();

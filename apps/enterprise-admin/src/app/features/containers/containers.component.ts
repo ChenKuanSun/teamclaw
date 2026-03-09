@@ -1,4 +1,5 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, signal, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
@@ -108,6 +109,7 @@ import {
 })
 export class ContainersComponent implements OnInit {
   private readonly adminApi = inject(AdminApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly containers = signal<Container[]>([]);
   readonly loading = signal(false);
@@ -122,7 +124,7 @@ export class ContainersComponent implements OnInit {
   loadContainers(): void {
     this.loading.set(true);
     const params = this.statusFilter ? { status: this.statusFilter } : {};
-    this.adminApi.queryContainers(params).subscribe({
+    this.adminApi.queryContainers(params).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.containers.set(res.containers);
         this.loading.set(false);
@@ -133,7 +135,7 @@ export class ContainersComponent implements OnInit {
 
   startContainer(container: Container): void {
     this.actionLoading.set(true);
-    this.adminApi.startContainer(container.userId).subscribe({
+    this.adminApi.startContainer(container.userId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.actionLoading.set(false);
         this.loadContainers();
@@ -144,7 +146,7 @@ export class ContainersComponent implements OnInit {
 
   stopContainer(container: Container): void {
     this.actionLoading.set(true);
-    this.adminApi.stopContainer(container.userId).subscribe({
+    this.adminApi.stopContainer(container.userId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.actionLoading.set(false);
         this.loadContainers();

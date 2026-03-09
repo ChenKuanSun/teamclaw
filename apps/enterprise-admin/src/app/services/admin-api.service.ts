@@ -313,26 +313,26 @@ export class AdminApiService {
 
   getTeamConfig(teamId: string) {
     return this.http.get<{ configs: ConfigEntry[] }>(
-      `${this.baseUrl}/admin/config/team/${teamId}`,
+      `${this.baseUrl}/admin/config/teams/${teamId}`,
     );
   }
 
   updateTeamConfig(teamId: string, data: ConfigEntry) {
     return this.http.put<{ success: boolean }>(
-      `${this.baseUrl}/admin/config/team/${teamId}`,
+      `${this.baseUrl}/admin/config/teams/${teamId}`,
       data,
     );
   }
 
   getUserConfig(userId: string) {
     return this.http.get<{ configs: ConfigEntry[] }>(
-      `${this.baseUrl}/admin/config/user/${userId}`,
+      `${this.baseUrl}/admin/config/users/${userId}`,
     );
   }
 
   updateUserConfig(userId: string, data: ConfigEntry) {
     return this.http.put<{ success: boolean }>(
-      `${this.baseUrl}/admin/config/user/${userId}`,
+      `${this.baseUrl}/admin/config/users/${userId}`,
       data,
     );
   }
@@ -362,7 +362,7 @@ export class AdminApiService {
 
   getKeyUsageStats() {
     return this.http.get<KeyUsageStats>(
-      `${this.baseUrl}/admin/api-keys/usage`,
+      `${this.baseUrl}/admin/api-keys/usage-stats`,
     );
   }
 

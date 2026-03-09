@@ -106,7 +106,7 @@ export class ControlPlaneStack extends Stack {
       description: 'Proxies AI provider API calls, injects keys server-side',
     });
 
-    const proxyResource = api.root.addProxy({
+    api.root.addProxy({
       defaultIntegration: new aws_apigateway.LambdaIntegration(keyPoolLambda),
       anyMethod: true,
     });

@@ -1,0 +1,25 @@
+version: 1
+applications:
+  - appRoot: apps/enterprise-chat
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - nvm install 22.15.0
+            - nvm use 22.15.0
+            - cd ../..
+            - npm ci --legacy-peer-deps --prefer-offline
+        build:
+          commands:
+            - if [ "${AWS_BRANCH}" = "main" ]; then npx nx run enterprise-chat:build:production; fi
+            - if [ "${AWS_BRANCH}" = "dev" ]; then npx nx run enterprise-chat:build:development; fi
+      artifacts:
+        baseDirectory: ../../dist/apps/enterprise-chat/browser/
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+          - .nx/cache/**/*
+          - .angular/cache/**/*
+          - ~/.npm/**/*

@@ -11,10 +11,6 @@ import { Construct } from 'constructs';
 import { StackPropsWithEnv, TC_SSM_PARAMETER } from '@TeamClaw/core/cloud-config';
 
 export class FoundationStack extends Stack {
-  public readonly vpc: aws_ec2.IVpc;
-  public readonly fileSystem: aws_efs.IFileSystem;
-  public readonly ecrRepo: aws_ecr.IRepository;
-
   constructor(scope: Construct, id: string, props: StackPropsWithEnv) {
     super(scope, id, props);
     const { deployEnv } = props;
@@ -30,7 +26,7 @@ export class FoundationStack extends Stack {
         { name: 'Private', subnetType: aws_ec2.SubnetType.PRIVATE_WITH_EGRESS, cidrMask: 24 },
       ],
     });
-    this.vpc = vpc;
+    // Cross-stack refs via SSM parameters (not CDK references)
 
     new aws_ssm.StringParameter(this, 'VpcIdParam', {
       parameterName: ssm.VPC.VPC_ID,
@@ -53,7 +49,6 @@ export class FoundationStack extends Stack {
       removalPolicy: RemovalPolicy.RETAIN,
       lifecyclePolicy: aws_efs.LifecyclePolicy.AFTER_30_DAYS,
     });
-    this.fileSystem = fileSystem;
 
     new aws_ssm.StringParameter(this, 'EfsFileSystemIdParam', {
       parameterName: ssm.EFS.FILE_SYSTEM_ID,
@@ -74,7 +69,6 @@ export class FoundationStack extends Stack {
       removalPolicy: RemovalPolicy.RETAIN,
       imageScanOnPush: true,
     });
-    this.ecrRepo = ecrRepo;
 
     new aws_ssm.StringParameter(this, 'EcrRepoUriParam', {
       parameterName: ssm.ECR.TEAMCLAW_REPO_URI,

@@ -25,3 +25,14 @@ export const TC_SERVICE_NAME_PREFIX = {
   [ENVIRONMENT.PROD]: 'Prod_Tc_',
   [ENVIRONMENT.DEV]: 'Dev_Tc_',
 };
+
+export const TC_SECRET_MANAGER_ARN = {
+  [ENVIRONMENT.PROD]: {
+    GITHUB_OAUTH_TOKEN:
+      'arn:aws:secretsmanager:ap-southeast-1:023371593417:secret:prod/CHD/github/oauth-Tf3qVq',
+  },
+  [ENVIRONMENT.DEV]: {
+    GITHUB_OAUTH_TOKEN:
+      'arn:aws:secretsmanager:us-west-1:023371593417:secret:prod/CHD/github/oauth-Tf3qVq',
+  },
+};

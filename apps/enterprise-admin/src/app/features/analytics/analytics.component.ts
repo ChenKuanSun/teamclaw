@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
@@ -31,7 +31,6 @@ import {
     MatInputModule,
     MatNativeDateModule,
     MatProgressSpinnerModule,
-    DatePipe,
     DecimalPipe,
   ],
   template: `

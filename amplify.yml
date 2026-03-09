@@ -11,9 +11,10 @@ applications:
             - npm ci --legacy-peer-deps
         build:
           commands:
-            - export NX_ISOLATE_PLUGINS=false
-            - if [ "${AWS_BRANCH}" = "main" ]; then npx nx run enterprise-chat:build:production; fi
-            - if [ "${AWS_BRANCH}" = "dev" ]; then npx nx run enterprise-chat:build:development; fi
+            - if [ "${AWS_BRANCH}" = "main" ]; then npx nx run
+              enterprise-chat:build:production --verbose; fi
+            - if [ "${AWS_BRANCH}" = "dev" ]; then npx nx run
+              enterprise-chat:build:development --verbose; fi
       artifacts:
         baseDirectory: ../../dist/apps/enterprise-chat/browser/
         files:
@@ -21,6 +22,3 @@ applications:
       cache:
         paths:
           - node_modules/**/*
-          - .nx/cache/**/*
-          - .angular/cache/**/*
-          - ~/.npm/**/*

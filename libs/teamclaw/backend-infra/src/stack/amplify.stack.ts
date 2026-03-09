@@ -33,8 +33,12 @@ export class AmplifyStack extends Stack {
       aws_amplify.CustomRule.SINGLE_PAGE_APPLICATION_REDIRECT,
     );
 
-    // Branch: main only for now (no custom domain)
+    // Branches
     this.app.addBranch('main', {
+      autoBuild: true,
+    });
+
+    this.app.addBranch('dev', {
       autoBuild: true,
     });
   }

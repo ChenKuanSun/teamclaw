@@ -1,0 +1,9 @@
+node_modules/
+dist/
+tmp/
+cdk.out/
+.nx/
+*.js.map
+*.d.ts
+!jest.config.ts
+!start-cdk.mjs

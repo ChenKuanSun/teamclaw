@@ -1,0 +1,26 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2022",
+    "module": "esnext",
+    "lib": ["es2022", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@OpenClaw/core/cloud-config": ["libs/core/cloud-config/src/index.ts"],
+      "@OpenClaw/core/constants": ["libs/core/constants/src/index.ts"],
+      "@OpenClaw/core/types": ["libs/core/types/src/index.ts"],
+      "@OpenClaw/openclaw/cloud-config": ["libs/openclaw/cloud-config/src/index.ts"],
+      "@OpenClaw/openclaw/backend-infra": ["libs/openclaw/backend-infra/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}

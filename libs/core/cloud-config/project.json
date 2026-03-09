@@ -1,0 +1,7 @@
+{
+  "name": "lib-core-cloud-config",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/core/cloud-config/src",
+  "projectType": "library",
+  "tags": []
+}

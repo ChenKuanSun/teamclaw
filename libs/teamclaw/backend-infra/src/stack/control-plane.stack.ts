@@ -80,6 +80,56 @@ export class ControlPlaneStack extends Stack {
       timeToLiveAttribute: 'ttl',
     });
 
+    // ─── DynamoDB: Teams & Config ───
+    const teamsTable = new aws_dynamodb.TableV2(this, id + 'TeamsTable', {
+      tableName: `teamclaw-teams-${deployEnv}`,
+      partitionKey: { name: 'teamId', type: aws_dynamodb.AttributeType.STRING },
+      removalPolicy: RemovalPolicy.RETAIN,
+      billing: aws_dynamodb.Billing.onDemand(),
+    });
+
+    const configTable = new aws_dynamodb.TableV2(this, id + 'ConfigTable', {
+      tableName: `teamclaw-config-${deployEnv}`,
+      partitionKey: { name: 'scopeKey', type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'configKey', type: aws_dynamodb.AttributeType.STRING },
+      removalPolicy: RemovalPolicy.RETAIN,
+      billing: aws_dynamodb.Billing.onDemand(),
+    });
+
+    // ─── DynamoDB SSM Parameters ───
+    new aws_ssm.StringParameter(this, 'UsersTableArnParam', {
+      parameterName: ssm.DYNAMODB.USERS_TABLE_ARN,
+      stringValue: userTable.tableArn,
+    });
+    new aws_ssm.StringParameter(this, 'UsersTableNameParam', {
+      parameterName: ssm.DYNAMODB.USERS_TABLE_NAME,
+      stringValue: userTable.tableName,
+    });
+    new aws_ssm.StringParameter(this, 'UsageTableArnParam', {
+      parameterName: ssm.DYNAMODB.USAGE_TABLE_ARN,
+      stringValue: usageTable.tableArn,
+    });
+    new aws_ssm.StringParameter(this, 'UsageTableNameParam', {
+      parameterName: ssm.DYNAMODB.USAGE_TABLE_NAME,
+      stringValue: usageTable.tableName,
+    });
+    new aws_ssm.StringParameter(this, 'TeamsTableArnParam', {
+      parameterName: ssm.DYNAMODB.TEAMS_TABLE_ARN,
+      stringValue: teamsTable.tableArn,
+    });
+    new aws_ssm.StringParameter(this, 'TeamsTableNameParam', {
+      parameterName: ssm.DYNAMODB.TEAMS_TABLE_NAME,
+      stringValue: teamsTable.tableName,
+    });
+    new aws_ssm.StringParameter(this, 'ConfigTableArnParam', {
+      parameterName: ssm.DYNAMODB.CONFIG_TABLE_ARN,
+      stringValue: configTable.tableArn,
+    });
+    new aws_ssm.StringParameter(this, 'ConfigTableNameParam', {
+      parameterName: ssm.DYNAMODB.CONFIG_TABLE_NAME,
+      stringValue: configTable.tableName,
+    });
+
     // ─── Key Pool Proxy Lambda ───
     const apiKeysSecretArn = aws_ssm.StringParameter.valueForStringParameter(
       this, ssm.SECRETS.API_KEYS_SECRET_ARN,

@@ -1,0 +1,16 @@
+<mat-sidenav-container class="admin-sidenav-container">
+  <mat-sidenav
+    #sidenav
+    class="admin-sidenav"
+    [opened]="sidenavOpened()"
+    [mode]="sidenavMode()">
+    <tc-admin-side-nav />
+  </mat-sidenav>
+
+  <mat-sidenav-content class="admin-content">
+    <tc-admin-header (menuToggle)="toggleSidenav()" [showMenuButton]="isSmallDevice()" />
+    <div class="admin-page-wrapper">
+      <router-outlet />
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

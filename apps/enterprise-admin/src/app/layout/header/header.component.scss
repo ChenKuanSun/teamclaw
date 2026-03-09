@@ -1,0 +1,28 @@
+.admin-header {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border-bottom: var(--border-thin) solid var(--border-default);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-title {
+  font-family: var(--font-sans);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-semibold);
+  margin-left: var(--space-2);
+  color: var(--text-primary);
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.user-email {
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-mono);
+  color: var(--text-tertiary);
+  border-bottom: var(--border-thin) solid var(--border-default);
+}

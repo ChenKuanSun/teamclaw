@@ -1,0 +1,25 @@
+<mat-toolbar class="admin-header">
+  @if (showMenuButton()) {
+    <button mat-icon-button (click)="onMenuToggle()">
+      <mat-icon>menu</mat-icon>
+    </button>
+  }
+
+  <span class="header-title">TeamClaw Admin</span>
+
+  <span class="spacer"></span>
+
+  <button mat-icon-button [matMenuTriggerFor]="userMenu">
+    <mat-icon>account_circle</mat-icon>
+  </button>
+
+  <mat-menu #userMenu="matMenu">
+    @if (userEmail()) {
+      <div class="user-email">{{ userEmail() }}</div>
+    }
+    <button mat-menu-item (click)="signOut()">
+      <mat-icon>logout</mat-icon>
+      <span>Sign Out</span>
+    </button>
+  </mat-menu>
+</mat-toolbar>

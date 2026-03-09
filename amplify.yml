@@ -8,7 +8,7 @@ applications:
             - nvm install 22.15.0
             - nvm use 22.15.0
             - cd ../..
-            - npm ci --legacy-peer-deps --prefer-offline
+            - npm ci --legacy-peer-deps
         build:
           commands:
             - if [ "${AWS_BRANCH}" = "main" ]; then npx nx run enterprise-chat:build:production; fi

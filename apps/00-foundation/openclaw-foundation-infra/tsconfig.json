@@ -1,0 +1,12 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "types": ["node"]
+  },
+  "include": ["cdk/**/*.ts"],
+  "ts-node": {
+    "preferTsExts": true,
+    "require": ["tsconfig-paths/register"]
+  }
+}

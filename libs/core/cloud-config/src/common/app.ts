@@ -36,3 +36,23 @@ export const TC_SECRET_MANAGER_ARN = {
       'arn:aws:secretsmanager:ap-southeast-1:023371593417:secret:prod/CHD/github/oauth-Tf3qVq',
   },
 };
+
+export const TC_ADMIN_USER_POOL_DOMAIN_PREFIX = {
+  [ENVIRONMENT.PROD]: 'teamclaw-admin',
+  [ENVIRONMENT.DEV]: 'teamclaw-admin-dev',
+};
+
+export const TC_ADMIN_AUTH_CALLBACK_URL = {
+  [ENVIRONMENT.PROD]: 'https://admin.teamclaw.com/auth/callback', // placeholder
+  [ENVIRONMENT.DEV]: 'https://admin-dev.teamclaw.com/auth/callback', // placeholder
+};
+
+export const TC_ADMIN_AUTH_LOGOUT_URL = {
+  [ENVIRONMENT.PROD]: 'https://admin.teamclaw.com/auth/login', // placeholder
+  [ENVIRONMENT.DEV]: 'https://admin-dev.teamclaw.com/auth/login', // placeholder
+};
+
+export const TC_ADMIN_APP_DOMAIN_NAME = {
+  [ENVIRONMENT.PROD]: 'admin.teamclaw.com', // placeholder
+  [ENVIRONMENT.DEV]: 'admin-dev.teamclaw.com', // placeholder
+};

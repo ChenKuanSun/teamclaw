@@ -32,6 +32,65 @@ export const TC_SSM_PARAMETER = {
     SECRETS: {
       API_KEYS_SECRET_ARN: `/tc/${ENVIRONMENT.PROD}/secrets/apiKeysSecretArn`,
     },
+    DYNAMODB: {
+      USERS_TABLE_ARN: `/tc/${ENVIRONMENT.PROD}/dynamodb/usersTableArn`,
+      USERS_TABLE_NAME: `/tc/${ENVIRONMENT.PROD}/dynamodb/usersTableName`,
+      USAGE_TABLE_ARN: `/tc/${ENVIRONMENT.PROD}/dynamodb/usageTableArn`,
+      USAGE_TABLE_NAME: `/tc/${ENVIRONMENT.PROD}/dynamodb/usageTableName`,
+      TEAMS_TABLE_ARN: `/tc/${ENVIRONMENT.PROD}/dynamodb/teamsTableArn`,
+      TEAMS_TABLE_NAME: `/tc/${ENVIRONMENT.PROD}/dynamodb/teamsTableName`,
+      CONFIG_TABLE_ARN: `/tc/${ENVIRONMENT.PROD}/dynamodb/configTableArn`,
+      CONFIG_TABLE_NAME: `/tc/${ENVIRONMENT.PROD}/dynamodb/configTableName`,
+    },
+    ADMIN_COGNITO: {
+      USER_POOL_ID: `/tc/${ENVIRONMENT.PROD}/admin-cognito/userPoolId`,
+      USER_POOL_CLIENT_ID: `/tc/${ENVIRONMENT.PROD}/admin-cognito/userPoolClientId`,
+      USER_POOL_DOMAIN: `/tc/${ENVIRONMENT.PROD}/admin-cognito/userPoolDomain`,
+    },
+    ADMIN_API: {
+      REST_API_ID: `/tc/${ENVIRONMENT.PROD}/admin-api/restApiId`,
+      ROOT_RESOURCE_ID: `/tc/${ENVIRONMENT.PROD}/admin-api/rootResourceId`,
+      REST_API_ENDPOINT: `/tc/${ENVIRONMENT.PROD}/admin-api/restApiEndpoint`,
+      STAGE_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/stageName`,
+      WEB_ACL_ARN: `/tc/${ENVIRONMENT.PROD}/admin-api/webAclArn`,
+      LAMBDA: {
+        // Dashboard
+        GET_DASHBOARD_STATS_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/getDashboardStatsLambdaName`,
+        // Users
+        QUERY_USERS_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/queryUsersLambdaName`,
+        GET_USER_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/getUserLambdaName`,
+        UPDATE_USER_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/updateUserLambdaName`,
+        DELETE_USER_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/deleteUserLambdaName`,
+        // Teams
+        QUERY_TEAMS_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/queryTeamsLambdaName`,
+        GET_TEAM_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/getTeamLambdaName`,
+        CREATE_TEAM_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/createTeamLambdaName`,
+        UPDATE_TEAM_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/updateTeamLambdaName`,
+        DELETE_TEAM_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/deleteTeamLambdaName`,
+        // Containers
+        QUERY_CONTAINERS_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/queryContainersLambdaName`,
+        GET_CONTAINER_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/getContainerLambdaName`,
+        START_CONTAINER_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/startContainerLambdaName`,
+        STOP_CONTAINER_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/stopContainerLambdaName`,
+        PROVISION_CONTAINER_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/provisionContainerLambdaName`,
+        // Config
+        GET_GLOBAL_CONFIG_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/getGlobalConfigLambdaName`,
+        UPDATE_GLOBAL_CONFIG_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/updateGlobalConfigLambdaName`,
+        GET_TEAM_CONFIG_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/getTeamConfigLambdaName`,
+        UPDATE_TEAM_CONFIG_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/updateTeamConfigLambdaName`,
+        GET_USER_CONFIG_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/getUserConfigLambdaName`,
+        UPDATE_USER_CONFIG_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/updateUserConfigLambdaName`,
+        // API Keys
+        GET_API_KEYS_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/getApiKeysLambdaName`,
+        ADD_API_KEY_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/addApiKeyLambdaName`,
+        REMOVE_API_KEY_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/removeApiKeyLambdaName`,
+        GET_KEY_USAGE_STATS_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/getKeyUsageStatsLambdaName`,
+        // Analytics
+        GET_SYSTEM_ANALYTICS_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/getSystemAnalyticsLambdaName`,
+        QUERY_USERS_USAGE_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/queryUsersUsageLambdaName`,
+        GET_USAGE_BY_PROVIDER_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/getUsageByProviderLambdaName`,
+      },
+    },
   },
   [ENVIRONMENT.DEV]: {
     VPC: {
@@ -63,6 +122,65 @@ export const TC_SSM_PARAMETER = {
     },
     SECRETS: {
       API_KEYS_SECRET_ARN: `/tc/${ENVIRONMENT.DEV}/secrets/apiKeysSecretArn`,
+    },
+    DYNAMODB: {
+      USERS_TABLE_ARN: `/tc/${ENVIRONMENT.DEV}/dynamodb/usersTableArn`,
+      USERS_TABLE_NAME: `/tc/${ENVIRONMENT.DEV}/dynamodb/usersTableName`,
+      USAGE_TABLE_ARN: `/tc/${ENVIRONMENT.DEV}/dynamodb/usageTableArn`,
+      USAGE_TABLE_NAME: `/tc/${ENVIRONMENT.DEV}/dynamodb/usageTableName`,
+      TEAMS_TABLE_ARN: `/tc/${ENVIRONMENT.DEV}/dynamodb/teamsTableArn`,
+      TEAMS_TABLE_NAME: `/tc/${ENVIRONMENT.DEV}/dynamodb/teamsTableName`,
+      CONFIG_TABLE_ARN: `/tc/${ENVIRONMENT.DEV}/dynamodb/configTableArn`,
+      CONFIG_TABLE_NAME: `/tc/${ENVIRONMENT.DEV}/dynamodb/configTableName`,
+    },
+    ADMIN_COGNITO: {
+      USER_POOL_ID: `/tc/${ENVIRONMENT.DEV}/admin-cognito/userPoolId`,
+      USER_POOL_CLIENT_ID: `/tc/${ENVIRONMENT.DEV}/admin-cognito/userPoolClientId`,
+      USER_POOL_DOMAIN: `/tc/${ENVIRONMENT.DEV}/admin-cognito/userPoolDomain`,
+    },
+    ADMIN_API: {
+      REST_API_ID: `/tc/${ENVIRONMENT.DEV}/admin-api/restApiId`,
+      ROOT_RESOURCE_ID: `/tc/${ENVIRONMENT.DEV}/admin-api/rootResourceId`,
+      REST_API_ENDPOINT: `/tc/${ENVIRONMENT.DEV}/admin-api/restApiEndpoint`,
+      STAGE_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/stageName`,
+      WEB_ACL_ARN: `/tc/${ENVIRONMENT.DEV}/admin-api/webAclArn`,
+      LAMBDA: {
+        // Dashboard
+        GET_DASHBOARD_STATS_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/getDashboardStatsLambdaName`,
+        // Users
+        QUERY_USERS_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/queryUsersLambdaName`,
+        GET_USER_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/getUserLambdaName`,
+        UPDATE_USER_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/updateUserLambdaName`,
+        DELETE_USER_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/deleteUserLambdaName`,
+        // Teams
+        QUERY_TEAMS_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/queryTeamsLambdaName`,
+        GET_TEAM_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/getTeamLambdaName`,
+        CREATE_TEAM_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/createTeamLambdaName`,
+        UPDATE_TEAM_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/updateTeamLambdaName`,
+        DELETE_TEAM_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/deleteTeamLambdaName`,
+        // Containers
+        QUERY_CONTAINERS_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/queryContainersLambdaName`,
+        GET_CONTAINER_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/getContainerLambdaName`,
+        START_CONTAINER_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/startContainerLambdaName`,
+        STOP_CONTAINER_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/stopContainerLambdaName`,
+        PROVISION_CONTAINER_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/provisionContainerLambdaName`,
+        // Config
+        GET_GLOBAL_CONFIG_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/getGlobalConfigLambdaName`,
+        UPDATE_GLOBAL_CONFIG_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/updateGlobalConfigLambdaName`,
+        GET_TEAM_CONFIG_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/getTeamConfigLambdaName`,
+        UPDATE_TEAM_CONFIG_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/updateTeamConfigLambdaName`,
+        GET_USER_CONFIG_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/getUserConfigLambdaName`,
+        UPDATE_USER_CONFIG_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/updateUserConfigLambdaName`,
+        // API Keys
+        GET_API_KEYS_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/getApiKeysLambdaName`,
+        ADD_API_KEY_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/addApiKeyLambdaName`,
+        REMOVE_API_KEY_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/removeApiKeyLambdaName`,
+        GET_KEY_USAGE_STATS_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/getKeyUsageStatsLambdaName`,
+        // Analytics
+        GET_SYSTEM_ANALYTICS_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/getSystemAnalyticsLambdaName`,
+        QUERY_USERS_USAGE_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/queryUsersUsageLambdaName`,
+        GET_USAGE_BY_PROVIDER_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/getUsageByProviderLambdaName`,
+      },
     },
   },
 };

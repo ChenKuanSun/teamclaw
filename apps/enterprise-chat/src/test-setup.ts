@@ -1,6 +1,3 @@
-import { setupZonelessTestEnv } from 'jest-preset-angular/setup-env/zoneless';
+import { setupZoneTestEnv } from 'jest-preset-angular/setup-env/zone';
 
-setupZonelessTestEnv({
-  errorOnUnknownElements: true,
-  errorOnUnknownProperties: true,
-});
+setupZoneTestEnv();

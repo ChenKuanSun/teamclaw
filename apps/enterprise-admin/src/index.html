@@ -24,6 +24,11 @@
       rel="stylesheet"
     />
 
+    <!-- Polyfill: amazon-cognito-identity-js uses Node.js `global` -->
+    <script>
+      if (typeof global === 'undefined') { window.global = window; }
+    </script>
+
     <!-- Prevent FOUC with dark background -->
     <style>
       html[data-theme='dark'] {

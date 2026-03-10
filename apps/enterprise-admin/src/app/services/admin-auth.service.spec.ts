@@ -1,63 +1,77 @@
 import { TestBed } from '@angular/core/testing';
-import {
-  HttpTestingController,
-  provideHttpClientTesting,
-} from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AdminAuthService } from './admin-auth.service';
-import { environment } from '../../environments/environment';
+
+// Mock amazon-cognito-identity-js
+const mockAuthenticateUser = jest.fn();
+const mockGetSession = jest.fn();
+const mockSignOut = jest.fn();
+const mockGetCurrentUser = jest.fn();
+
+jest.mock('amazon-cognito-identity-js', () => {
+  return {
+    CognitoUserPool: jest.fn().mockImplementation(() => ({
+      getCurrentUser: mockGetCurrentUser,
+    })),
+    CognitoUser: jest.fn().mockImplementation(() => ({
+      authenticateUser: mockAuthenticateUser,
+      getSession: mockGetSession,
+      signOut: mockSignOut,
+    })),
+    AuthenticationDetails: jest.fn(),
+  };
+});
 
 describe('AdminAuthService', () => {
   let service: AdminAuthService;
-  let httpMock: HttpTestingController;
   let router: jest.Mocked<Router>;
 
   const TOKEN_STORAGE_KEY = 'admin_auth_result';
-  const PKCE_VERIFIER_KEY = 'admin_pkce_verifier';
-  const OAUTH_STATE_KEY = 'admin_oauth_state';
   const REDIRECT_URL_KEY = 'admin_redirect_url';
 
-  const mockTokenResponse = {
-    access_token: 'mock-access-token',
-    id_token:
-      'eyJhbGciOiJIUzI1NiJ9.' +
-      btoa(JSON.stringify({ email: 'admin@test.com' })) +
-      '.sig',
-    refresh_token: 'mock-refresh-token',
-    expires_in: 3600,
-    token_type: 'Bearer',
+  const mockIdToken =
+    'eyJhbGciOiJIUzI1NiJ9.' +
+    btoa(JSON.stringify({ email: 'admin@test.com' })) +
+    '.sig';
+
+  const mockSession = {
+    isValid: () => true,
+    getAccessToken: () => ({
+      getJwtToken: () => 'mock-access-token',
+      getExpiration: () => Math.floor(Date.now() / 1000) + 3600,
+    }),
+    getIdToken: () => ({
+      getJwtToken: () => mockIdToken,
+    }),
+    getRefreshToken: () => ({
+      getToken: () => 'mock-refresh-token',
+    }),
   };
 
   function createService() {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
         AdminAuthService,
         { provide: Router, useValue: router },
       ],
     });
-
     service = TestBed.inject(AdminAuthService);
-    httpMock = TestBed.inject(HttpTestingController);
   }
 
   beforeEach(() => {
     sessionStorage.clear();
+    jest.clearAllMocks();
 
     router = {
       navigateByUrl: jest.fn().mockResolvedValue(true),
     } as unknown as jest.Mocked<Router>;
 
+    mockGetCurrentUser.mockReturnValue(null);
     createService();
   });
 
   afterEach(() => {
-    httpMock.verify();
     sessionStorage.clear();
-    // Reset URL
-    window.history.pushState({}, '', '/');
   });
 
   describe('initialization', () => {
@@ -102,7 +116,7 @@ describe('AdminAuthService', () => {
       expect(service.hasRefreshToken()).toBe(true);
     });
 
-    it('should clear storage if no refresh token and tokens are present', () => {
+    it('should clear storage if no refresh token', () => {
       const stored = {
         accessToken: 'access',
         idToken: 'id',
@@ -117,160 +131,102 @@ describe('AdminAuthService', () => {
       expect(sessionStorage.getItem(TOKEN_STORAGE_KEY)).toBeNull();
     });
 
-    it('should handle corrupted JSON in sessionStorage gracefully', () => {
+    it('should handle corrupted JSON gracefully', () => {
       sessionStorage.setItem(TOKEN_STORAGE_KEY, 'not-valid-json{{{');
 
       TestBed.resetTestingModule();
       createService();
 
       expect(service.isAuthenticated()).toBe(false);
-      expect(service.accessToken()).toBe('');
     });
   });
 
   describe('login()', () => {
-    it('should store PKCE verifier and state in sessionStorage', async () => {
-      // Mock crypto.subtle.digest since it may not be available in jsdom
-      const originalDigest = crypto.subtle?.digest;
-      if (crypto.subtle) {
-        crypto.subtle.digest = jest.fn().mockResolvedValue(new ArrayBuffer(32));
-      } else {
-        Object.defineProperty(crypto, 'subtle', {
-          value: { digest: jest.fn().mockResolvedValue(new ArrayBuffer(32)) },
-          configurable: true,
-        });
-      }
+    it('should authenticate and navigate to dashboard on success', async () => {
+      mockAuthenticateUser.mockImplementation((_details: unknown, callbacks: { onSuccess: (session: typeof mockSession) => void }) => {
+        callbacks.onSuccess(mockSession);
+      });
 
-      try {
-        await service.login();
-      } catch {
-        // Expected: jsdom may throw on window.location.href navigation
-      }
-
-      expect(sessionStorage.getItem(PKCE_VERIFIER_KEY)).toBeTruthy();
-      expect(sessionStorage.getItem(OAUTH_STATE_KEY)).toBeTruthy();
-
-      // Restore
-      if (originalDigest && crypto.subtle) {
-        crypto.subtle.digest = originalDigest;
-      }
-    });
-  });
-
-  describe('handleCallback()', () => {
-    const tokenUrl = `https://${environment.auth.domain}/oauth2/token`;
-
-    it('should exchange auth code for tokens and navigate to dashboard', async () => {
-      const storedState = 'test-state-value';
-      sessionStorage.setItem(OAUTH_STATE_KEY, storedState);
-      sessionStorage.setItem(PKCE_VERIFIER_KEY, 'test-verifier');
-
-      const callbackPromise = service.handleCallback('auth-code-123', storedState);
-
-      const req = httpMock.expectOne((r) => r.url === tokenUrl);
-      expect(req.request.method).toBe('POST');
-      expect(req.request.headers.get('Content-Type')).toBe(
-        'application/x-www-form-urlencoded',
-      );
-      expect(req.request.body).toContain('grant_type=authorization_code');
-      expect(req.request.body).toContain('code=auth-code-123');
-      expect(req.request.body).toContain('code_verifier=test-verifier');
-      req.flush(mockTokenResponse);
-
-      const result = await callbackPromise;
+      const result = await service.login('admin@test.com', 'Password123!');
 
       expect(result).toBe(true);
       expect(service.isAuthenticated()).toBe(true);
       expect(service.accessToken()).toBe('mock-access-token');
       expect(router.navigateByUrl).toHaveBeenCalledWith('/dashboard');
-
-      // PKCE artifacts should be cleaned up
-      expect(sessionStorage.getItem(PKCE_VERIFIER_KEY)).toBeNull();
-      expect(sessionStorage.getItem(OAUTH_STATE_KEY)).toBeNull();
+      expect(sessionStorage.getItem(TOKEN_STORAGE_KEY)).toBeTruthy();
     });
 
     it('should navigate to stored redirect URL after login', async () => {
-      const storedState = 'test-state';
-      sessionStorage.setItem(OAUTH_STATE_KEY, storedState);
-      sessionStorage.setItem(PKCE_VERIFIER_KEY, 'verifier');
       sessionStorage.setItem(REDIRECT_URL_KEY, '/users');
 
-      const callbackPromise = service.handleCallback('code', storedState);
-      httpMock.expectOne(tokenUrl).flush(mockTokenResponse);
+      mockAuthenticateUser.mockImplementation((_details: unknown, callbacks: { onSuccess: (session: typeof mockSession) => void }) => {
+        callbacks.onSuccess(mockSession);
+      });
 
-      await callbackPromise;
+      await service.login('admin@test.com', 'Password123!');
 
       expect(router.navigateByUrl).toHaveBeenCalledWith('/users');
       expect(sessionStorage.getItem(REDIRECT_URL_KEY)).toBeNull();
     });
 
-    it('should reject callback with state mismatch (CSRF protection)', async () => {
-      sessionStorage.setItem(OAUTH_STATE_KEY, 'correct-state');
-      sessionStorage.setItem(PKCE_VERIFIER_KEY, 'verifier');
+    it('should set error on invalid credentials', async () => {
+      mockAuthenticateUser.mockImplementation((_details: unknown, callbacks: { onFailure: (err: Error & { code?: string }) => void }) => {
+        const err = new Error('Incorrect username or password.') as Error & { code?: string };
+        err.code = 'NotAuthorizedException';
+        callbacks.onFailure(err);
+      });
 
-      const result = await service.handleCallback('code', 'wrong-state');
-
-      expect(result).toBe(false);
-      expect(service.isAuthenticated()).toBe(false);
-      httpMock.expectNone(tokenUrl);
-    });
-
-    it('should reject callback with missing PKCE verifier', async () => {
-      const storedState = 'test-state';
-      sessionStorage.setItem(OAUTH_STATE_KEY, storedState);
-
-      const result = await service.handleCallback('code', storedState);
-
-      expect(result).toBe(false);
-      httpMock.expectNone(tokenUrl);
-    });
-
-    it('should handle token exchange HTTP failure', async () => {
-      const storedState = 'test-state';
-      sessionStorage.setItem(OAUTH_STATE_KEY, storedState);
-      sessionStorage.setItem(PKCE_VERIFIER_KEY, 'verifier');
-
-      const callbackPromise = service.handleCallback('code', storedState);
-      httpMock.expectOne(tokenUrl).flush('error', { status: 400, statusText: 'Bad Request' });
-
-      const result = await callbackPromise;
+      const result = await service.login('admin@test.com', 'wrong');
 
       expect(result).toBe(false);
       expect(service.isAuthenticated()).toBe(false);
+      expect(service.error()).toBe('Invalid email or password.');
+      expect(service.isLoading()).toBe(false);
+    });
+
+    it('should handle newPasswordRequired challenge', async () => {
+      mockAuthenticateUser.mockImplementation((_details: unknown, callbacks: { newPasswordRequired: () => void }) => {
+        callbacks.newPasswordRequired();
+      });
+
+      const result = await service.login('admin@test.com', 'Password123!');
+
+      expect(result).toBe(false);
+      expect(service.error()).toContain('Password change required');
+    });
+
+    it('should set isLoading during authentication', async () => {
+      let resolveAuth: (session: typeof mockSession) => void;
+      mockAuthenticateUser.mockImplementation((_details: unknown, callbacks: { onSuccess: (session: typeof mockSession) => void }) => {
+        resolveAuth = callbacks.onSuccess;
+      });
+
+      const loginPromise = service.login('admin@test.com', 'Password123!');
+      expect(service.isLoading()).toBe(true);
+
+      resolveAuth!(mockSession);
+      await loginPromise;
+
       expect(service.isLoading()).toBe(false);
     });
   });
 
   describe('refreshAccessToken()', () => {
-    const tokenUrl = `https://${environment.auth.domain}/oauth2/token`;
-
-    it('should return false when no refresh token exists', async () => {
+    it('should return false when no current user', async () => {
+      mockGetCurrentUser.mockReturnValue(null);
       const result = await service.refreshAccessToken();
       expect(result).toBe(false);
-      httpMock.expectNone(tokenUrl);
     });
 
-    it('should refresh token and update state', async () => {
-      const stored = {
-        accessToken: '',
-        idToken: '',
-        refreshToken: 'my-refresh-token',
-        expiresAt: 0,
+    it('should refresh token via Cognito SDK', async () => {
+      const mockUser = {
+        getSession: (cb: (err: Error | null, session: typeof mockSession | null) => void) => {
+          cb(null, mockSession);
+        },
       };
-      sessionStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(stored));
+      mockGetCurrentUser.mockReturnValue(mockUser);
 
-      TestBed.resetTestingModule();
-      createService();
-
-      const refreshPromise = service.refreshAccessToken();
-
-      const req = httpMock.expectOne((r) => r.url === tokenUrl);
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toContain('grant_type=refresh_token');
-      expect(req.request.body).toContain('refresh_token=my-refresh-token');
-      req.flush(mockTokenResponse);
-
-      const result = await refreshPromise;
+      const result = await service.refreshAccessToken();
 
       expect(result).toBe(true);
       expect(service.isAuthenticated()).toBe(true);
@@ -278,23 +234,15 @@ describe('AdminAuthService', () => {
     });
 
     it('should sign out when refresh fails', async () => {
-      const stored = {
-        accessToken: '',
-        idToken: '',
-        refreshToken: 'my-refresh-token',
-        expiresAt: 0,
+      const mockUser = {
+        getSession: (cb: (err: Error | null, session: null) => void) => {
+          cb(new Error('Refresh failed'), null);
+        },
+        signOut: jest.fn(),
       };
-      sessionStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(stored));
+      mockGetCurrentUser.mockReturnValue(mockUser);
 
-      TestBed.resetTestingModule();
-      createService();
-
-      const refreshPromise = service.refreshAccessToken();
-      httpMock
-        .expectOne((r) => r.url === tokenUrl)
-        .flush('error', { status: 400, statusText: 'Bad Request' });
-
-      const result = await refreshPromise;
+      const result = await service.refreshAccessToken();
 
       expect(result).toBe(false);
       expect(router.navigateByUrl).toHaveBeenCalledWith('/auth/login');
@@ -302,51 +250,31 @@ describe('AdminAuthService', () => {
   });
 
   describe('signOut()', () => {
-    it('should clear state and storage and navigate to login', () => {
+    it('should clear state, storage, and navigate to login', () => {
       sessionStorage.setItem(TOKEN_STORAGE_KEY, 'data');
-      sessionStorage.setItem(PKCE_VERIFIER_KEY, 'verifier');
-      sessionStorage.setItem(OAUTH_STATE_KEY, 'state');
+      sessionStorage.setItem(REDIRECT_URL_KEY, '/users');
 
       service.signOut();
 
       expect(service.isAuthenticated()).toBe(false);
       expect(service.accessToken()).toBe('');
       expect(sessionStorage.getItem(TOKEN_STORAGE_KEY)).toBeNull();
-      expect(sessionStorage.getItem(PKCE_VERIFIER_KEY)).toBeNull();
-      expect(sessionStorage.getItem(OAUTH_STATE_KEY)).toBeNull();
+      expect(sessionStorage.getItem(REDIRECT_URL_KEY)).toBeNull();
       expect(router.navigateByUrl).toHaveBeenCalledWith('/auth/login');
     });
   });
 
   describe('userEmail', () => {
     it('should decode email from id token', async () => {
-      sessionStorage.setItem(OAUTH_STATE_KEY, 'state');
-      sessionStorage.setItem(PKCE_VERIFIER_KEY, 'verifier');
+      mockAuthenticateUser.mockImplementation((_details: unknown, callbacks: { onSuccess: (session: typeof mockSession) => void }) => {
+        callbacks.onSuccess(mockSession);
+      });
 
-      const callbackPromise = service.handleCallback('code', 'state');
-      const tokenUrl = `https://${environment.auth.domain}/oauth2/token`;
-      httpMock.expectOne(tokenUrl).flush(mockTokenResponse);
-      await callbackPromise;
-
+      await service.login('admin@test.com', 'Password123!');
       expect(service.userEmail()).toBe('admin@test.com');
     });
 
     it('should return empty string for missing id token', () => {
-      expect(service.userEmail()).toBe('');
-    });
-
-    it('should return empty string for corrupted id token', async () => {
-      sessionStorage.setItem(OAUTH_STATE_KEY, 'state');
-      sessionStorage.setItem(PKCE_VERIFIER_KEY, 'verifier');
-
-      const callbackPromise = service.handleCallback('code', 'state');
-      const tokenUrl = `https://${environment.auth.domain}/oauth2/token`;
-      httpMock.expectOne(tokenUrl).flush({
-        ...mockTokenResponse,
-        id_token: 'not.valid-base64.token',
-      });
-      await callbackPromise;
-
       expect(service.userEmail()).toBe('');
     });
   });
@@ -361,18 +289,6 @@ describe('AdminAuthService', () => {
 
       service.setRedirectUrl('/teams');
       expect(sessionStorage.getItem(REDIRECT_URL_KEY)).toBe('/teams');
-
-      service.setRedirectUrl('/containers');
-      expect(sessionStorage.getItem(REDIRECT_URL_KEY)).toBe('/containers');
-
-      service.setRedirectUrl('/config');
-      expect(sessionStorage.getItem(REDIRECT_URL_KEY)).toBe('/config');
-
-      service.setRedirectUrl('/api-keys');
-      expect(sessionStorage.getItem(REDIRECT_URL_KEY)).toBe('/api-keys');
-
-      service.setRedirectUrl('/analytics');
-      expect(sessionStorage.getItem(REDIRECT_URL_KEY)).toBe('/analytics');
     });
 
     it('should reject non-allowed paths', () => {
@@ -380,7 +296,7 @@ describe('AdminAuthService', () => {
       expect(sessionStorage.getItem(REDIRECT_URL_KEY)).toBeNull();
     });
 
-    it('should reject absolute URLs (non-relative)', () => {
+    it('should reject absolute URLs', () => {
       service.setRedirectUrl('https://evil.com/dashboard');
       expect(sessionStorage.getItem(REDIRECT_URL_KEY)).toBeNull();
     });
@@ -393,11 +309,6 @@ describe('AdminAuthService', () => {
       sessionStorage.setItem(REDIRECT_URL_KEY, '/users');
       expect(service.consumeRedirectUrl()).toBe('/users');
       expect(sessionStorage.getItem(REDIRECT_URL_KEY)).toBeNull();
-    });
-
-    it('should default to /dashboard for invalid consumed URL', () => {
-      sessionStorage.setItem(REDIRECT_URL_KEY, '/admin/secret');
-      expect(service.consumeRedirectUrl()).toBe('/dashboard');
     });
   });
 

@@ -1,14 +1,25 @@
 import { Component, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AdminAuthService } from '../services/admin-auth.service';
 
 @Component({
   selector: 'tc-admin-login',
   standalone: true,
-  imports: [MatButtonModule, MatCardModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [
+    FormsModule,
+    MatButtonModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
+  ],
   template: `
     <div class="login-container">
       <mat-card class="login-card">
@@ -18,17 +29,38 @@ import { AdminAuthService } from '../services/admin-auth.service';
         </mat-card-header>
 
         <mat-card-content>
-          @if (authService.isLoading()) {
-            <div class="loading">
-              <mat-spinner diameter="40"></mat-spinner>
-              <span>Signing in...</span>
-            </div>
-          } @else {
-            <button mat-raised-button color="primary" (click)="login()" class="login-button">
-              <mat-icon>login</mat-icon>
-              Sign in with SSO
+          <form (ngSubmit)="login()" class="login-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Email</mat-label>
+              <input matInput type="email" [(ngModel)]="email" name="email"
+                     required autocomplete="username" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Password</mat-label>
+              <input matInput [type]="hidePassword ? 'password' : 'text'"
+                     [(ngModel)]="password" name="password"
+                     required autocomplete="current-password" />
+              <button mat-icon-button matSuffix type="button"
+                      (click)="hidePassword = !hidePassword">
+                <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+            </mat-form-field>
+
+            @if (authService.error()) {
+              <div class="error-message">{{ authService.error() }}</div>
+            }
+
+            <button mat-raised-button color="primary" type="submit"
+                    class="login-button"
+                    [disabled]="authService.isLoading() || !email || !password">
+              @if (authService.isLoading()) {
+                <mat-spinner diameter="20"></mat-spinner>
+              } @else {
+                Sign in
+              }
             </button>
-          }
+          </form>
         </mat-card-content>
       </mat-card>
     </div>
@@ -64,10 +96,21 @@ import { AdminAuthService } from '../services/admin-auth.service';
       margin-top: 8px;
     }
 
-    mat-card-content {
+    .login-form {
       display: flex;
       flex-direction: column;
-      align-items: center;
+      width: 100%;
+    }
+
+    mat-form-field {
+      width: 100%;
+    }
+
+    .error-message {
+      color: var(--mat-sys-error);
+      font-size: 14px;
+      margin-bottom: 16px;
+      text-align: center;
     }
 
     .login-button {
@@ -76,18 +119,20 @@ import { AdminAuthService } from '../services/admin-auth.service';
       font-size: 16px;
     }
 
-    .loading {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
+    .login-button mat-spinner {
+      display: inline-block;
     }
   `,
 })
 export class LoginComponent {
   readonly authService = inject(AdminAuthService);
+  email = '';
+  password = '';
+  hidePassword = true;
 
   login() {
-    this.authService.login();
+    if (this.email && this.password) {
+      this.authService.login(this.email, this.password);
+    }
   }
 }

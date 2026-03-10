@@ -105,10 +105,10 @@ describe('authGuard', () => {
     expect(router.navigateByUrl).toHaveBeenCalledWith('/auth/login');
   });
 
-  it('should not store /auth/callback as redirect URL', async () => {
+  it('should not store /auth/login as redirect URL', async () => {
     authService.isAuthenticated.mockReturnValue(false);
 
-    setUrl('/auth/callback');
+    setUrl('/auth/login');
 
     const result = await runGuard();
 

@@ -21,7 +21,7 @@ export const authGuard: CanActivateFn = async () => {
 
   // Store the attempted URL for redirecting after login (with validation)
   const currentUrl = window.location.pathname + window.location.search;
-  if (currentUrl !== '/auth/login' && currentUrl !== '/auth/callback') {
+  if (currentUrl !== '/auth/login') {
     authService.setRedirectUrl(currentUrl);
   }
 

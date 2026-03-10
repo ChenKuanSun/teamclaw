@@ -6,8 +6,8 @@ import {
 } from '@aws-sdk/client-dynamodb';
 
 const ddbClient = new DynamoDBClient({});
-const TEAMS_TABLE = process.env.TEAMS_TABLE_NAME!;
-const USERS_TABLE = process.env.USERS_TABLE_NAME!;
+const TEAMS_TABLE = process.env['TEAMS_TABLE_NAME']!;
+const USERS_TABLE = process.env['USERS_TABLE_NAME']!;
 
 const CORS_HEADERS = {
   'Content-Type': 'application/json',
@@ -42,7 +42,7 @@ export const handler = async (event: any) => {
     }
 
     // Unset teamId on all member user records
-    const memberIds = teamResult.Item.memberIds?.SS || [];
+    const memberIds = teamResult.Item['memberIds']?.SS || [];
     for (const userId of memberIds) {
       await ddbClient.send(new UpdateItemCommand({
         TableName: USERS_TABLE,

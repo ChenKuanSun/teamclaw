@@ -23,7 +23,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       };
     }
 
-    const updatedBy = event.requestContext?.authorizer?.claims?.sub || 'admin';
+    const updatedBy = event.requestContext?.authorizer?.['claims']?.sub || 'admin';
 
     await dynamodb.send(new PutItemCommand({
       TableName: CONFIG_TABLE,

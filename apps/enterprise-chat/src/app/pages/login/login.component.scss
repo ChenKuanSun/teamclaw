@@ -1,0 +1,304 @@
+:host {
+  display: block;
+  width: 100%;
+  min-height: 100vh;
+}
+
+// ===== Container with Gradient Background =====
+.login-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-10);
+  overflow: hidden;
+  background: var(--bg-base);
+}
+
+// ===== Animated Background Orbs =====
+.gradient-orbs {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  z-index: var(--z-base);
+  pointer-events: none;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(var(--blur-hero));
+  opacity: 0.3;
+  animation: float 20s ease-in-out infinite;
+}
+
+.orb-blue {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+  top: -10%;
+  right: -5%;
+  animation-delay: 0s;
+}
+
+.orb-cyan {
+  width: 450px;
+  height: 450px;
+  background: radial-gradient(circle, var(--semantic-info) 0%, transparent 70%);
+  bottom: -10%;
+  left: -5%;
+  animation-delay: -7s;
+}
+
+.orb-navy {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(
+    circle,
+    var(--bg-overlay) 0%,
+    transparent 70%
+  );
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation-delay: -14s;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -30px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+}
+
+// ===== Main Content =====
+.login-content {
+  position: relative;
+  z-index: var(--z-content);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-16);
+  width: 100%;
+  max-width: 440px;
+  animation: fadeInUp var(--duration-slow) ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ===== Branding Section =====
+.branding {
+  text-align: center;
+  animation: fadeIn var(--duration-slow) ease-out 0.2s both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.brand-name {
+  font-size: var(--text-display);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2);
+  letter-spacing: var(--tracking-tighter);
+  background: linear-gradient(
+    135deg,
+    var(--accent) 0%,
+    var(--brand-navy) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tagline {
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+  margin: 0;
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-wider);
+}
+
+// ===== Login Card with Glass Effect =====
+.login-card {
+  width: 100%;
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  transition: all var(--duration-slow) ease;
+  animation: fadeInUp var(--duration-slow) ease-out 0.4s both;
+
+  &:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+}
+
+.card-header {
+  padding: var(--space-16) var(--space-16) var(--space-10);
+  text-align: center;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.welcome-title {
+  font-size: var(--text-h2);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: var(--tracking-tight);
+}
+
+.card-body {
+  padding: var(--space-16);
+}
+
+.full-width {
+  width: 100%;
+}
+
+.error-message {
+  display: block;
+  margin: 0 0 var(--space-4);
+  color: var(--semantic-critical);
+
+  p {
+    margin: 0;
+    font-size: var(--text-caption);
+    text-align: center;
+  }
+}
+
+.submit-btn {
+  height: var(--button-height-md);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  text-transform: none;
+  margin-top: var(--space-3);
+}
+
+// ===== Card Footer =====
+.card-footer {
+  padding: var(--space-6) var(--space-16) var(--space-10);
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border-default);
+}
+
+.footer-text {
+  font-size: var(--text-caption);
+  color: var(--text-tertiary);
+  text-align: center;
+  margin: 0;
+  line-height: var(--leading-loose);
+}
+
+// ===== Responsive Design =====
+@media (max-width: 768px) {
+  .login-container {
+    padding: var(--space-6);
+  }
+
+  .login-content {
+    max-width: 100%;
+    gap: var(--space-10);
+  }
+
+  .brand-name {
+    font-size: var(--text-h1);
+  }
+
+  .tagline {
+    font-size: var(--text-body-sm);
+  }
+
+  .card-header {
+    padding: var(--space-10) var(--space-6) var(--space-6);
+  }
+
+  .card-body {
+    padding: var(--space-6);
+  }
+
+  .card-footer {
+    padding: var(--space-4) var(--space-6);
+  }
+
+  .orb {
+    filter: blur(var(--blur-xl));
+  }
+
+  .orb-blue {
+    width: 350px;
+    height: 350px;
+  }
+
+  .orb-cyan {
+    width: 300px;
+    height: 300px;
+  }
+
+  .orb-navy {
+    width: 280px;
+    height: 280px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-container {
+    padding: var(--space-4);
+  }
+
+  .brand-name {
+    font-size: var(--text-h1);
+  }
+
+  .tagline {
+    font-size: var(--text-caption);
+  }
+
+  .card-header {
+    padding: var(--space-6) var(--space-4) var(--space-4);
+  }
+
+  .welcome-title {
+    font-size: var(--text-h3);
+  }
+
+  .card-body {
+    padding: var(--space-4);
+  }
+
+  .card-footer {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .footer-text {
+    font-size: var(--text-caption);
+  }
+}

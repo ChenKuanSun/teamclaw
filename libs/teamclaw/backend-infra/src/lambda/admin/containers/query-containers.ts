@@ -1,7 +1,7 @@
 import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
 
 const ddbClient = new DynamoDBClient({});
-const TABLE_NAME = process.env.USERS_TABLE_NAME!;
+const TABLE_NAME = process.env['USERS_TABLE_NAME']!;
 
 const CORS_HEADERS = {
   'Content-Type': 'application/json',
@@ -29,12 +29,12 @@ export const handler = async (event: any) => {
     const result = await ddbClient.send(new ScanCommand(params));
 
     const containers = (result.Items || []).map((item) => ({
-      userId: item.userId?.S,
-      email: item.email?.S || null,
-      displayName: item.displayName?.S || null,
-      teamId: item.teamId?.S || null,
-      status: item.status?.S || 'unknown',
-      taskArn: item.taskArn?.S || null,
+      userId: item['userId']?.S,
+      email: item['email']?.S || null,
+      displayName: item['displayName']?.S || null,
+      teamId: item['teamId']?.S || null,
+      status: item['status']?.S || 'unknown',
+      taskArn: item['taskArn']?.S || null,
     }));
 
     const nextToken = result.LastEvaluatedKey

@@ -1,8 +1,8 @@
 export const environment = {
-  production: false,
+  isProduction: true,
   cognito: {
-    userPoolId: 'ap-southeast-1_XXXXXXXXX',
-    clientId: 'XXXXXXXXXXXXXXXXXXXXXXXXXX',
+    userPoolId: '',
+    clientId: '',
   },
-  teamclawGatewayUrl: 'ws://localhost:18789',
+  teamclawGatewayUrl: '',
 };

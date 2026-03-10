@@ -1,0 +1,35 @@
+:host {
+  display: block;
+
+  .tc-global-bar {
+    min-height: var(--header-height);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-default);
+    padding: 0 var(--space-4);
+
+    .tc-page-label {
+      font-size: var(--text-h2);
+      font-weight: var(--weight-semibold);
+      line-height: var(--leading-normal);
+    }
+
+    .spacer {
+      flex: 1 1 auto;
+    }
+
+    .user-info-button {
+      color: var(--text-secondary);
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  :host {
+    .tc-global-bar {
+      .tc-page-label {
+        font-size: var(--text-h3);
+      }
+    }
+  }
+}

@@ -1,3 +1,9 @@
+/**
+ * Development environment configuration for TeamClaw Admin Panel
+ *
+ * Admin Panel uses a separate Cognito User Pool from TeamClaw App
+ * to prevent password conflicts with OAuth flow.
+ */
 export const environment = {
   isProduction: false,
   auth: {

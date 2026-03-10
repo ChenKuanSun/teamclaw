@@ -2,7 +2,7 @@ import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { randomUUID } from 'crypto';
 
 const ddbClient = new DynamoDBClient({});
-const TABLE_NAME = process.env.TEAMS_TABLE_NAME!;
+const TABLE_NAME = process.env['TEAMS_TABLE_NAME']!;
 
 const CORS_HEADERS = {
   'Content-Type': 'application/json',

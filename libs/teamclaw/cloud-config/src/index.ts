@@ -1,2 +1,3 @@
-export * from './lambda/props';
-export * from './fargate/props';
+export * from './fargate';
+export * from './lambda';
+export * from './testing';

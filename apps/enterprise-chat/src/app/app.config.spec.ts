@@ -10,8 +10,9 @@ describe('appConfig', () => {
     expect(Array.isArray(appConfig.providers)).toBe(true);
   });
 
-  it('should have at least router and animation providers', () => {
-    // providers array includes provideBrowserGlobalErrorListeners, provideRouter, provideAnimationsAsync
-    expect(appConfig.providers.length).toBeGreaterThanOrEqual(3);
+  it('should have providers for router, http, animations, translate, and markdown', () => {
+    // providers: provideBrowserGlobalErrorListeners, provideZoneChangeDetection,
+    // provideRouter, provideHttpClient, provideAnimationsAsync, provideTranslateService, provideMarkdown
+    expect(appConfig.providers.length).toBeGreaterThanOrEqual(7);
   });
 });

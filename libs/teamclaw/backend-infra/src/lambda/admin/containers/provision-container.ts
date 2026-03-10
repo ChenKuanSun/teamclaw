@@ -1,7 +1,7 @@
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 
 const lambdaClient = new LambdaClient({});
-const LIFECYCLE_LAMBDA_NAME = process.env.LIFECYCLE_LAMBDA_NAME!;
+const LIFECYCLE_LAMBDA_NAME = process.env['LIFECYCLE_LAMBDA_NAME']!;
 
 const CORS_HEADERS = {
   'Content-Type': 'application/json',

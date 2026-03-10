@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Injectable, signal, computed } from '@angular/core';
+import { Router } from '@angular/router';
 import {
   CognitoUserPool,
   CognitoUser,
@@ -11,49 +11,93 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private userPool: CognitoUserPool;
-  readonly user$ = new BehaviorSubject<CognitoUser | null>(null);
-  readonly session$ = new BehaviorSubject<CognitoUserSession | null>(null);
 
-  constructor() {
+  // Signal-based state (matching Affiora pattern)
+  private readonly _user = signal<CognitoUser | null>(null);
+  private readonly _session = signal<CognitoUserSession | null>(null);
+  private readonly _isLoading = signal(false);
+  private readonly _errorMessage = signal('');
+
+  readonly isAuthenticated = computed(() => {
+    const session = this._session();
+    return session !== null && session.isValid();
+  });
+  readonly isLoading = this._isLoading.asReadonly();
+  readonly errorMessage = this._errorMessage.asReadonly();
+  readonly user = this._user.asReadonly();
+
+  constructor(private readonly router: Router) {
     this.userPool = new CognitoUserPool({
       UserPoolId: environment.cognito.userPoolId,
       ClientId: environment.cognito.clientId,
     });
 
+    this.restoreSession();
+  }
+
+  /**
+   * Restore session from existing Cognito user on construction
+   */
+  private restoreSession(): void {
     const currentUser = this.userPool.getCurrentUser();
     if (currentUser) {
       currentUser.getSession((err: Error | null, session: CognitoUserSession) => {
-        if (!err && session.isValid()) {
-          this.user$.next(currentUser);
-          this.session$.next(session);
+        if (!err && session && session.isValid()) {
+          this._user.set(currentUser);
+          this._session.set(session);
         }
       });
     }
   }
 
-  login(email: string, password: string): Promise<CognitoUserSession> {
+  /**
+   * Sign in with email and password
+   */
+  async login(email: string, password: string): Promise<CognitoUserSession> {
+    this._isLoading.set(true);
+    this._errorMessage.set('');
+
     const user = new CognitoUser({ Username: email, Pool: this.userPool });
     const authDetails = new AuthenticationDetails({ Username: email, Password: password });
 
     return new Promise((resolve, reject) => {
       user.authenticateUser(authDetails, {
         onSuccess: (session) => {
-          this.user$.next(user);
-          this.session$.next(session);
+          this._user.set(user);
+          this._session.set(session);
+          this._isLoading.set(false);
           resolve(session);
         },
-        onFailure: reject,
+        onFailure: (err) => {
+          this._isLoading.set(false);
+          this._errorMessage.set(err.message || 'Authentication failed');
+          reject(err);
+        },
       });
     });
   }
 
-  logout(): void {
+  /**
+   * Sign out and redirect to login
+   */
+  signOut(): void {
     this.userPool.getCurrentUser()?.signOut();
-    this.user$.next(null);
-    this.session$.next(null);
+    this._user.set(null);
+    this._session.set(null);
+    this.router.navigate(['/login']);
   }
 
+  /**
+   * Redirect to login page
+   */
+  redirectToLogin(): void {
+    this.router.navigate(['/login']);
+  }
+
+  /**
+   * Get current ID token for API/WebSocket authentication
+   */
   getIdToken(): string | null {
-    return this.session$.value?.getIdToken()?.getJwtToken() || null;
+    return this._session()?.getIdToken()?.getJwtToken() || null;
   }
 }

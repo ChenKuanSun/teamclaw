@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 
-process.env['TS_NODE_PROJECT'] = process.env['CDK_TSCONFIG'] || './tsconfig.cdk.json';
+process.env['TS_NODE_PROJECT'] = process.env['CDK_TSCONFIG'];
 
 if (process.env['CDK_DEBUG'] === 'true') {
   process.env['NODE_OPTIONS'] =

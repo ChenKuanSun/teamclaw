@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { AdminAuthService } from '../../services/admin-auth.service';
+import { AdminAuthService } from '../services/admin-auth.service';
 
 @Component({
   selector: 'tc-admin-callback',

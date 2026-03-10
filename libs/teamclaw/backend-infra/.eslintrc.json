@@ -8,6 +8,10 @@
     },
     {
       "files": ["*.ts", "*.tsx"],
+      "extends": ["plugin:@typescript-eslint/recommended-type-checked-only"],
+      "parserOptions": {
+        "project": ["libs/teamclaw/backend-infra/tsconfig.*?.json"]
+      },
       "rules": {}
     },
     {

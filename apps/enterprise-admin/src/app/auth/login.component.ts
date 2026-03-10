@@ -3,7 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { AdminAuthService } from '../../services/admin-auth.service';
+import { AdminAuthService } from '../services/admin-auth.service';
 
 @Component({
   selector: 'tc-admin-login',
@@ -26,7 +26,7 @@ import { AdminAuthService } from '../../services/admin-auth.service';
           } @else {
             <button mat-raised-button color="primary" (click)="login()" class="login-button">
               <mat-icon>login</mat-icon>
-              Sign in with TeamClaw Admin
+              Sign in with SSO
             </button>
           }
         </mat-card-content>

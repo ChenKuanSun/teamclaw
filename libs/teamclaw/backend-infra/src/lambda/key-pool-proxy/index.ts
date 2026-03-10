@@ -17,7 +17,7 @@ interface ApiKeysSecret {
 async function getApiKeys(): Promise<ApiKeysSecret> {
   if (cachedKeys && Date.now() - cachedAt < CACHE_TTL_MS) return cachedKeys;
   const result = await smClient.send(new GetSecretValueCommand({
-    SecretId: process.env.API_KEYS_SECRET_ARN!,
+    SecretId: process.env['API_KEYS_SECRET_ARN']!,
   }));
   cachedKeys = JSON.parse(result.SecretString!);
   cachedAt = Date.now();
@@ -56,7 +56,7 @@ export const handler = async (event: any) => {
 
   // Track usage
   await ddbClient.send(new PutItemCommand({
-    TableName: process.env.USAGE_TABLE_NAME!,
+    TableName: process.env['USAGE_TABLE_NAME']!,
     Item: {
       userId: { S: userId },
       timestamp: { S: new Date().toISOString() },

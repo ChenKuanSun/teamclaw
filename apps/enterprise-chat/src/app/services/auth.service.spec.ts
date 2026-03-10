@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import {
   CognitoUserPool,
@@ -13,13 +14,20 @@ const MockCognitoUserPool = CognitoUserPool as jest.MockedClass<typeof CognitoUs
 const MockCognitoUser = CognitoUser as jest.MockedClass<typeof CognitoUser>;
 
 describe('AuthService', () => {
+  let mockRouter: { navigate: jest.Mock };
+
   beforeEach(() => {
     jest.clearAllMocks();
     MockCognitoUserPool.prototype.getCurrentUser = jest.fn().mockReturnValue(null);
+    mockRouter = { navigate: jest.fn() };
   });
 
   function createService(): AuthService {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: Router, useValue: mockRouter },
+      ],
+    });
     return TestBed.inject(AuthService);
   }
 
@@ -29,10 +37,9 @@ describe('AuthService', () => {
       expect(service).toBeTruthy();
     });
 
-    it('should initialize user$ and session$ as null when no current user', () => {
+    it('should initialize as not authenticated when no current user', () => {
       const service = createService();
-      expect(service.user$.value).toBeNull();
-      expect(service.session$.value).toBeNull();
+      expect(service.isAuthenticated()).toBe(false);
     });
 
     it('should restore session from existing user on construction', () => {
@@ -50,8 +57,8 @@ describe('AuthService', () => {
 
       const service = createService();
 
-      expect(service.user$.value).toBe(mockUser);
-      expect(service.session$.value).toBe(mockSession);
+      expect(service.isAuthenticated()).toBe(true);
+      expect(service.user()).toBe(mockUser);
     });
 
     it('should not restore session if session is invalid', () => {
@@ -69,8 +76,7 @@ describe('AuthService', () => {
 
       const service = createService();
 
-      expect(service.user$.value).toBeNull();
-      expect(service.session$.value).toBeNull();
+      expect(service.isAuthenticated()).toBe(false);
     });
 
     it('should not restore session if getSession returns error', () => {
@@ -84,14 +90,15 @@ describe('AuthService', () => {
 
       const service = createService();
 
-      expect(service.user$.value).toBeNull();
-      expect(service.session$.value).toBeNull();
+      expect(service.isAuthenticated()).toBe(false);
     });
   });
 
   describe('login', () => {
-    it('should authenticate user and update subjects on success', async () => {
-      const mockSession = {} as CognitoUserSession;
+    it('should authenticate user and update signals on success', async () => {
+      const mockSession = {
+        isValid: jest.fn().mockReturnValue(true),
+      } as unknown as CognitoUserSession;
       MockCognitoUser.prototype.authenticateUser = jest.fn((_authDetails, callbacks) => {
         callbacks.onSuccess(mockSession);
       });
@@ -100,8 +107,9 @@ describe('AuthService', () => {
       const result = await service.login('test@example.com', 'password123');
 
       expect(result).toBe(mockSession);
-      expect(service.user$.value).toBeTruthy();
-      expect(service.session$.value).toBe(mockSession);
+      expect(service.user()).toBeTruthy();
+      expect(service.isAuthenticated()).toBe(true);
+      expect(service.isLoading()).toBe(false);
     });
 
     it('should reject on authentication failure', async () => {
@@ -115,65 +123,50 @@ describe('AuthService', () => {
       await expect(service.login('test@example.com', 'wrong')).rejects.toThrow(
         'Incorrect username or password'
       );
-      expect(service.user$.value).toBeNull();
-      expect(service.session$.value).toBeNull();
+      expect(service.isAuthenticated()).toBe(false);
+      expect(service.isLoading()).toBe(false);
+      expect(service.errorMessage()).toBe('Incorrect username or password');
     });
   });
 
-  describe('logout', () => {
-    it('should sign out current user and clear subjects', () => {
+  describe('signOut', () => {
+    it('should sign out and navigate to login', () => {
       const mockSignOut = jest.fn();
       const mockCurrentUser = { signOut: mockSignOut } as unknown as CognitoUser;
 
-      // During construction, getCurrentUser returns null (default in beforeEach)
       const service = createService();
 
-      // Simulate a logged-in state
-      service.user$.next(mockCurrentUser);
-      service.session$.next({} as CognitoUserSession);
-
-      // Now make getCurrentUser return the mock user for the logout() call
-      // Access the actual pool instance via the mocked constructor calls
       const poolInstance = MockCognitoUserPool.mock.instances[MockCognitoUserPool.mock.instances.length - 1];
       (poolInstance.getCurrentUser as jest.Mock).mockReturnValue(mockCurrentUser);
 
-      service.logout();
+      service.signOut();
 
       expect(mockSignOut).toHaveBeenCalled();
-      expect(service.user$.value).toBeNull();
-      expect(service.session$.value).toBeNull();
+      expect(service.isAuthenticated()).toBe(false);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
     });
 
-    it('should handle logout when no current user exists', () => {
+    it('should handle signOut when no current user exists', () => {
       const service = createService();
-      // getCurrentUser returns null on the logout call
       MockCognitoUserPool.prototype.getCurrentUser = jest.fn().mockReturnValue(null);
 
-      expect(() => service.logout()).not.toThrow();
-      expect(service.user$.value).toBeNull();
-      expect(service.session$.value).toBeNull();
+      expect(() => service.signOut()).not.toThrow();
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
     });
   });
 
   describe('getIdToken', () => {
-    it('should return JWT token when session exists', () => {
-      const mockIdToken = {
-        getJwtToken: jest.fn().mockReturnValue('mock-jwt-token'),
-      } as unknown as CognitoIdToken;
-      const mockSession = {
-        isValid: jest.fn().mockReturnValue(true),
-        getIdToken: jest.fn().mockReturnValue(mockIdToken),
-      } as unknown as CognitoUserSession;
-
-      const service = createService();
-      service.session$.next(mockSession);
-
-      expect(service.getIdToken()).toBe('mock-jwt-token');
-    });
-
     it('should return null when no session exists', () => {
       const service = createService();
       expect(service.getIdToken()).toBeNull();
+    });
+  });
+
+  describe('redirectToLogin', () => {
+    it('should navigate to /login', () => {
+      const service = createService();
+      service.redirectToLogin();
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
     });
   });
 });

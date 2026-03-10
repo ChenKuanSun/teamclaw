@@ -1,7 +1,7 @@
 import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
 
 const ddbClient = new DynamoDBClient({});
-const TABLE_NAME = process.env.TEAMS_TABLE_NAME!;
+const TABLE_NAME = process.env['TEAMS_TABLE_NAME']!;
 
 const CORS_HEADERS = {
   'Content-Type': 'application/json',
@@ -36,13 +36,13 @@ export const handler = async (event: any) => {
 
     const item = result.Item;
     const team = {
-      teamId: item.teamId?.S,
-      name: item.name?.S,
-      description: item.description?.S,
-      memberIds: item.memberIds?.SS || [],
-      memberCount: item.memberIds?.SS?.length || 0,
-      createdAt: item.createdAt?.S,
-      updatedAt: item.updatedAt?.S,
+      teamId: item['teamId']?.S,
+      name: item['name']?.S,
+      description: item['description']?.S,
+      memberIds: item['memberIds']?.SS || [],
+      memberCount: item['memberIds']?.SS?.length || 0,
+      createdAt: item['createdAt']?.S,
+      updatedAt: item['updatedAt']?.S,
     };
 
     return {

@@ -2,16 +2,37 @@
   "name": "enterprise-chat",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "prefix": "app",
+  "prefix": "tc",
   "sourceRoot": "apps/enterprise-chat/src",
   "tags": [],
   "targets": {
+    "i18n:init": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "ngx-translate-extract --input ./src --output ./public/assets/i18n/template.json --key-as-default-value --replace --format json"
+        ],
+        "parallel": false,
+        "cwd": "apps/enterprise-chat"
+      }
+    },
+    "i18n:extract": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "ngx-translate-extract --input ./src --output ./public/assets/i18n/{en,zh,ja,ko}.json --clean --format json"
+        ],
+        "parallel": false,
+        "cwd": "apps/enterprise-chat"
+      }
+    },
     "build": {
       "executor": "@angular/build:application",
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "dist/apps/enterprise-chat",
         "browser": "apps/enterprise-chat/src/main.ts",
+        "polyfills": ["zone.js"],
         "tsConfig": "apps/enterprise-chat/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
         "assets": [
@@ -20,20 +41,22 @@
             "input": "apps/enterprise-chat/public"
           }
         ],
-        "styles": ["apps/enterprise-chat/src/styles.scss"]
+        "styles": [
+          "apps/enterprise-chat/src/styles.scss"
+        ]
       },
       "configurations": {
         "production": {
           "budgets": [
             {
               "type": "initial",
-              "maximumWarning": "500kb",
-              "maximumError": "1mb"
+              "maximumWarning": "1mb",
+              "maximumError": "1.5mb"
             },
             {
               "type": "anyComponentStyle",
-              "maximumWarning": "4kb",
-              "maximumError": "8kb"
+              "maximumWarning": "10kb",
+              "maximumError": "20kb"
             }
           ],
           "outputHashing": "all"
@@ -41,7 +64,13 @@
         "development": {
           "optimization": false,
           "extractLicenses": false,
-          "sourceMap": true
+          "sourceMap": true,
+          "fileReplacements": [
+            {
+              "replace": "apps/enterprise-chat/src/environments/environment.ts",
+              "with": "apps/enterprise-chat/src/environments/environment.development.ts"
+            }
+          ]
         }
       },
       "defaultConfiguration": "production"
@@ -49,6 +78,9 @@
     "serve": {
       "continuous": true,
       "executor": "@angular/build:dev-server",
+      "options": {
+        "port": 4700
+      },
       "configurations": {
         "production": {
           "buildTarget": "enterprise-chat:build:production"
@@ -58,6 +90,12 @@
         }
       },
       "defaultConfiguration": "development"
+    },
+    "extract-i18n": {
+      "executor": "@angular/build:extract-i18n",
+      "options": {
+        "buildTarget": "enterprise-chat:build"
+      }
     },
     "lint": {
       "executor": "@nx/eslint:lint"
@@ -70,39 +108,12 @@
         "tsConfig": "apps/enterprise-chat/tsconfig.spec.json"
       }
     },
-    "i18n:init": {
-      "executor": "nx:run-commands",
-      "description": "Initialize i18n template file",
-      "options": {
-        "commands": [
-          "ngx-translate-extract --input ./src --output ./public/assets/i18n/template.json --key-as-default-value --replace --format json"
-        ],
-        "parallel": false,
-        "cwd": "apps/enterprise-chat"
-      }
-    },
-    "i18n:extract": {
-      "executor": "nx:run-commands",
-      "description": "Extract translation strings to locale files",
-      "options": {
-        "commands": [
-          "ngx-translate-extract --input ./src --output ./public/assets/i18n/{en,zh,ja,ko}.json --clean --format json"
-        ],
-        "parallel": false,
-        "cwd": "apps/enterprise-chat"
-      }
-    },
-    "extract-i18n": {
-      "executor": "@angular/build:extract-i18n",
-      "options": {
-        "buildTarget": "enterprise-chat:build"
-      }
-    },
     "serve-static": {
       "continuous": true,
       "executor": "@nx/web:file-server",
       "options": {
         "buildTarget": "enterprise-chat:build",
+        "port": 4700,
         "staticFilePath": "dist/apps/enterprise-chat/browser",
         "spa": true
       }

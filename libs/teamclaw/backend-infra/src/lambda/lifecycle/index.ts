@@ -13,7 +13,7 @@ const efsClient = new EFSClient({});
 const ddbClient = new DynamoDBClient({});
 const schedulerClient = new SchedulerClient({});
 
-const SCHEDULE_GROUP = `teamclaw-cron-${process.env.DEPLOY_ENV}`;
+const SCHEDULE_GROUP = `teamclaw-cron-${process.env['DEPLOY_ENV']}`;
 
 interface LifecycleEvent {
   action: 'start' | 'stop' | 'provision' | 'status' | 'sync-cron-schedules';
@@ -43,7 +43,7 @@ export const handler = async (event: LifecycleEvent) => {
 
 async function provisionUser(userId: string, teamId?: string) {
   const accessPoint = await efsClient.send(new CreateAccessPointCommand({
-    FileSystemId: process.env.EFS_FILE_SYSTEM_ID!,
+    FileSystemId: process.env['EFS_FILE_SYSTEM_ID']!,
     PosixUser: { Uid: 1000, Gid: 1000 },
     RootDirectory: {
       Path: `/users/${userId}`,
@@ -56,7 +56,7 @@ async function provisionUser(userId: string, teamId?: string) {
   }));
 
   await ddbClient.send(new PutItemCommand({
-    TableName: process.env.USER_TABLE_NAME!,
+    TableName: process.env['USER_TABLE_NAME']!,
     Item: {
       userId: { S: userId },
       teamId: { S: teamId || '' },
@@ -71,7 +71,7 @@ async function provisionUser(userId: string, teamId?: string) {
 
 async function startContainer(userId: string) {
   const userRecord = await ddbClient.send(new GetItemCommand({
-    TableName: process.env.USER_TABLE_NAME!,
+    TableName: process.env['USER_TABLE_NAME']!,
     Key: { userId: { S: userId } },
   }));
 
@@ -80,10 +80,10 @@ async function startContainer(userId: string) {
   }
 
   // Skip if already running
-  if (userRecord.Item.status?.S === 'running' && userRecord.Item.taskArn?.S) {
+  if (userRecord.Item['status']?.S === 'running' && userRecord.Item['taskArn']?.S) {
     const desc = await ecsClient.send(new DescribeTasksCommand({
-      cluster: process.env.ECS_CLUSTER_NAME!,
-      tasks: [userRecord.Item.taskArn.S],
+      cluster: process.env['ECS_CLUSTER_NAME']!,
+      tasks: [userRecord.Item['taskArn']!.S!],
     }));
     const task = desc.tasks?.[0];
     if (task && task.lastStatus !== 'STOPPED') {
@@ -92,8 +92,8 @@ async function startContainer(userId: string) {
   }
 
   const result = await ecsClient.send(new RunTaskCommand({
-    cluster: process.env.ECS_CLUSTER_NAME!,
-    taskDefinition: `teamclaw-user-${process.env.DEPLOY_ENV}`,
+    cluster: process.env['ECS_CLUSTER_NAME']!,
+    taskDefinition: `teamclaw-user-${process.env['DEPLOY_ENV']}`,
     launchType: 'FARGATE',
     networkConfiguration: {
       awsvpcConfiguration: {
@@ -107,8 +107,8 @@ async function startContainer(userId: string) {
         name: 'teamclaw',
         environment: [
           { name: 'USER_ID', value: userId },
-          { name: 'TEAM_ID', value: userRecord.Item.teamId?.S || '' },
-          { name: 'KEY_POOL_PROXY_URL', value: process.env.KEY_POOL_PROXY_URL! },
+          { name: 'TEAM_ID', value: userRecord.Item['teamId']?.S || '' },
+          { name: 'KEY_POOL_PROXY_URL', value: process.env['KEY_POOL_PROXY_URL']! },
         ],
       }],
     },
@@ -117,7 +117,7 @@ async function startContainer(userId: string) {
   const taskArn = result.tasks?.[0]?.taskArn;
 
   await ddbClient.send(new PutItemCommand({
-    TableName: process.env.USER_TABLE_NAME!,
+    TableName: process.env['USER_TABLE_NAME']!,
     Item: {
       ...userRecord.Item,
       taskArn: { S: taskArn || '' },
@@ -130,22 +130,22 @@ async function startContainer(userId: string) {
 
 async function stopContainer(userId: string) {
   const userRecord = await ddbClient.send(new GetItemCommand({
-    TableName: process.env.USER_TABLE_NAME!,
+    TableName: process.env['USER_TABLE_NAME']!,
     Key: { userId: { S: userId } },
   }));
 
-  if (!userRecord.Item?.taskArn?.S) {
+  if (!userRecord.Item?.['taskArn']?.S) {
     return { statusCode: 404, body: 'No running container' };
   }
 
   await ecsClient.send(new StopTaskCommand({
-    cluster: process.env.ECS_CLUSTER_NAME!,
-    task: userRecord.Item.taskArn.S,
+    cluster: process.env['ECS_CLUSTER_NAME']!,
+    task: userRecord.Item['taskArn']!.S!,
     reason: 'User-initiated stop or idle timeout',
   }));
 
   await ddbClient.send(new PutItemCommand({
-    TableName: process.env.USER_TABLE_NAME!,
+    TableName: process.env['USER_TABLE_NAME']!,
     Item: {
       ...userRecord.Item,
       taskArn: { S: '' },
@@ -158,7 +158,7 @@ async function stopContainer(userId: string) {
 
 async function getStatus(userId: string) {
   const userRecord = await ddbClient.send(new GetItemCommand({
-    TableName: process.env.USER_TABLE_NAME!,
+    TableName: process.env['USER_TABLE_NAME']!,
     Key: { userId: { S: userId } },
   }));
 
@@ -170,8 +170,8 @@ async function getStatus(userId: string) {
     statusCode: 200,
     body: JSON.stringify({
       userId,
-      status: userRecord.Item.status?.S,
-      taskArn: userRecord.Item.taskArn?.S || null,
+      status: userRecord.Item['status']?.S,
+      taskArn: userRecord.Item['taskArn']?.S || null,
     }),
   };
 }
@@ -212,8 +212,8 @@ async function syncCronSchedules(userId: string, cronSchedules: string[]) {
       ScheduleExpression: `cron(${shiftCronBack2Min(cronExpr)})`,
       FlexibleTimeWindow: { Mode: 'OFF' },
       Target: {
-        Arn: process.env.LIFECYCLE_LAMBDA_ARN!,
-        RoleArn: process.env.SCHEDULER_ROLE_ARN!,
+        Arn: process.env['LIFECYCLE_LAMBDA_ARN']!,
+        RoleArn: process.env['SCHEDULER_ROLE_ARN']!,
         Input: JSON.stringify({ action: 'start', userId }),
       },
     }));

@@ -1,0 +1,32 @@
+<div class="chat-container">
+  <div class="chat-status-bar">
+    <span class="status" [class.connected]="connected">
+      {{ connected ? ('Connected' | translate) : ('Disconnected' | translate) }}
+    </span>
+  </div>
+
+  <div class="chat-messages" #messageList>
+    @for (msg of messages; track msg.timestamp) {
+      <div class="message" [class.user]="msg.role === 'user'" [class.assistant]="msg.role === 'assistant'">
+        <div class="message-sender">{{ msg.role === 'user' ? ('You' | translate) : 'AI' }}</div>
+        <div class="message-content">{{ msg.content }}</div>
+        <div class="message-time">{{ msg.timestamp | date:'short' }}</div>
+      </div>
+    }
+    @if (typing) {
+      <div class="message assistant">
+        <div class="message-sender">AI</div>
+        <div class="message-content typing">...</div>
+      </div>
+    }
+  </div>
+
+  <div class="chat-input">
+    <mat-form-field appearance="outline" class="input-field">
+      <input matInput [placeholder]="'Type a message...' | translate" [(ngModel)]="inputText" (keyup.enter)="send()" />
+    </mat-form-field>
+    <button mat-fab color="primary" (click)="send()" [disabled]="!inputText.trim()">
+      <mat-icon>send</mat-icon>
+    </button>
+  </div>
+</div>

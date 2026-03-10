@@ -48,11 +48,8 @@ export const TC_SSM_PARAMETER = {
       USER_POOL_DOMAIN: `/tc/${ENVIRONMENT.PROD}/admin-cognito/userPoolDomain`,
     },
     ADMIN_API: {
-      REST_API_ID: `/tc/${ENVIRONMENT.PROD}/admin-api/restApiId`,
-      ROOT_RESOURCE_ID: `/tc/${ENVIRONMENT.PROD}/admin-api/rootResourceId`,
-      REST_API_ENDPOINT: `/tc/${ENVIRONMENT.PROD}/admin-api/restApiEndpoint`,
-      STAGE_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/stageName`,
-      WEB_ACL_ARN: `/tc/${ENVIRONMENT.PROD}/admin-api/webAclArn`,
+      HTTP_API_ID: `/tc/${ENVIRONMENT.PROD}/admin-api/httpApiId`,
+      HTTP_API_ENDPOINT: `/tc/${ENVIRONMENT.PROD}/admin-api/httpApiEndpoint`,
       LAMBDA: {
         // Dashboard
         GET_DASHBOARD_STATS_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/getDashboardStatsLambdaName`,
@@ -139,11 +136,8 @@ export const TC_SSM_PARAMETER = {
       USER_POOL_DOMAIN: `/tc/${ENVIRONMENT.DEV}/admin-cognito/userPoolDomain`,
     },
     ADMIN_API: {
-      REST_API_ID: `/tc/${ENVIRONMENT.DEV}/admin-api/restApiId`,
-      ROOT_RESOURCE_ID: `/tc/${ENVIRONMENT.DEV}/admin-api/rootResourceId`,
-      REST_API_ENDPOINT: `/tc/${ENVIRONMENT.DEV}/admin-api/restApiEndpoint`,
-      STAGE_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/stageName`,
-      WEB_ACL_ARN: `/tc/${ENVIRONMENT.DEV}/admin-api/webAclArn`,
+      HTTP_API_ID: `/tc/${ENVIRONMENT.DEV}/admin-api/httpApiId`,
+      HTTP_API_ENDPOINT: `/tc/${ENVIRONMENT.DEV}/admin-api/httpApiEndpoint`,
       LAMBDA: {
         // Dashboard
         GET_DASHBOARD_STATS_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/getDashboardStatsLambdaName`,

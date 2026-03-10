@@ -97,8 +97,8 @@ async function startContainer(userId: string) {
     launchType: 'FARGATE',
     networkConfiguration: {
       awsvpcConfiguration: {
-        subnets: [],
-        securityGroups: [],
+        subnets: process.env['PRIVATE_SUBNET_IDS']!.split(','),
+        securityGroups: [process.env['CONTAINER_SECURITY_GROUP_ID']!],
         assignPublicIp: 'DISABLED',
       },
     },

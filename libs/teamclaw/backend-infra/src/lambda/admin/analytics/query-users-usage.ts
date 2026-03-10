@@ -77,9 +77,19 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       .map(([userId, data]) => ({ userId, ...data }))
       .sort((a, b) => b.requestCount - a.requestCount);
 
-    const startIndex = nextToken ? 0 : 0; // All data collected, just slice
-    const page = sortedUsers.slice(0, limit);
-    const hasMore = sortedUsers.length > limit;
+    // Decode offset from nextToken for in-memory pagination
+    let offset = 0;
+    if (nextToken) {
+      try {
+        const decoded = JSON.parse(Buffer.from(nextToken, 'base64').toString());
+        offset = decoded.offset || 0;
+      } catch {
+        // ignore invalid token, start from 0
+      }
+    }
+
+    const page = sortedUsers.slice(offset, offset + limit);
+    const hasMore = offset + limit < sortedUsers.length;
 
     return {
       statusCode: 200,
@@ -88,7 +98,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         users: page,
         totalUsers: sortedUsers.length,
         nextToken: hasMore
-          ? Buffer.from(JSON.stringify({ offset: limit })).toString('base64')
+          ? Buffer.from(JSON.stringify({ offset: offset + limit })).toString('base64')
           : undefined,
       }),
     };

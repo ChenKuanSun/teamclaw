@@ -1,23 +1,28 @@
 /**
  * Admin API Gateway Route Stack
  *
- * Defines all admin routes for the admin REST API.
- * All routes are authorized (require admin access).
+ * Defines all admin routes for the HttpApi (V2).
+ * Uses JWT authorizer with Admin Cognito User Pool — matching Affiora pattern.
  */
 
 import {
-  ENVIRONMENT,
   StackPropsWithEnv,
-  TC_ADMIN_APP_DOMAIN_NAME,
   TC_SSM_PARAMETER,
 } from '@TeamClaw/core/cloud-config';
 import {
   Stack,
-  aws_apigateway,
+  aws_apigatewayv2,
   aws_cognito,
   aws_lambda,
   aws_ssm,
 } from 'aws-cdk-lib';
+import {
+  HttpLambdaIntegration,
+} from 'aws-cdk-lib/aws-apigatewayv2-integrations';
+import {
+  HttpUserPoolAuthorizer,
+} from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
+import { HttpMethod, HttpRoute, HttpRouteKey } from 'aws-cdk-lib/aws-apigatewayv2';
 import { Construct } from 'constructs';
 
 export class AdminApiGatewayRouteStack extends Stack {
@@ -28,7 +33,7 @@ export class AdminApiGatewayRouteStack extends Stack {
     const SSM = TC_SSM_PARAMETER[deployEnv];
     const ADMIN_LAMBDA_SSM = SSM.ADMIN_API.LAMBDA;
 
-    // Get Admin Cognito User Pool for authorizer
+    // Get Admin Cognito User Pool for JWT authorizer
     const adminUserPool = aws_cognito.UserPool.fromUserPoolId(
       this,
       id + 'AdminUserPool',
@@ -38,58 +43,37 @@ export class AdminApiGatewayRouteStack extends Stack {
       ),
     );
 
-    // Create Cognito Authorizer for REST API using Admin User Pool
-    const adminAuthorizer = new aws_apigateway.CognitoUserPoolsAuthorizer(
+    const adminUserPoolClientId = aws_ssm.StringParameter.valueForStringParameter(
       this,
-      id + 'AdminCognitoAuthorizer',
+      SSM.ADMIN_COGNITO.USER_POOL_CLIENT_ID,
+    );
+
+    // JWT Authorizer using Admin Cognito User Pool (Affiora pattern)
+    const adminAuthorizer = new HttpUserPoolAuthorizer(
+      'AdminJwtAuthorizer',
+      adminUserPool,
       {
-        cognitoUserPools: [adminUserPool],
-        authorizerName: `admin-route-authorizer-${deployEnv}`,
-        identitySource: 'method.request.header.Authorization',
+        userPoolClients: [
+          aws_cognito.UserPoolClient.fromUserPoolClientId(
+            this,
+            id + 'AdminUserPoolClient',
+            adminUserPoolClientId,
+          ),
+        ],
       },
     );
 
-    // Get Admin REST API from SSM
-    const adminRestApi = aws_apigateway.RestApi.fromRestApiAttributes(
+    // Get Admin HttpApi from SSM
+    const adminHttpApi = aws_apigatewayv2.HttpApi.fromHttpApiAttributes(
       this,
-      id + 'AdminRestApi',
+      id + 'AdminHttpApi',
       {
-        restApiId: aws_ssm.StringParameter.valueForStringParameter(
+        httpApiId: aws_ssm.StringParameter.valueForStringParameter(
           this,
-          SSM.ADMIN_API.REST_API_ID,
-        ),
-        rootResourceId: aws_ssm.StringParameter.valueForStringParameter(
-          this,
-          SSM.ADMIN_API.ROOT_RESOURCE_ID,
+          SSM.ADMIN_API.HTTP_API_ID,
         ),
       },
     );
-
-    // CORS configuration - must be added explicitly when using fromRestApiAttributes
-    const corsOrigins =
-      deployEnv === ENVIRONMENT.PROD
-        ? [`https://${TC_ADMIN_APP_DOMAIN_NAME[deployEnv]}`]
-        : [
-            `https://${TC_ADMIN_APP_DOMAIN_NAME[deployEnv]}`,
-            'http://localhost:4900',
-          ];
-
-    const corsOptions: aws_apigateway.CorsOptions = {
-      allowHeaders: [
-        'Content-Type',
-        'X-Amz-Date',
-        'Authorization',
-        'X-Api-Key',
-      ],
-      allowMethods: aws_apigateway.Cors.ALL_METHODS,
-      allowCredentials: false,
-      allowOrigins: corsOrigins,
-    };
-
-    // Create /admin resource under root
-    const adminResource = adminRestApi.root.addResource('admin');
-    // Add CORS preflight to /admin and all child resources
-    adminResource.addCorsPreflight(corsOptions);
 
     // Helper to get Lambda from SSM
     const getLambda = (name: string, ssmPath: string) =>
@@ -99,347 +83,214 @@ export class AdminApiGatewayRouteStack extends Stack {
         aws_ssm.StringParameter.valueForStringParameter(this, ssmPath),
       );
 
-    // Common method options with authorization
-    const authMethodOptions: aws_apigateway.MethodOptions = {
-      authorizer: adminAuthorizer,
-      authorizationType: aws_apigateway.AuthorizationType.COGNITO,
-    };
-
-    // Helper to add resource with CORS preflight
-    const addResourceWithCors = (
-      parent: aws_apigateway.IResource,
-      pathPart: string,
-    ): aws_apigateway.Resource => {
-      const resource = parent.addResource(pathPart);
-      resource.addCorsPreflight(corsOptions);
-      return resource;
+    // Helper to add a route with JWT authorization
+    const addRoute = (
+      routeName: string,
+      method: HttpMethod,
+      path: string,
+      lambda: aws_lambda.IFunction,
+    ) => {
+      new HttpRoute(this, id + routeName, {
+        httpApi: adminHttpApi as aws_apigatewayv2.IHttpApi,
+        integration: new HttpLambdaIntegration(id + routeName + 'Integration', lambda),
+        routeKey: HttpRouteKey.with(path, method),
+        authorizer: adminAuthorizer,
+      });
     };
 
     // ==========================================================
     // DASHBOARD ROUTES: /admin/dashboard/stats
     // ==========================================================
-    const dashboardResource = addResourceWithCors(adminResource, 'dashboard');
-    const dashboardStatsResource = addResourceWithCors(
-      dashboardResource,
-      'stats',
-    );
-
-    const getDashboardStatsLambda = getLambda(
-      'GetDashboardStatsLambda',
-      ADMIN_LAMBDA_SSM.GET_DASHBOARD_STATS_LAMBDA_NAME,
-    );
-    dashboardStatsResource.addMethod(
-      'GET',
-      new aws_apigateway.LambdaIntegration(getDashboardStatsLambda),
-      authMethodOptions,
+    addRoute(
+      'GetDashboardStats',
+      HttpMethod.GET,
+      '/admin/dashboard/stats',
+      getLambda('GetDashboardStatsLambda', ADMIN_LAMBDA_SSM.GET_DASHBOARD_STATS_LAMBDA_NAME),
     );
 
     // ==========================================================
     // USER ROUTES: /admin/users, /admin/users/{userId}
     // ==========================================================
-    const usersResource = addResourceWithCors(adminResource, 'users');
-    const userIdResource = addResourceWithCors(usersResource, '{userId}');
-
-    const queryUsersLambda = getLambda(
-      'QueryUsersLambda',
-      ADMIN_LAMBDA_SSM.QUERY_USERS_LAMBDA_NAME,
-    );
-    usersResource.addMethod(
-      'GET',
-      new aws_apigateway.LambdaIntegration(queryUsersLambda),
-      authMethodOptions,
+    addRoute(
+      'QueryUsers',
+      HttpMethod.GET,
+      '/admin/users',
+      getLambda('QueryUsersLambda', ADMIN_LAMBDA_SSM.QUERY_USERS_LAMBDA_NAME),
     );
 
-    const getUserLambda = getLambda(
-      'GetUserLambda',
-      ADMIN_LAMBDA_SSM.GET_USER_LAMBDA_NAME,
-    );
-    userIdResource.addMethod(
-      'GET',
-      new aws_apigateway.LambdaIntegration(getUserLambda),
-      authMethodOptions,
+    addRoute(
+      'GetUser',
+      HttpMethod.GET,
+      '/admin/users/{userId}',
+      getLambda('GetUserLambda', ADMIN_LAMBDA_SSM.GET_USER_LAMBDA_NAME),
     );
 
-    const updateUserLambda = getLambda(
-      'UpdateUserLambda',
-      ADMIN_LAMBDA_SSM.UPDATE_USER_LAMBDA_NAME,
-    );
-    userIdResource.addMethod(
-      'PUT',
-      new aws_apigateway.LambdaIntegration(updateUserLambda),
-      authMethodOptions,
+    addRoute(
+      'UpdateUser',
+      HttpMethod.PUT,
+      '/admin/users/{userId}',
+      getLambda('UpdateUserLambda', ADMIN_LAMBDA_SSM.UPDATE_USER_LAMBDA_NAME),
     );
 
-    const deleteUserLambda = getLambda(
-      'DeleteUserLambda',
-      ADMIN_LAMBDA_SSM.DELETE_USER_LAMBDA_NAME,
-    );
-    userIdResource.addMethod(
-      'DELETE',
-      new aws_apigateway.LambdaIntegration(deleteUserLambda),
-      authMethodOptions,
+    addRoute(
+      'DeleteUser',
+      HttpMethod.DELETE,
+      '/admin/users/{userId}',
+      getLambda('DeleteUserLambda', ADMIN_LAMBDA_SSM.DELETE_USER_LAMBDA_NAME),
     );
 
     // ==========================================================
     // TEAM ROUTES: /admin/teams, /admin/teams/{teamId}
     // ==========================================================
-    const teamsResource = addResourceWithCors(adminResource, 'teams');
-    const teamIdResource = addResourceWithCors(teamsResource, '{teamId}');
-
-    const queryTeamsLambda = getLambda(
-      'QueryTeamsLambda',
-      ADMIN_LAMBDA_SSM.QUERY_TEAMS_LAMBDA_NAME,
-    );
-    teamsResource.addMethod(
-      'GET',
-      new aws_apigateway.LambdaIntegration(queryTeamsLambda),
-      authMethodOptions,
+    addRoute(
+      'QueryTeams',
+      HttpMethod.GET,
+      '/admin/teams',
+      getLambda('QueryTeamsLambda', ADMIN_LAMBDA_SSM.QUERY_TEAMS_LAMBDA_NAME),
     );
 
-    const createTeamLambda = getLambda(
-      'CreateTeamLambda',
-      ADMIN_LAMBDA_SSM.CREATE_TEAM_LAMBDA_NAME,
-    );
-    teamsResource.addMethod(
-      'POST',
-      new aws_apigateway.LambdaIntegration(createTeamLambda),
-      authMethodOptions,
+    addRoute(
+      'CreateTeam',
+      HttpMethod.POST,
+      '/admin/teams',
+      getLambda('CreateTeamLambda', ADMIN_LAMBDA_SSM.CREATE_TEAM_LAMBDA_NAME),
     );
 
-    const getTeamLambda = getLambda(
-      'GetTeamLambda',
-      ADMIN_LAMBDA_SSM.GET_TEAM_LAMBDA_NAME,
-    );
-    teamIdResource.addMethod(
-      'GET',
-      new aws_apigateway.LambdaIntegration(getTeamLambda),
-      authMethodOptions,
+    addRoute(
+      'GetTeam',
+      HttpMethod.GET,
+      '/admin/teams/{teamId}',
+      getLambda('GetTeamLambda', ADMIN_LAMBDA_SSM.GET_TEAM_LAMBDA_NAME),
     );
 
-    const updateTeamLambda = getLambda(
-      'UpdateTeamLambda',
-      ADMIN_LAMBDA_SSM.UPDATE_TEAM_LAMBDA_NAME,
-    );
-    teamIdResource.addMethod(
-      'PUT',
-      new aws_apigateway.LambdaIntegration(updateTeamLambda),
-      authMethodOptions,
+    addRoute(
+      'UpdateTeam',
+      HttpMethod.PUT,
+      '/admin/teams/{teamId}',
+      getLambda('UpdateTeamLambda', ADMIN_LAMBDA_SSM.UPDATE_TEAM_LAMBDA_NAME),
     );
 
-    const deleteTeamLambda = getLambda(
-      'DeleteTeamLambda',
-      ADMIN_LAMBDA_SSM.DELETE_TEAM_LAMBDA_NAME,
-    );
-    teamIdResource.addMethod(
-      'DELETE',
-      new aws_apigateway.LambdaIntegration(deleteTeamLambda),
-      authMethodOptions,
+    addRoute(
+      'DeleteTeam',
+      HttpMethod.DELETE,
+      '/admin/teams/{teamId}',
+      getLambda('DeleteTeamLambda', ADMIN_LAMBDA_SSM.DELETE_TEAM_LAMBDA_NAME),
     );
 
     // ==========================================================
     // CONTAINER ROUTES: /admin/containers, /admin/containers/{userId}
     // ==========================================================
-    const containersResource = addResourceWithCors(adminResource, 'containers');
-    const containerUserIdResource = addResourceWithCors(
-      containersResource,
-      '{userId}',
+    addRoute(
+      'QueryContainers',
+      HttpMethod.GET,
+      '/admin/containers',
+      getLambda('QueryContainersLambda', ADMIN_LAMBDA_SSM.QUERY_CONTAINERS_LAMBDA_NAME),
     );
 
-    const queryContainersLambda = getLambda(
-      'QueryContainersLambda',
-      ADMIN_LAMBDA_SSM.QUERY_CONTAINERS_LAMBDA_NAME,
-    );
-    containersResource.addMethod(
-      'GET',
-      new aws_apigateway.LambdaIntegration(queryContainersLambda),
-      authMethodOptions,
+    addRoute(
+      'GetContainer',
+      HttpMethod.GET,
+      '/admin/containers/{userId}',
+      getLambda('GetContainerLambda', ADMIN_LAMBDA_SSM.GET_CONTAINER_LAMBDA_NAME),
     );
 
-    const getContainerLambda = getLambda(
-      'GetContainerLambda',
-      ADMIN_LAMBDA_SSM.GET_CONTAINER_LAMBDA_NAME,
-    );
-    containerUserIdResource.addMethod(
-      'GET',
-      new aws_apigateway.LambdaIntegration(getContainerLambda),
-      authMethodOptions,
+    addRoute(
+      'StartContainer',
+      HttpMethod.POST,
+      '/admin/containers/{userId}/start',
+      getLambda('StartContainerLambda', ADMIN_LAMBDA_SSM.START_CONTAINER_LAMBDA_NAME),
     );
 
-    // Container actions: start, stop, provision
-    const containerStartResource = addResourceWithCors(
-      containerUserIdResource,
-      'start',
-    );
-    const startContainerLambda = getLambda(
-      'StartContainerLambda',
-      ADMIN_LAMBDA_SSM.START_CONTAINER_LAMBDA_NAME,
-    );
-    containerStartResource.addMethod(
-      'POST',
-      new aws_apigateway.LambdaIntegration(startContainerLambda),
-      authMethodOptions,
+    addRoute(
+      'StopContainer',
+      HttpMethod.POST,
+      '/admin/containers/{userId}/stop',
+      getLambda('StopContainerLambda', ADMIN_LAMBDA_SSM.STOP_CONTAINER_LAMBDA_NAME),
     );
 
-    const containerStopResource = addResourceWithCors(
-      containerUserIdResource,
-      'stop',
-    );
-    const stopContainerLambda = getLambda(
-      'StopContainerLambda',
-      ADMIN_LAMBDA_SSM.STOP_CONTAINER_LAMBDA_NAME,
-    );
-    containerStopResource.addMethod(
-      'POST',
-      new aws_apigateway.LambdaIntegration(stopContainerLambda),
-      authMethodOptions,
-    );
-
-    const containerProvisionResource = addResourceWithCors(
-      containerUserIdResource,
-      'provision',
-    );
-    const provisionContainerLambda = getLambda(
-      'ProvisionContainerLambda',
-      ADMIN_LAMBDA_SSM.PROVISION_CONTAINER_LAMBDA_NAME,
-    );
-    containerProvisionResource.addMethod(
-      'POST',
-      new aws_apigateway.LambdaIntegration(provisionContainerLambda),
-      authMethodOptions,
+    addRoute(
+      'ProvisionContainer',
+      HttpMethod.POST,
+      '/admin/containers/{userId}/provision',
+      getLambda('ProvisionContainerLambda', ADMIN_LAMBDA_SSM.PROVISION_CONTAINER_LAMBDA_NAME),
     );
 
     // ==========================================================
     // CONFIG ROUTES: /admin/config/global, /admin/config/teams/{teamId},
     //                /admin/config/users/{userId}
     // ==========================================================
-    const configResource = addResourceWithCors(adminResource, 'config');
-
-    // Global config
-    const configGlobalResource = addResourceWithCors(configResource, 'global');
-
-    const getGlobalConfigLambda = getLambda(
-      'GetGlobalConfigLambda',
-      ADMIN_LAMBDA_SSM.GET_GLOBAL_CONFIG_LAMBDA_NAME,
-    );
-    configGlobalResource.addMethod(
-      'GET',
-      new aws_apigateway.LambdaIntegration(getGlobalConfigLambda),
-      authMethodOptions,
+    addRoute(
+      'GetGlobalConfig',
+      HttpMethod.GET,
+      '/admin/config/global',
+      getLambda('GetGlobalConfigLambda', ADMIN_LAMBDA_SSM.GET_GLOBAL_CONFIG_LAMBDA_NAME),
     );
 
-    const updateGlobalConfigLambda = getLambda(
-      'UpdateGlobalConfigLambda',
-      ADMIN_LAMBDA_SSM.UPDATE_GLOBAL_CONFIG_LAMBDA_NAME,
-    );
-    configGlobalResource.addMethod(
-      'PUT',
-      new aws_apigateway.LambdaIntegration(updateGlobalConfigLambda),
-      authMethodOptions,
+    addRoute(
+      'UpdateGlobalConfig',
+      HttpMethod.PUT,
+      '/admin/config/global',
+      getLambda('UpdateGlobalConfigLambda', ADMIN_LAMBDA_SSM.UPDATE_GLOBAL_CONFIG_LAMBDA_NAME),
     );
 
-    // Team config
-    const configTeamsResource = addResourceWithCors(configResource, 'teams');
-    const configTeamIdResource = addResourceWithCors(
-      configTeamsResource,
-      '{teamId}',
+    addRoute(
+      'GetTeamConfig',
+      HttpMethod.GET,
+      '/admin/config/teams/{teamId}',
+      getLambda('GetTeamConfigLambda', ADMIN_LAMBDA_SSM.GET_TEAM_CONFIG_LAMBDA_NAME),
     );
 
-    const getTeamConfigLambda = getLambda(
-      'GetTeamConfigLambda',
-      ADMIN_LAMBDA_SSM.GET_TEAM_CONFIG_LAMBDA_NAME,
-    );
-    configTeamIdResource.addMethod(
-      'GET',
-      new aws_apigateway.LambdaIntegration(getTeamConfigLambda),
-      authMethodOptions,
+    addRoute(
+      'UpdateTeamConfig',
+      HttpMethod.PUT,
+      '/admin/config/teams/{teamId}',
+      getLambda('UpdateTeamConfigLambda', ADMIN_LAMBDA_SSM.UPDATE_TEAM_CONFIG_LAMBDA_NAME),
     );
 
-    const updateTeamConfigLambda = getLambda(
-      'UpdateTeamConfigLambda',
-      ADMIN_LAMBDA_SSM.UPDATE_TEAM_CONFIG_LAMBDA_NAME,
-    );
-    configTeamIdResource.addMethod(
-      'PUT',
-      new aws_apigateway.LambdaIntegration(updateTeamConfigLambda),
-      authMethodOptions,
+    addRoute(
+      'GetUserConfig',
+      HttpMethod.GET,
+      '/admin/config/users/{userId}',
+      getLambda('GetUserConfigLambda', ADMIN_LAMBDA_SSM.GET_USER_CONFIG_LAMBDA_NAME),
     );
 
-    // User config
-    const configUsersResource = addResourceWithCors(configResource, 'users');
-    const configUserIdResource = addResourceWithCors(
-      configUsersResource,
-      '{userId}',
-    );
-
-    const getUserConfigLambda = getLambda(
-      'GetUserConfigLambda',
-      ADMIN_LAMBDA_SSM.GET_USER_CONFIG_LAMBDA_NAME,
-    );
-    configUserIdResource.addMethod(
-      'GET',
-      new aws_apigateway.LambdaIntegration(getUserConfigLambda),
-      authMethodOptions,
-    );
-
-    const updateUserConfigLambda = getLambda(
-      'UpdateUserConfigLambda',
-      ADMIN_LAMBDA_SSM.UPDATE_USER_CONFIG_LAMBDA_NAME,
-    );
-    configUserIdResource.addMethod(
-      'PUT',
-      new aws_apigateway.LambdaIntegration(updateUserConfigLambda),
-      authMethodOptions,
+    addRoute(
+      'UpdateUserConfig',
+      HttpMethod.PUT,
+      '/admin/config/users/{userId}',
+      getLambda('UpdateUserConfigLambda', ADMIN_LAMBDA_SSM.UPDATE_USER_CONFIG_LAMBDA_NAME),
     );
 
     // ==========================================================
     // API KEY ROUTES: /admin/api-keys, /admin/api-keys/{keyId},
     //                 /admin/api-keys/usage-stats
     // ==========================================================
-    const apiKeysResource = addResourceWithCors(adminResource, 'api-keys');
-    const apiKeyIdResource = addResourceWithCors(apiKeysResource, '{keyId}');
-
-    const getApiKeysLambda = getLambda(
-      'GetApiKeysLambda',
-      ADMIN_LAMBDA_SSM.GET_API_KEYS_LAMBDA_NAME,
-    );
-    apiKeysResource.addMethod(
-      'GET',
-      new aws_apigateway.LambdaIntegration(getApiKeysLambda),
-      authMethodOptions,
+    addRoute(
+      'GetApiKeys',
+      HttpMethod.GET,
+      '/admin/api-keys',
+      getLambda('GetApiKeysLambda', ADMIN_LAMBDA_SSM.GET_API_KEYS_LAMBDA_NAME),
     );
 
-    const addApiKeyLambda = getLambda(
-      'AddApiKeyLambda',
-      ADMIN_LAMBDA_SSM.ADD_API_KEY_LAMBDA_NAME,
-    );
-    apiKeysResource.addMethod(
-      'POST',
-      new aws_apigateway.LambdaIntegration(addApiKeyLambda),
-      authMethodOptions,
+    addRoute(
+      'AddApiKey',
+      HttpMethod.POST,
+      '/admin/api-keys',
+      getLambda('AddApiKeyLambda', ADMIN_LAMBDA_SSM.ADD_API_KEY_LAMBDA_NAME),
     );
 
-    const removeApiKeyLambda = getLambda(
-      'RemoveApiKeyLambda',
-      ADMIN_LAMBDA_SSM.REMOVE_API_KEY_LAMBDA_NAME,
-    );
-    apiKeyIdResource.addMethod(
-      'DELETE',
-      new aws_apigateway.LambdaIntegration(removeApiKeyLambda),
-      authMethodOptions,
+    addRoute(
+      'RemoveApiKey',
+      HttpMethod.DELETE,
+      '/admin/api-keys/{keyId}',
+      getLambda('RemoveApiKeyLambda', ADMIN_LAMBDA_SSM.REMOVE_API_KEY_LAMBDA_NAME),
     );
 
-    const apiKeyUsageStatsResource = addResourceWithCors(
-      apiKeysResource,
-      'usage-stats',
-    );
-    const getKeyUsageStatsLambda = getLambda(
-      'GetKeyUsageStatsLambda',
-      ADMIN_LAMBDA_SSM.GET_KEY_USAGE_STATS_LAMBDA_NAME,
-    );
-    apiKeyUsageStatsResource.addMethod(
-      'GET',
-      new aws_apigateway.LambdaIntegration(getKeyUsageStatsLambda),
-      authMethodOptions,
+    addRoute(
+      'GetKeyUsageStats',
+      HttpMethod.GET,
+      '/admin/api-keys/usage-stats',
+      getLambda('GetKeyUsageStatsLambda', ADMIN_LAMBDA_SSM.GET_KEY_USAGE_STATS_LAMBDA_NAME),
     );
 
     // ==========================================================
@@ -447,48 +298,25 @@ export class AdminApiGatewayRouteStack extends Stack {
     //                    /admin/analytics/users-usage,
     //                    /admin/analytics/usage-by-provider
     // ==========================================================
-    const analyticsResource = addResourceWithCors(adminResource, 'analytics');
-
-    const systemAnalyticsResource = addResourceWithCors(
-      analyticsResource,
-      'system',
-    );
-    const getSystemAnalyticsLambda = getLambda(
-      'GetSystemAnalyticsLambda',
-      ADMIN_LAMBDA_SSM.GET_SYSTEM_ANALYTICS_LAMBDA_NAME,
-    );
-    systemAnalyticsResource.addMethod(
-      'GET',
-      new aws_apigateway.LambdaIntegration(getSystemAnalyticsLambda),
-      authMethodOptions,
+    addRoute(
+      'GetSystemAnalytics',
+      HttpMethod.GET,
+      '/admin/analytics/system',
+      getLambda('GetSystemAnalyticsLambda', ADMIN_LAMBDA_SSM.GET_SYSTEM_ANALYTICS_LAMBDA_NAME),
     );
 
-    const usersUsageResource = addResourceWithCors(
-      analyticsResource,
-      'users-usage',
-    );
-    const queryUsersUsageLambda = getLambda(
-      'QueryUsersUsageLambda',
-      ADMIN_LAMBDA_SSM.QUERY_USERS_USAGE_LAMBDA_NAME,
-    );
-    usersUsageResource.addMethod(
-      'GET',
-      new aws_apigateway.LambdaIntegration(queryUsersUsageLambda),
-      authMethodOptions,
+    addRoute(
+      'QueryUsersUsage',
+      HttpMethod.GET,
+      '/admin/analytics/users-usage',
+      getLambda('QueryUsersUsageLambda', ADMIN_LAMBDA_SSM.QUERY_USERS_USAGE_LAMBDA_NAME),
     );
 
-    const usageByProviderResource = addResourceWithCors(
-      analyticsResource,
-      'usage-by-provider',
-    );
-    const getUsageByProviderLambda = getLambda(
-      'GetUsageByProviderLambda',
-      ADMIN_LAMBDA_SSM.GET_USAGE_BY_PROVIDER_LAMBDA_NAME,
-    );
-    usageByProviderResource.addMethod(
-      'GET',
-      new aws_apigateway.LambdaIntegration(getUsageByProviderLambda),
-      authMethodOptions,
+    addRoute(
+      'GetUsageByProvider',
+      HttpMethod.GET,
+      '/admin/analytics/usage-by-provider',
+      getLambda('GetUsageByProviderLambda', ADMIN_LAMBDA_SSM.GET_USAGE_BY_PROVIDER_LAMBDA_NAME),
     );
   }
 }

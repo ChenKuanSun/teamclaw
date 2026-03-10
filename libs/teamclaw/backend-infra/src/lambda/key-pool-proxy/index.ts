@@ -28,7 +28,7 @@ async function getApiKeys(): Promise<ApiKeysSecret> {
 const roundRobinIndex: Record<string, number> = {};
 
 function pickKey(keys: string[], provider: string): string {
-  if (!roundRobinIndex[provider]) roundRobinIndex[provider] = 0;
+  if (roundRobinIndex[provider] === undefined) roundRobinIndex[provider] = 0;
   const idx = roundRobinIndex[provider] % keys.length;
   roundRobinIndex[provider] = idx + 1;
   return keys[idx];

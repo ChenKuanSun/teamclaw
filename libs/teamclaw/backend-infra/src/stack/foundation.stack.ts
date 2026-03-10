@@ -33,6 +33,16 @@ export class FoundationStack extends Stack {
       stringValue: vpc.vpcId,
     });
 
+    new aws_ssm.StringParameter(this, 'PrivateSubnetIdsParam', {
+      parameterName: ssm.VPC.PRIVATE_SUBNET_IDS,
+      stringValue: vpc.privateSubnets.map(s => s.subnetId).join(','),
+    });
+
+    new aws_ssm.StringParameter(this, 'PublicSubnetIdsParam', {
+      parameterName: ssm.VPC.PUBLIC_SUBNET_IDS,
+      stringValue: vpc.publicSubnets.map(s => s.subnetId).join(','),
+    });
+
     // EFS — encrypted, per-user Access Points created at runtime by Lifecycle Lambda
     const efsSecurityGroup = new aws_ec2.SecurityGroup(this, 'EfsSecurityGroup', {
       vpc,

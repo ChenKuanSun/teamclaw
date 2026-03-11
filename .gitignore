@@ -48,7 +48,7 @@ out
 .angular
 
 # CDK
-cdk.out/
+**/cdk.out/
 .env
 .env*
 

@@ -21,8 +21,9 @@ jest.mock('../shared/logger', () => ({
 }));
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { logger } = require('../shared/logger') as {
+const { logger, withRequest: mockWithRequest } = require('../shared/logger') as {
   logger: { error: jest.Mock };
+  withRequest: jest.Mock;
 };
 
 function createMockEvent(
@@ -127,7 +128,7 @@ describe('adminLambdaHandlerDecorator', () => {
       'geolocation=(), microphone=(), camera=()',
     );
     expect(result.headers?.['Strict-Transport-Security']).toBe(
-      'max-age=86400',
+      'max-age=0',
     );
   });
 
@@ -145,7 +146,7 @@ describe('adminLambdaHandlerDecorator', () => {
     const result = await handler(event, mockContext);
 
     expect(result.headers?.['Strict-Transport-Security']).toBe(
-      'max-age=31536000; includeSubDomains',
+      'max-age=31536000; includeSubDomains; preload',
     );
   });
 
@@ -193,6 +194,7 @@ describe('adminLambdaHandlerDecorator', () => {
     expect(result.statusCode).toBe(200);
     expect(JSON.parse(result.body)).toEqual(responseBody);
     expect(result.headers?.['Content-Type']).toBe('application/json');
+    expect(mockWithRequest).toHaveBeenCalledWith(event, mockContext);
   });
 
   it('should return 500 on handler error', async () => {

@@ -46,8 +46,8 @@ function getAdminSecurityHeaders(): Record<string, string> {
   const isProd = process.env['DEPLOY_ENV'] === 'prod';
   return {
     'Strict-Transport-Security': isProd
-      ? 'max-age=31536000; includeSubDomains'
-      : 'max-age=86400',
+      ? 'max-age=31536000; includeSubDomains; preload'
+      : 'max-age=0',
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
     'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
@@ -67,8 +67,6 @@ export function adminLambdaHandlerDecorator(
     event: APIGatewayProxyEvent,
     context: Context,
   ): Promise<APIGatewayProxyResult> => {
-    withRequest(event, context);
-
     const corsHeaders = getAdminCorsHeaders(event);
     const securityHeaders = getAdminSecurityHeaders();
     const allHeaders = {
@@ -96,6 +94,7 @@ export function adminLambdaHandlerDecorator(
     }
 
     try {
+      withRequest(event, context);
       const result = await handler(event);
       return {
         statusCode: result.status,

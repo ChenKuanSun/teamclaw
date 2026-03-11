@@ -1,3 +1,21 @@
+jest.mock('@TeamClaw/teamclaw/cloud-function', () => {
+  const actual = jest.requireActual('@TeamClaw/teamclaw/cloud-function');
+  return {
+    ...actual,
+    adminLambdaHandlerDecorator: (_method: string, fn: any) => {
+      return async (event: any) => {
+        try {
+          const result = await fn(event);
+          return { statusCode: result.status, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result.body) };
+        } catch (error: any) {
+          return { statusCode: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: error.message || 'Internal server error' }) };
+        }
+      };
+    },
+    validateRequiredEnvVars: jest.fn(),
+  };
+});
+
 const mockSend = jest.fn();
 
 jest.mock('@aws-sdk/client-secrets-manager', () => ({
@@ -8,7 +26,7 @@ jest.mock('@aws-sdk/client-secrets-manager', () => ({
 process.env['API_KEYS_SECRET_ARN'] = 'arn:aws:secretsmanager:us-east-1:123:secret:api-keys';
 
 import { handler } from './get-api-keys';
-import type { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
+import type { APIGatewayProxyEvent } from 'aws-lambda';
 
 const makeEvent = (): APIGatewayProxyEvent =>
   ({
@@ -18,8 +36,8 @@ const makeEvent = (): APIGatewayProxyEvent =>
     stageVariables: null, multiValueQueryStringParameters: null,
   }) as APIGatewayProxyEvent;
 
-const invoke = async () =>
-  (await handler(makeEvent(), {} as Context, undefined as unknown as Callback)) as {
+const invoke = async (event = makeEvent()) =>
+  (await (handler as any)(event)) as {
     statusCode: number; headers: any; body: string;
   };
 
@@ -36,7 +54,6 @@ describe('get-api-keys handler', () => {
 
     const res = await invoke();
     expect(res.statusCode).toBe(200);
-    expect(res.headers['Access-Control-Allow-Origin']).toBe('*');
     const body = JSON.parse(res.body);
     expect(body.providers.openai).toHaveLength(2);
     expect(body.providers.openai[0].index).toBe(0);
@@ -60,6 +77,6 @@ describe('get-api-keys handler', () => {
     mockSend.mockRejectedValueOnce(new Error('SM error'));
     const res = await invoke();
     expect(res.statusCode).toBe(500);
-    expect(res.headers['Access-Control-Allow-Origin']).toBe('*');
+    expect(JSON.parse(res.body).message).toBe('SM error');
   });
 });

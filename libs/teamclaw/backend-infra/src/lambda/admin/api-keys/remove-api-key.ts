@@ -3,70 +3,54 @@ import {
   GetSecretValueCommand,
   PutSecretValueCommand,
 } from '@aws-sdk/client-secrets-manager';
-import { APIGatewayProxyHandler } from 'aws-lambda';
+import { adminLambdaHandlerDecorator, HandlerMethod, HttpStatusCode, validateRequiredEnvVars } from '@TeamClaw/teamclaw/cloud-function';
+
+validateRequiredEnvVars(['API_KEYS_SECRET_ARN']);
 
 const smClient = new SecretsManagerClient({});
 const API_KEYS_SECRET_ARN = process.env['API_KEYS_SECRET_ARN']!;
 
-const corsHeaders = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': process.env['ADMIN_ORIGIN'] || '*',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-};
+export const handler = adminLambdaHandlerDecorator(HandlerMethod.DELETE, async (event) => {
+  const body = JSON.parse(event.body || '{}');
+  const provider = body.provider || event.pathParameters?.['provider'];
+  const keyIndex = body.keyIndex ?? parseInt(event.pathParameters?.['keyIndex'] || '', 10);
 
-export const handler: APIGatewayProxyHandler = async (event) => {
-  try {
-    const body = JSON.parse(event.body || '{}');
-    const provider = body.provider || event.pathParameters?.['provider'];
-    const keyIndex = body.keyIndex ?? parseInt(event.pathParameters?.['keyIndex'] || '', 10);
-
-    if (!provider || isNaN(keyIndex)) {
-      return {
-        statusCode: 400,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: 'provider and keyIndex are required' }),
-      };
-    }
-
-    // Read current secret
-    const result = await smClient.send(new GetSecretValueCommand({
-      SecretId: API_KEYS_SECRET_ARN,
-    }));
-
-    const keys: Record<string, string[]> = JSON.parse(result.SecretString || '{}');
-
-    if (!keys[provider] || keyIndex < 0 || keyIndex >= keys[provider].length) {
-      return {
-        statusCode: 404,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: 'Key not found at specified index' }),
-      };
-    }
-
-    // Remove the key at the given index
-    keys[provider].splice(keyIndex, 1);
-
-    // Write back
-    await smClient.send(new PutSecretValueCommand({
-      SecretId: API_KEYS_SECRET_ARN,
-      SecretString: JSON.stringify(keys),
-    }));
-
+  if (!provider || isNaN(keyIndex)) {
     return {
-      statusCode: 200,
-      headers: corsHeaders,
-      body: JSON.stringify({
-        message: 'API key removed',
-        provider,
-        remainingKeys: keys[provider].length,
-      }),
-    };
-  } catch (error) {
-    console.error('Failed to remove API key:', error);
-    return {
-      statusCode: 500,
-      headers: corsHeaders,
-      body: JSON.stringify({ error: 'Internal server error' }),
+      status: HttpStatusCode.BAD_REQUEST,
+      body: { message: 'provider and keyIndex are required' },
     };
   }
-};
+
+  // Read current secret
+  const result = await smClient.send(new GetSecretValueCommand({
+    SecretId: API_KEYS_SECRET_ARN,
+  }));
+
+  const keys: Record<string, string[]> = JSON.parse(result.SecretString || '{}');
+
+  if (!keys[provider] || keyIndex < 0 || keyIndex >= keys[provider].length) {
+    return {
+      status: HttpStatusCode.NOT_FOUND,
+      body: { message: 'Key not found at specified index' },
+    };
+  }
+
+  // Remove the key at the given index
+  keys[provider].splice(keyIndex, 1);
+
+  // Write back
+  await smClient.send(new PutSecretValueCommand({
+    SecretId: API_KEYS_SECRET_ARN,
+    SecretString: JSON.stringify(keys),
+  }));
+
+  return {
+    status: HttpStatusCode.OK,
+    body: {
+      message: 'API key removed',
+      provider,
+      remainingKeys: keys[provider].length,
+    },
+  };
+});

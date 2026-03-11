@@ -1,3 +1,21 @@
+jest.mock('@TeamClaw/teamclaw/cloud-function', () => {
+  const actual = jest.requireActual('@TeamClaw/teamclaw/cloud-function');
+  return {
+    ...actual,
+    adminLambdaHandlerDecorator: (_method: string, fn: any) => {
+      return async (event: any) => {
+        try {
+          const result = await fn(event);
+          return { statusCode: result.status, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result.body) };
+        } catch (error: any) {
+          return { statusCode: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: error.message || 'Internal server error' }) };
+        }
+      };
+    },
+    validateRequiredEnvVars: jest.fn(),
+  };
+});
+
 const mockSend = jest.fn();
 
 jest.mock('@aws-sdk/client-secrets-manager', () => ({
@@ -9,7 +27,7 @@ jest.mock('@aws-sdk/client-secrets-manager', () => ({
 process.env['API_KEYS_SECRET_ARN'] = 'arn:aws:secretsmanager:us-east-1:123:secret:api-keys';
 
 import { handler } from './add-api-key';
-import type { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
+import type { APIGatewayProxyEvent } from 'aws-lambda';
 
 const makeEvent = (overrides: Partial<APIGatewayProxyEvent> = {}): APIGatewayProxyEvent =>
   ({
@@ -21,7 +39,7 @@ const makeEvent = (overrides: Partial<APIGatewayProxyEvent> = {}): APIGatewayPro
   }) as APIGatewayProxyEvent;
 
 const invoke = async (event = makeEvent()) =>
-  (await handler(event, {} as Context, undefined as unknown as Callback)) as {
+  (await (handler as any)(event)) as {
     statusCode: number; headers: any; body: string;
   };
 
@@ -47,7 +65,6 @@ describe('add-api-key handler', () => {
       makeEvent({ body: JSON.stringify({ provider: 'openai', key: 'sk-new' }) }),
     );
     expect(res.statusCode).toBe(200);
-    expect(res.headers['Access-Control-Allow-Origin']).toBe('*');
     const body = JSON.parse(res.body);
     expect(body.totalKeys).toBe(2);
 
@@ -72,6 +89,6 @@ describe('add-api-key handler', () => {
       makeEvent({ body: JSON.stringify({ provider: 'openai', key: 'sk-123' }) }),
     );
     expect(res.statusCode).toBe(500);
-    expect(res.headers['Access-Control-Allow-Origin']).toBe('*');
+    expect(JSON.parse(res.body).message).toBe('SM error');
   });
 });

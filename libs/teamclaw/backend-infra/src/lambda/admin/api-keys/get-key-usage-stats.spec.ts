@@ -1,3 +1,21 @@
+jest.mock('@TeamClaw/teamclaw/cloud-function', () => {
+  const actual = jest.requireActual('@TeamClaw/teamclaw/cloud-function');
+  return {
+    ...actual,
+    adminLambdaHandlerDecorator: (_method: string, fn: any) => {
+      return async (event: any) => {
+        try {
+          const result = await fn(event);
+          return { statusCode: result.status, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result.body) };
+        } catch (error: any) {
+          return { statusCode: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: error.message || 'Internal server error' }) };
+        }
+      };
+    },
+    validateRequiredEnvVars: jest.fn(),
+  };
+});
+
 const mockSend = jest.fn();
 
 jest.mock('@aws-sdk/client-dynamodb', () => ({
@@ -8,7 +26,7 @@ jest.mock('@aws-sdk/client-dynamodb', () => ({
 process.env['USAGE_TABLE_NAME'] = 'UsageTable';
 
 import { handler } from './get-key-usage-stats';
-import type { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
+import type { APIGatewayProxyEvent } from 'aws-lambda';
 
 const makeEvent = (): APIGatewayProxyEvent =>
   ({
@@ -18,8 +36,8 @@ const makeEvent = (): APIGatewayProxyEvent =>
     stageVariables: null, multiValueQueryStringParameters: null,
   }) as APIGatewayProxyEvent;
 
-const invoke = async () =>
-  (await handler(makeEvent(), {} as Context, undefined as unknown as Callback)) as {
+const invoke = async (event = makeEvent()) =>
+  (await (handler as any)(event)) as {
     statusCode: number; headers: any; body: string;
   };
 
@@ -38,7 +56,6 @@ describe('get-key-usage-stats handler', () => {
 
     const res = await invoke();
     expect(res.statusCode).toBe(200);
-    expect(res.headers['Access-Control-Allow-Origin']).toBe('*');
     const body = JSON.parse(res.body);
     expect(body.totalRequests).toBe(3);
     expect(body.byProvider.openai).toBe(2);
@@ -72,6 +89,6 @@ describe('get-key-usage-stats handler', () => {
     mockSend.mockRejectedValueOnce(new Error('DDB error'));
     const res = await invoke();
     expect(res.statusCode).toBe(500);
-    expect(res.headers['Access-Control-Allow-Origin']).toBe('*');
+    expect(JSON.parse(res.body).message).toBe('DDB error');
   });
 });

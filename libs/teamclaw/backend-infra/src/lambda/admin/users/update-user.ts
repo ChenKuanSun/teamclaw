@@ -41,6 +41,15 @@ export const handler = adminLambdaHandlerDecorator(
 
     const body = JSON.parse(event.body);
 
+    // Validate status field values
+    const ALLOWED_STATUSES = ['active', 'disabled', 'provisioned', 'running', 'stopped'] as const;
+    if (body.status && !ALLOWED_STATUSES.includes(body.status)) {
+      return {
+        status: HttpStatusCode.BAD_REQUEST,
+        body: { message: `Invalid status. Allowed: ${ALLOWED_STATUSES.join(', ')}` },
+      };
+    }
+
     // Validate that at least one allowed field is present
     const updates: Partial<Record<AllowedField, string>> = {};
     for (const field of ALLOWED_FIELDS) {

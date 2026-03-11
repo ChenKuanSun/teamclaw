@@ -84,6 +84,15 @@ describe('update-user handler', () => {
     expect(JSON.parse(res.body).message).toContain('Missing request body');
   });
 
+  it('should return 400 when invalid status is provided', async () => {
+    const res = await invoke(
+      makeEvent({ pathParameters: { userId: 'u1' }, body: JSON.stringify({ status: 'invalid-status' }) }),
+    );
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.body).message).toContain('Invalid status');
+    expect(JSON.parse(res.body).message).toContain('active');
+  });
+
   it('should return 400 when no valid fields provided', async () => {
     const res = await invoke(
       makeEvent({ pathParameters: { userId: 'u1' }, body: JSON.stringify({ invalidField: 'x' }) }),

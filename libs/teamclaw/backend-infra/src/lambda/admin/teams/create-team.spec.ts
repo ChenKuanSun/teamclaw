@@ -3,6 +3,7 @@ const mockSend = jest.fn();
 jest.mock('@aws-sdk/client-dynamodb', () => ({
   DynamoDBClient: jest.fn(() => ({ send: mockSend })),
   PutItemCommand: jest.fn((input: any) => ({ input })),
+  ScanCommand: jest.fn((input: any) => ({ input })),
 }));
 
 jest.mock('crypto', () => ({
@@ -80,8 +81,17 @@ describe('create-team handler', () => {
     expect(res.statusCode).toBe(400);
   });
 
+  it('should return 409 when team name already exists', async () => {
+    mockSend.mockResolvedValueOnce({
+      Items: [{ teamId: { S: 'existing-id' }, name: { S: 'Duplicate' } }],
+    });
+    const res = await invoke(makeEvent({ body: JSON.stringify({ name: 'Duplicate' }) }));
+    expect(res.statusCode).toBe(409);
+    expect(JSON.parse(res.body).message).toContain('already exists');
+  });
+
   it('should create team successfully', async () => {
-    mockSend.mockResolvedValueOnce({});
+    mockSend.mockResolvedValueOnce({ Items: [] }).mockResolvedValueOnce({});
     const res = await invoke(
       makeEvent({ body: JSON.stringify({ name: 'New Team', description: 'A description' }) }),
     );
@@ -94,13 +104,13 @@ describe('create-team handler', () => {
   });
 
   it('should default description to empty string', async () => {
-    mockSend.mockResolvedValueOnce({});
+    mockSend.mockResolvedValueOnce({ Items: [] }).mockResolvedValueOnce({});
     const res = await invoke(makeEvent({ body: JSON.stringify({ name: 'No Desc' }) }));
     expect(JSON.parse(res.body).description).toBe('');
   });
 
   it('should return 500 on DynamoDB error', async () => {
-    mockSend.mockRejectedValueOnce(new Error('DDB error'));
+    mockSend.mockResolvedValueOnce({ Items: [] }).mockRejectedValueOnce(new Error('DDB error'));
     const res = await invoke(makeEvent({ body: JSON.stringify({ name: 'Test' }) }));
     expect(res.statusCode).toBe(500);
   });

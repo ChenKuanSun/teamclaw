@@ -7,6 +7,7 @@ import {
   DeleteScheduleCommand,
   ListSchedulesCommand,
 } from '@aws-sdk/client-scheduler';
+import { shiftCronBack2Min } from './cron-utils';
 
 const ecsClient = new ECSClient({});
 const efsClient = new EFSClient({});
@@ -257,35 +258,3 @@ async function syncCronSchedules(userId: string, cronSchedules: string[]) {
   };
 }
 
-/**
- * Shift a cron minute field back by 2 minutes for pre-wakeup.
- * Input: standard cron expression (min hour dom month dow)
- * Output: same expression with minute shifted back by 2.
- *
- * Examples:
- *   "0 9 * * MON-FRI"  → "58 8 * * MON-FRI"
- *   "30 14 * * *"      → "28 14 * * *"
- *   "1 0 * * *"        → "59 23 * * *"
- */
-function shiftCronBack2Min(cron: string): string {
-  const parts = cron.split(/\s+/);
-  if (parts.length < 5) return cron;
-
-  let minute = parseInt(parts[0], 10);
-  let hour = parseInt(parts[1], 10);
-
-  if (isNaN(minute) || isNaN(hour)) return cron;
-
-  minute -= 2;
-  if (minute < 0) {
-    minute += 60;
-    hour -= 1;
-    if (hour < 0) {
-      hour = 23;
-    }
-  }
-
-  parts[0] = String(minute);
-  parts[1] = String(hour);
-  return parts.join(' ');
-}

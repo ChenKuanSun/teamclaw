@@ -1,4 +1,4 @@
-import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, PutItemCommand, ScanCommand } from '@aws-sdk/client-dynamodb';
 import { randomUUID } from 'crypto';
 import {
   adminLambdaHandlerDecorator,
@@ -21,6 +21,22 @@ export const handler = adminLambdaHandlerDecorator(
       return {
         status: HttpStatusCode.BAD_REQUEST,
         body: { message: 'Missing required field: name' },
+      };
+    }
+
+    // Check for duplicate team name
+    const existingTeams = await ddbClient.send(new ScanCommand({
+      TableName: TABLE_NAME,
+      FilterExpression: '#name = :name',
+      ExpressionAttributeNames: { '#name': 'name' },
+      ExpressionAttributeValues: { ':name': { S: body.name } },
+      Limit: 1,
+    }));
+
+    if (existingTeams.Items && existingTeams.Items.length > 0) {
+      return {
+        status: HttpStatusCode.CONFLICT,
+        body: { message: `Team with name "${body.name}" already exists` },
       };
     }
 

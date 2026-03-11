@@ -5,7 +5,34 @@ jest.mock('@aws-sdk/client-dynamodb', () => ({
   ScanCommand: jest.fn((input: any) => ({ input })),
 }));
 
+jest.mock('@TeamClaw/teamclaw/cloud-function', () => {
+  const actual = jest.requireActual('@TeamClaw/teamclaw/cloud-function');
+  return {
+    ...actual,
+    adminLambdaHandlerDecorator: (_method: string, fn: any) => {
+      return async (event: any, _context: any) => {
+        try {
+          const result = await fn(event);
+          return {
+            statusCode: result.status,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(result.body),
+          };
+        } catch (error: any) {
+          return {
+            statusCode: 500,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: error.message || 'Internal server error' }),
+          };
+        }
+      };
+    },
+    validateRequiredEnvVars: jest.fn(),
+  };
+});
+
 process.env['USERS_TABLE_NAME'] = 'UsersTable';
+process.env['DEPLOY_ENV'] = 'dev';
 
 import { handler } from './query-containers';
 
@@ -17,6 +44,9 @@ const makeEvent = (overrides: any = {}) => ({
   requestContext: {} as any,
   ...overrides,
 });
+
+const invoke = async (event = makeEvent()) =>
+  handler(event, {} as any) as Promise<{ statusCode: number; headers: any; body: string }>;
 
 describe('query-containers handler', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -30,9 +60,8 @@ describe('query-containers handler', () => {
       LastEvaluatedKey: undefined,
     });
 
-    const res = await handler(makeEvent());
+    const res = await invoke();
     expect(res.statusCode).toBe(200);
-    expect(res.headers['Access-Control-Allow-Origin']).toBe('*');
     const body = JSON.parse(res.body);
     expect(body.containers).toHaveLength(1);
     expect(body.containers[0].status).toBe('running');
@@ -43,7 +72,7 @@ describe('query-containers handler', () => {
       Items: [{ userId: { S: 'u1' } }],
       LastEvaluatedKey: undefined,
     });
-    const res = await handler(makeEvent());
+    const res = await invoke();
     const c = JSON.parse(res.body).containers[0];
     expect(c.email).toBeNull();
     expect(c.status).toBe('unknown');
@@ -52,20 +81,19 @@ describe('query-containers handler', () => {
 
   it('should handle pagination', async () => {
     mockSend.mockResolvedValueOnce({ Items: [], LastEvaluatedKey: { userId: { S: 'u1' } } });
-    const res = await handler(makeEvent());
+    const res = await invoke();
     expect(JSON.parse(res.body).nextToken).toBeDefined();
   });
 
   it('should accept custom limit', async () => {
     mockSend.mockResolvedValueOnce({ Items: [], LastEvaluatedKey: undefined });
-    await handler(makeEvent({ queryStringParameters: { limit: '10' } }));
+    await invoke(makeEvent({ queryStringParameters: { limit: '10' } }));
     expect(mockSend.mock.calls[0][0].input.Limit).toBe(10);
   });
 
   it('should return 500 on error', async () => {
     mockSend.mockRejectedValueOnce(new Error('fail'));
-    const res = await handler(makeEvent());
+    const res = await invoke();
     expect(res.statusCode).toBe(500);
-    expect(res.headers['Access-Control-Allow-Origin']).toBe('*');
   });
 });

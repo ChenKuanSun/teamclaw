@@ -1,20 +1,23 @@
 import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
+import {
+  adminLambdaHandlerDecorator,
+  HandlerMethod,
+  HttpStatusCode,
+  validateRequiredEnvVars,
+} from '@TeamClaw/teamclaw/cloud-function';
+
+validateRequiredEnvVars(['USERS_TABLE_NAME']);
 
 const ddbClient = new DynamoDBClient({});
 const TABLE_NAME = process.env['USERS_TABLE_NAME']!;
 
-const CORS_HEADERS = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': process.env['ADMIN_ORIGIN'] || '*',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-};
-
-export const handler = async (event: any) => {
-  try {
+export const handler = adminLambdaHandlerDecorator(
+  HandlerMethod.GET,
+  async (event) => {
     const qs = event.queryStringParameters || {};
-    const limit = qs.limit ? parseInt(qs.limit, 10) : 25;
-    const exclusiveStartKey = qs.nextToken
-      ? JSON.parse(Buffer.from(qs.nextToken, 'base64').toString())
+    const limit = qs['limit'] ? parseInt(qs['limit'], 10) : 25;
+    const exclusiveStartKey = qs['nextToken']
+      ? JSON.parse(Buffer.from(qs['nextToken'], 'base64').toString())
       : undefined;
 
     const params: any = {
@@ -42,16 +45,8 @@ export const handler = async (event: any) => {
       : undefined;
 
     return {
-      statusCode: 200,
-      headers: CORS_HEADERS,
-      body: JSON.stringify({ containers, nextToken }),
+      status: HttpStatusCode.OK,
+      body: { containers, nextToken },
     };
-  } catch (error) {
-    console.error('Error querying containers:', error);
-    return {
-      statusCode: 500,
-      headers: CORS_HEADERS,
-      body: JSON.stringify({ error: 'Failed to query containers' }),
-    };
-  }
-};
+  },
+);

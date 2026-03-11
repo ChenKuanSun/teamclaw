@@ -6,10 +6,9 @@
  */
 
 import {
-  ENVIRONMENT,
   StackPropsWithEnv,
-  TC_ADMIN_APP_DOMAIN_NAME,
   TC_SSM_PARAMETER,
+  getTCAdminApiCorsOrigins,
 } from '@TeamClaw/core/cloud-config';
 import {
   Duration,
@@ -46,15 +45,6 @@ export class AdminApiGatewayStack extends Stack {
       cloudWatchRoleArn: apiGatewayCloudWatchRole.roleArn,
     });
 
-    // CORS origins for admin panel
-    const corsOrigins =
-      deployEnv === ENVIRONMENT.PROD
-        ? [`https://${TC_ADMIN_APP_DOMAIN_NAME[deployEnv]}`]
-        : [
-            `https://${TC_ADMIN_APP_DOMAIN_NAME[deployEnv]}`,
-            'http://localhost:4900',
-          ];
-
     // Create Admin HttpApi (V2) — matching Affiora pattern
     this.adminHttpApi = new aws_apigatewayv2.HttpApi(
       this,
@@ -76,7 +66,7 @@ export class AdminApiGatewayStack extends Stack {
             aws_apigatewayv2.CorsHttpMethod.DELETE,
           ],
           allowCredentials: false,
-          allowOrigins: corsOrigins,
+          allowOrigins: getTCAdminApiCorsOrigins(deployEnv),
           maxAge: Duration.hours(1),
         },
       },

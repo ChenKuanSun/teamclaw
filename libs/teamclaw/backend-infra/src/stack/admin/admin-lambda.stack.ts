@@ -7,7 +7,6 @@
 
 import {
   StackPropsWithEnv,
-  TC_ADMIN_APP_DOMAIN_NAME,
   TC_SSM_PARAMETER,
 } from '@TeamClaw/core/cloud-config';
 import { TC_LAMBDA_DEFAULT_PROPS } from '@TeamClaw/teamclaw/cloud-config';
@@ -122,7 +121,6 @@ export class AdminLambdaStack extends Stack {
     // ==========================================================
     const baseEnv = {
       DEPLOY_ENV: deployEnv,
-      ADMIN_ORIGIN: `https://${TC_ADMIN_APP_DOMAIN_NAME[deployEnv]}`,
     };
 
     // ==========================================================

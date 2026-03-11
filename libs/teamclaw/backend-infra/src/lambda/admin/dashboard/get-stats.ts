@@ -1,18 +1,20 @@
 import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
-import { APIGatewayProxyHandler } from 'aws-lambda';
+import {
+  adminLambdaHandlerDecorator,
+  HandlerMethod,
+  HttpStatusCode,
+  validateRequiredEnvVars,
+} from '@TeamClaw/teamclaw/cloud-function';
+
+validateRequiredEnvVars(['USERS_TABLE_NAME', 'USAGE_TABLE_NAME']);
 
 const dynamodb = new DynamoDBClient({});
 const USERS_TABLE = process.env['USERS_TABLE_NAME']!;
 const USAGE_TABLE = process.env['USAGE_TABLE_NAME']!;
 
-const corsHeaders = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': process.env['ADMIN_ORIGIN'] || '*',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-};
-
-export const handler: APIGatewayProxyHandler = async () => {
-  try {
+export const handler = adminLambdaHandlerDecorator(
+  HandlerMethod.GET,
+  async () => {
     // Scan users table for counts
     const usersResult = await dynamodb.send(new ScanCommand({ TableName: USERS_TABLE }));
     const users = usersResult.Items ?? [];
@@ -41,9 +43,8 @@ export const handler: APIGatewayProxyHandler = async () => {
     } while (lastEvaluatedKey);
 
     return {
-      statusCode: 200,
-      headers: corsHeaders,
-      body: JSON.stringify({
+      status: HttpStatusCode.OK,
+      body: {
         totalUsers,
         containers: {
           running: runningContainers,
@@ -51,14 +52,7 @@ export const handler: APIGatewayProxyHandler = async () => {
           provisioned: provisionedContainers,
         },
         totalRequests24h,
-      }),
+      },
     };
-  } catch (error) {
-    console.error('Failed to get dashboard stats:', error);
-    return {
-      statusCode: 500,
-      headers: corsHeaders,
-      body: JSON.stringify({ error: 'Internal server error' }),
-    };
-  }
-};
+  },
+);

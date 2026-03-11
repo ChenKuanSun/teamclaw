@@ -19,7 +19,8 @@
       "@TeamClaw/core/constants": ["libs/core/constants/src/index.ts"],
       "@TeamClaw/core/types": ["libs/core/types/src/index.ts"],
       "@TeamClaw/teamclaw/cloud-config": ["libs/teamclaw/cloud-config/src/index.ts"],
-      "@TeamClaw/teamclaw/backend-infra": ["libs/teamclaw/backend-infra/src/index.ts"]
+      "@TeamClaw/teamclaw/backend-infra": ["libs/teamclaw/backend-infra/src/index.ts"],
+      "@TeamClaw/teamclaw/cloud-function": ["libs/teamclaw/cloud-function/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

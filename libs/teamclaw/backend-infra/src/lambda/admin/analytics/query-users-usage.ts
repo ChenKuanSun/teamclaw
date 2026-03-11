@@ -1,17 +1,19 @@
 import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
-import { APIGatewayProxyHandler } from 'aws-lambda';
+import {
+  adminLambdaHandlerDecorator,
+  HandlerMethod,
+  HttpStatusCode,
+  validateRequiredEnvVars,
+} from '@TeamClaw/teamclaw/cloud-function';
+
+validateRequiredEnvVars(['USAGE_TABLE_NAME']);
 
 const dynamodb = new DynamoDBClient({});
 const USAGE_TABLE = process.env['USAGE_TABLE_NAME']!;
 
-const corsHeaders = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': process.env['ADMIN_ORIGIN'] || '*',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-};
-
-export const handler: APIGatewayProxyHandler = async (event) => {
-  try {
+export const handler = adminLambdaHandlerDecorator(
+  HandlerMethod.GET,
+  async (event) => {
     const from = event.queryStringParameters?.['from'];
     const to = event.queryStringParameters?.['to'] || new Date().toISOString();
     const limit = parseInt(event.queryStringParameters?.['limit'] || '50', 10);
@@ -36,16 +38,14 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         exclusiveStartKey = JSON.parse(Buffer.from(nextToken, 'base64').toString());
       } catch {
         return {
-          statusCode: 400,
-          headers: corsHeaders,
-          body: JSON.stringify({ error: 'Invalid nextToken' }),
+          status: HttpStatusCode.BAD_REQUEST,
+          body: { error: 'Invalid nextToken' },
         };
       }
     }
 
     // Collect all matching items (paginated scan)
     const userUsage: Record<string, { requestCount: number; providers: Record<string, number> }> = {};
-    let scannedPages = 0;
     let currentStartKey = exclusiveStartKey;
 
     do {
@@ -69,7 +69,6 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       }
 
       currentStartKey = result.LastEvaluatedKey;
-      scannedPages++;
     } while (currentStartKey);
 
     // Sort users by request count descending and paginate the result
@@ -92,22 +91,14 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     const hasMore = offset + limit < sortedUsers.length;
 
     return {
-      statusCode: 200,
-      headers: corsHeaders,
-      body: JSON.stringify({
+      status: HttpStatusCode.OK,
+      body: {
         users: page,
         totalUsers: sortedUsers.length,
         nextToken: hasMore
           ? Buffer.from(JSON.stringify({ offset: offset + limit })).toString('base64')
           : undefined,
-      }),
+      },
     };
-  } catch (error) {
-    console.error('Failed to query users usage:', error);
-    return {
-      statusCode: 500,
-      headers: corsHeaders,
-      body: JSON.stringify({ error: 'Internal server error' }),
-    };
-  }
-};
+  },
+);

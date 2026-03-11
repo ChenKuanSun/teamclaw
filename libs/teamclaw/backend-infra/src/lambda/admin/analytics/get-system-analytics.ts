@@ -1,25 +1,26 @@
 import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
-import { APIGatewayProxyHandler } from 'aws-lambda';
+import {
+  adminLambdaHandlerDecorator,
+  HandlerMethod,
+  HttpStatusCode,
+  validateRequiredEnvVars,
+} from '@TeamClaw/teamclaw/cloud-function';
+
+validateRequiredEnvVars(['USAGE_TABLE_NAME']);
 
 const dynamodb = new DynamoDBClient({});
 const USAGE_TABLE = process.env['USAGE_TABLE_NAME']!;
 
-const corsHeaders = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': process.env['ADMIN_ORIGIN'] || '*',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-};
-
-export const handler: APIGatewayProxyHandler = async (event) => {
-  try {
+export const handler = adminLambdaHandlerDecorator(
+  HandlerMethod.GET,
+  async (event) => {
     const from = event.queryStringParameters?.['from'];
     const to = event.queryStringParameters?.['to'] || new Date().toISOString();
 
     if (!from) {
       return {
-        statusCode: 400,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: 'from query parameter is required (ISO 8601 date)' }),
+        status: HttpStatusCode.BAD_REQUEST,
+        body: { error: 'from query parameter is required (ISO 8601 date)' },
       };
     }
 
@@ -52,21 +53,13 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     } while (lastEvaluatedKey);
 
     return {
-      statusCode: 200,
-      headers: corsHeaders,
-      body: JSON.stringify({
+      status: HttpStatusCode.OK,
+      body: {
         dateRange: { from, to },
         totalRequests,
         uniqueUsers: uniqueUsers.size,
         byProvider,
-      }),
+      },
     };
-  } catch (error) {
-    console.error('Failed to get system analytics:', error);
-    return {
-      statusCode: 500,
-      headers: corsHeaders,
-      body: JSON.stringify({ error: 'Internal server error' }),
-    };
-  }
-};
+  },
+);

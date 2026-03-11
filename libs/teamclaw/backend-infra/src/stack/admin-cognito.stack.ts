@@ -7,12 +7,15 @@
  */
 
 import {
-  TC_ADMIN_APP_DOMAIN_NAME,
-  TC_ADMIN_USER_POOL_DOMAIN_PREFIX,
   TC_SSM_PARAMETER,
   ENVIRONMENT,
   StackPropsWithEnv,
 } from '@TeamClaw/core/cloud-config';
+import {
+  TC_ADMIN_AUTH_CALLBACK_URL,
+  TC_ADMIN_AUTH_LOGOUT_URL,
+  TC_ADMIN_USER_POOL_DOMAIN_PREFIX,
+} from '@TeamClaw/teamclaw/cloud-config';
 import {
   RemovalPolicy,
   Stack,
@@ -60,11 +63,10 @@ export class AdminCognitoStack extends Stack {
     });
 
     // Admin App Client (web app with PKCE)
-    const adminDomain = TC_ADMIN_APP_DOMAIN_NAME[deployEnv];
     const adminCallbackUrls = [
-      `https://${adminDomain}/auth/callback`,
+      TC_ADMIN_AUTH_CALLBACK_URL[deployEnv],
     ];
-    const adminLogoutUrls = [`https://${adminDomain}/auth/login`];
+    const adminLogoutUrls = [TC_ADMIN_AUTH_LOGOUT_URL[deployEnv]];
 
     // Add localhost for development
     if (deployEnv === ENVIRONMENT.DEV) {

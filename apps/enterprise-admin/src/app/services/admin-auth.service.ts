@@ -185,6 +185,68 @@ export class AdminAuthService {
     });
   }
 
+  async forgotPassword(email: string): Promise<boolean> {
+    this.state.update((s) => ({ ...s, isLoading: true, error: '' }));
+
+    const cognitoUser = new CognitoUser({
+      Username: email,
+      Pool: this.userPool,
+    });
+
+    return new Promise<boolean>((resolve) => {
+      cognitoUser.forgotPassword({
+        onSuccess: () => {
+          this.state.update((s) => ({ ...s, isLoading: false }));
+          resolve(true);
+        },
+        onFailure: (err: Error) => {
+          console.error('[AdminAuthService] Forgot password failed:', err);
+          this.state.update((s) => ({
+            ...s,
+            isLoading: false,
+            error: this.mapCognitoError(err),
+          }));
+          resolve(false);
+        },
+      });
+    });
+  }
+
+  async confirmPassword(
+    email: string,
+    code: string,
+    newPassword: string,
+  ): Promise<boolean> {
+    this.state.update((s) => ({ ...s, isLoading: true, error: '' }));
+
+    const cognitoUser = new CognitoUser({
+      Username: email,
+      Pool: this.userPool,
+    });
+
+    return new Promise<boolean>((resolve) => {
+      cognitoUser.confirmPassword(code, newPassword, {
+        onSuccess: () => {
+          this.state.update((s) => ({ ...s, isLoading: false }));
+          resolve(true);
+        },
+        onFailure: (err: Error) => {
+          console.error('[AdminAuthService] Confirm password failed:', err);
+          this.state.update((s) => ({
+            ...s,
+            isLoading: false,
+            error: this.mapCognitoError(err),
+          }));
+          resolve(false);
+        },
+      });
+    });
+  }
+
+  clearError(): void {
+    this.state.update((s) => ({ ...s, error: '' }));
+  }
+
   signOut() {
     const currentUser = this.userPool.getCurrentUser();
     if (currentUser) {
@@ -222,7 +284,15 @@ export class AdminAuthService {
       case 'UserNotConfirmedException':
         return 'Account not confirmed. Contact your administrator.';
       case 'PasswordResetRequiredException':
-        return 'Password reset required. Contact your administrator.';
+        return 'Password reset required. Use "Forgot password?" to reset.';
+      case 'CodeMismatchException':
+        return 'Invalid verification code. Please try again.';
+      case 'ExpiredCodeException':
+        return 'Verification code expired. Please request a new one.';
+      case 'InvalidPasswordException':
+        return 'Password does not meet requirements (min 12 chars, upper/lower/digit/symbol).';
+      case 'LimitExceededException':
+        return 'Too many attempts. Please try again later.';
       default:
         return err.message || 'Authentication failed.';
     }

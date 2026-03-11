@@ -6,7 +6,7 @@ const USERS_TABLE = process.env['USERS_TABLE_NAME']!;
 
 const corsHeaders = {
   'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': process.env['ADMIN_ORIGIN'] || '*',
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
 };
 
@@ -16,9 +16,17 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     const limit = Math.min(parseInt(params['limit'] || '50', 10), 100);
     const email = params['email'];
     const status = params['status'];
-    const exclusiveStartKey = params['nextToken']
-      ? JSON.parse(Buffer.from(params['nextToken'], 'base64').toString())
-      : undefined;
+    let exclusiveStartKey: Record<string, any> | undefined;
+    if (params['nextToken']) {
+      try {
+        const decoded = JSON.parse(Buffer.from(params['nextToken'], 'base64').toString());
+        if (decoded && typeof decoded === 'object' && decoded.userId) {
+          exclusiveStartKey = decoded;
+        }
+      } catch {
+        return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Invalid nextToken' }) };
+      }
+    }
 
     // Build filter expression
     const filterParts: string[] = [];

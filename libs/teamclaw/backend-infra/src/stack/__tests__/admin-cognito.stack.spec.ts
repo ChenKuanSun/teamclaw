@@ -50,16 +50,19 @@ describe('AdminCognitoStack', () => {
     });
   });
 
-  test('creates UserPoolClient with PKCE (no client secret)', () => {
+  test('creates UserPoolClient with SRP auth only (no client secret)', () => {
     template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
       GenerateSecret: false,
       ExplicitAuthFlows: Match.arrayWith([
-        'ALLOW_USER_PASSWORD_AUTH',
         'ALLOW_USER_SRP_AUTH',
       ]),
-      AllowedOAuthFlows: ['code'],
-      AllowedOAuthScopes: Match.arrayWith(['openid', 'email', 'profile']),
     });
+    // Verify userPassword auth is NOT enabled (security: C4)
+    const clients = template.findResources('AWS::Cognito::UserPoolClient');
+    for (const key of Object.keys(clients)) {
+      const authFlows = (clients[key] as any).Properties?.ExplicitAuthFlows ?? [];
+      expect(authFlows).not.toContain('ALLOW_USER_PASSWORD_AUTH');
+    }
   });
 
   test('creates UserPoolDomain', () => {

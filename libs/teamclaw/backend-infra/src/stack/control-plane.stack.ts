@@ -159,6 +159,9 @@ export class ControlPlaneStack extends Stack {
     api.root.addProxy({
       defaultIntegration: new aws_apigateway.LambdaIntegration(keyPoolLambda),
       anyMethod: true,
+      defaultMethodOptions: {
+        authorizationType: aws_apigateway.AuthorizationType.IAM,
+      },
     });
 
     new aws_ssm.StringParameter(this, 'KeyPoolProxyUrlParam', {
@@ -177,7 +180,7 @@ export class ControlPlaneStack extends Stack {
         ECS_CLUSTER_NAME: aws_ssm.StringParameter.valueForStringParameter(this, ssm.ECS.CLUSTER_NAME),
         EFS_FILE_SYSTEM_ID: aws_ssm.StringParameter.valueForStringParameter(this, ssm.EFS.FILE_SYSTEM_ID),
         PRIVATE_SUBNET_IDS: aws_ssm.StringParameter.valueForStringParameter(this, ssm.VPC.PRIVATE_SUBNET_IDS),
-        CONTAINER_SECURITY_GROUP_ID: aws_ssm.StringParameter.valueForStringParameter(this, ssm.ECS.ALB_SECURITY_GROUP_ID),
+        SECURITY_GROUP_ID: aws_ssm.StringParameter.valueForStringParameter(this, ssm.ECS.ALB_SECURITY_GROUP_ID),
         KEY_POOL_PROXY_URL: api.url,
       },
     });
@@ -215,7 +218,9 @@ export class ControlPlaneStack extends Stack {
     }));
     lifecycleLambda.addToRolePolicy(new aws_iam.PolicyStatement({
       actions: ['iam:PassRole'],
-      resources: ['*'],
+      resources: [
+        `arn:aws:iam::${this.account}:role/teamclaw-*-${deployEnv}*`,
+      ],
       conditions: {
         StringEquals: { 'iam:PassedToService': 'ecs-tasks.amazonaws.com' },
       },
@@ -247,7 +252,7 @@ export class ControlPlaneStack extends Stack {
     }));
     lifecycleLambda.addToRolePolicy(new aws_iam.PolicyStatement({
       actions: ['iam:PassRole'],
-      resources: ['*'],
+      resources: [schedulerRole.roleArn],
       conditions: {
         StringEquals: { 'iam:PassedToService': 'scheduler.amazonaws.com' },
       },

@@ -12,7 +12,7 @@ const USER_POOL_ID = process.env['COGNITO_USER_POOL_ID']!;
 
 const corsHeaders = {
   'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': process.env['ADMIN_ORIGIN'] || '*',
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
 };
 

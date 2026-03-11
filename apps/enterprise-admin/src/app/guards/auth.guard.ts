@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AdminAuthService } from '../services/admin-auth.service';
 
-export const authGuard: CanActivateFn = async () => {
+export const authGuard: CanActivateFn = async (route, state) => {
   const authService = inject(AdminAuthService);
   const router = inject(Router);
 
@@ -20,11 +20,9 @@ export const authGuard: CanActivateFn = async () => {
   }
 
   // Store the attempted URL for redirecting after login (with validation)
-  const currentUrl = window.location.pathname + window.location.search;
-  if (currentUrl !== '/auth/login') {
-    authService.setRedirectUrl(currentUrl);
+  if (state.url !== '/auth/login') {
+    authService.setRedirectUrl(state.url);
   }
 
-  router.navigateByUrl('/auth/login');
-  return false;
+  return router.parseUrl('/auth/login');
 };

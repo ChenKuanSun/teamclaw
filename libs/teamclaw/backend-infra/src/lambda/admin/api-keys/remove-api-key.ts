@@ -10,7 +10,7 @@ const API_KEYS_SECRET_ARN = process.env['API_KEYS_SECRET_ARN']!;
 
 const corsHeaders = {
   'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': process.env['ADMIN_ORIGIN'] || '*',
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
 };
 

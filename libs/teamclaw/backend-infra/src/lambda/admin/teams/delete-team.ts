@@ -11,7 +11,7 @@ const USERS_TABLE = process.env['USERS_TABLE_NAME']!;
 
 const CORS_HEADERS = {
   'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': process.env['ADMIN_ORIGIN'] || '*',
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
 };
 

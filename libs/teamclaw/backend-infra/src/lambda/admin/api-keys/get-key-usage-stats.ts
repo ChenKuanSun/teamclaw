@@ -6,7 +6,7 @@ const USAGE_TABLE = process.env['USAGE_TABLE_NAME']!;
 
 const corsHeaders = {
   'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': process.env['ADMIN_ORIGIN'] || '*',
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
 };
 

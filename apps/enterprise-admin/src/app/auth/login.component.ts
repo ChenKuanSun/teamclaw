@@ -130,9 +130,12 @@ export class LoginComponent {
   password = '';
   hidePassword = true;
 
-  login() {
+  async login() {
     if (this.email && this.password) {
-      this.authService.login(this.email, this.password);
+      const success = await this.authService.login(this.email, this.password);
+      if (!success) {
+        this.password = '';
+      }
     }
   }
 }

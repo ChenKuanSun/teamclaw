@@ -9,11 +9,7 @@ describe('authGuard', () => {
   let router: jest.Mocked<Router>;
 
   const mockRoute = {} as ActivatedRouteSnapshot;
-  const mockState = {} as RouterStateSnapshot;
-
-  function setUrl(path: string) {
-    window.history.pushState({}, '', path);
-  }
+  const mockState = { url: '/' } as RouterStateSnapshot;
 
   beforeEach(() => {
     authService = {
@@ -24,7 +20,7 @@ describe('authGuard', () => {
     } as unknown as jest.Mocked<AdminAuthService>;
 
     router = {
-      navigateByUrl: jest.fn().mockResolvedValue(true),
+      parseUrl: jest.fn((url: string) => ({ toString: () => url })),
     } as unknown as jest.Mocked<Router>;
 
     TestBed.configureTestingModule({
@@ -35,15 +31,10 @@ describe('authGuard', () => {
     });
   });
 
-  afterEach(() => {
-    // Reset URL back to root
-    window.history.pushState({}, '', '/');
-  });
-
   function runGuard(): Promise<boolean | import('@angular/router').UrlTree> {
     return TestBed.runInInjectionContext(() =>
       authGuard(mockRoute, mockState),
-    ) as Promise<boolean>;
+    ) as Promise<boolean | import('@angular/router').UrlTree>;
   }
 
   it('should allow authenticated user', async () => {
@@ -52,7 +43,6 @@ describe('authGuard', () => {
     const result = await runGuard();
 
     expect(result).toBe(true);
-    expect(router.navigateByUrl).not.toHaveBeenCalled();
   });
 
   it('should try refresh when access token expired but refresh token exists', async () => {
@@ -71,48 +61,45 @@ describe('authGuard', () => {
     authService.hasRefreshToken.mockReturnValue(true);
     authService.refreshAccessToken.mockResolvedValue(false);
 
-    setUrl('/dashboard');
+    mockState.url = '/dashboard';
 
     const result = await runGuard();
 
-    expect(result).toBe(false);
+    expect(result.toString()).toBe('/auth/login');
     expect(authService.setRedirectUrl).toHaveBeenCalledWith('/dashboard');
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/auth/login');
   });
 
   it('should store redirect URL and redirect to login when unauthenticated', async () => {
     authService.isAuthenticated.mockReturnValue(false);
     authService.hasRefreshToken.mockReturnValue(false);
 
-    setUrl('/users?page=2');
+    mockState.url = '/users?page=2';
 
     const result = await runGuard();
 
-    expect(result).toBe(false);
+    expect(result.toString()).toBe('/auth/login');
     expect(authService.setRedirectUrl).toHaveBeenCalledWith('/users?page=2');
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/auth/login');
   });
 
   it('should not store auth routes as redirect URL', async () => {
     authService.isAuthenticated.mockReturnValue(false);
 
-    setUrl('/auth/login');
+    mockState.url = '/auth/login';
 
     const result = await runGuard();
 
-    expect(result).toBe(false);
+    expect(result.toString()).toBe('/auth/login');
     expect(authService.setRedirectUrl).not.toHaveBeenCalled();
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/auth/login');
   });
 
   it('should not store /auth/login as redirect URL', async () => {
     authService.isAuthenticated.mockReturnValue(false);
 
-    setUrl('/auth/login');
+    mockState.url = '/auth/login';
 
     const result = await runGuard();
 
-    expect(result).toBe(false);
+    expect(result.toString()).toBe('/auth/login');
     expect(authService.setRedirectUrl).not.toHaveBeenCalled();
   });
 });

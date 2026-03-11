@@ -80,7 +80,6 @@ export class AdminCognitoStack extends Stack {
           aws_cognito.UserPoolClientIdentityProvider.COGNITO,
         ],
         authFlows: {
-          userPassword: true,
           userSrp: true,
         },
         oAuth: {

@@ -18,7 +18,7 @@ const USER_POOL_ID = process.env['COGNITO_USER_POOL_ID']!;
 
 const corsHeaders = {
   'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': process.env['ADMIN_ORIGIN'] || '*',
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
 };
 
@@ -50,12 +50,12 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 
     const item = userResult.Item;
 
-    // Stop container if running (async via lifecycle Lambda)
+    // Stop container if running (synchronous — wait for stop before deleting records)
     if (item['status']?.S === 'running' && item['taskArn']?.S) {
       try {
         await lambda.send(new InvokeCommand({
           FunctionName: LIFECYCLE_FUNCTION_NAME,
-          InvocationType: 'Event', // async invocation
+          InvocationType: 'RequestResponse',
           Payload: Buffer.from(JSON.stringify({ action: 'stop', userId })),
         }));
       } catch (stopError) {

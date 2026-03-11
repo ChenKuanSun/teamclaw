@@ -6,6 +6,7 @@ import {
   CognitoUserPool,
   CognitoUserSession,
 } from 'amazon-cognito-identity-js';
+import { Observable, from, of, shareReplay, tap, catchError } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 interface AuthState {
@@ -45,6 +46,7 @@ const TOKEN_EXPIRY_BUFFER_MS = 60_000;
 })
 export class AdminAuthService {
   private readonly router = inject(Router);
+  private refreshInProgress$: Observable<boolean> | null = null;
 
   private readonly userPool = new CognitoUserPool({
     UserPoolId: environment.auth.userPoolId,
@@ -73,7 +75,9 @@ export class AdminAuthService {
     if (!idToken) return '';
     try {
       const payload = idToken.split('.')[1];
-      const decoded = JSON.parse(atob(payload));
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64.padEnd(base64.length + (4 - (base64.length % 4)) % 4, '=');
+      const decoded = JSON.parse(atob(padded));
       return decoded.email || '';
     } catch {
       return '';
@@ -82,6 +86,20 @@ export class AdminAuthService {
 
   setRefreshing(value: boolean): void {
     this.state.update((s) => ({ ...s, isRefreshing: value }));
+  }
+
+  refreshAccessTokenOnce(): Observable<boolean> {
+    if (!this.refreshInProgress$) {
+      this.refreshInProgress$ = from(this.refreshAccessToken()).pipe(
+        tap(() => (this.refreshInProgress$ = null)),
+        catchError(() => {
+          this.refreshInProgress$ = null;
+          return of(false);
+        }),
+        shareReplay(1),
+      );
+    }
+    return this.refreshInProgress$;
   }
 
   setRedirectUrl(url: string): void {

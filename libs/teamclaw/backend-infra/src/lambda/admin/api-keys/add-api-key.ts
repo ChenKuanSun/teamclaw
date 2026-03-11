@@ -10,7 +10,7 @@ const API_KEYS_SECRET_ARN = process.env['API_KEYS_SECRET_ARN']!;
 
 const corsHeaders = {
   'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': process.env['ADMIN_ORIGIN'] || '*',
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
 };
 
@@ -19,13 +19,18 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     const body = JSON.parse(event.body || '{}');
     const { provider, key } = body;
 
-    if (!provider || !key) {
+    if (!provider || !key || typeof key !== 'string' || key.length > 256) {
       return {
         statusCode: 400,
         headers: corsHeaders,
-        body: JSON.stringify({ error: 'provider and key are required' }),
+        body: JSON.stringify({ error: 'provider and key are required (key must be a non-empty string, max 256 chars)' }),
       };
     }
+
+    // TODO: Read-modify-write on Secrets Manager has no concurrency control.
+    // SM does not support optimistic locking (CAS) on PutSecretValue.
+    // Admin API key operations should be serialized (one admin at a time).
+    // Future fix: use DynamoDB-based advisory lock or a queue for mutations.
 
     // Read current secret
     const result = await smClient.send(new GetSecretValueCommand({

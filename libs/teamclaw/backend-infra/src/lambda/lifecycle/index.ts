@@ -1,5 +1,5 @@
 import { ECSClient, RunTaskCommand, StopTaskCommand, DescribeTasksCommand } from '@aws-sdk/client-ecs';
-import { EFSClient, CreateAccessPointCommand } from '@aws-sdk/client-efs';
+import { EFSClient, CreateAccessPointCommand, DeleteAccessPointCommand } from '@aws-sdk/client-efs';
 import { DynamoDBClient, GetItemCommand, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import {
   SchedulerClient,
@@ -55,16 +55,39 @@ async function provisionUser(userId: string, teamId?: string) {
     ],
   }));
 
-  await ddbClient.send(new PutItemCommand({
-    TableName: process.env['USER_TABLE_NAME']!,
-    Item: {
-      userId: { S: userId },
-      teamId: { S: teamId || '' },
-      efsAccessPointId: { S: accessPoint.AccessPointId! },
-      status: { S: 'provisioned' },
-      createdAt: { S: new Date().toISOString() },
-    },
-  }));
+  try {
+    await ddbClient.send(new PutItemCommand({
+      TableName: process.env['USER_TABLE_NAME']!,
+      Item: {
+        userId: { S: userId },
+        teamId: { S: teamId || '' },
+        efsAccessPointId: { S: accessPoint.AccessPointId! },
+        status: { S: 'provisioned' },
+        createdAt: { S: new Date().toISOString() },
+      },
+      ConditionExpression: 'attribute_not_exists(userId)',
+    }));
+  } catch (err: any) {
+    if (err.name === 'ConditionalCheckFailedException') {
+      // User already provisioned — delete the orphaned access point
+      await efsClient.send(new DeleteAccessPointCommand({
+        AccessPointId: accessPoint.AccessPointId!,
+      }));
+      // Return existing access point ID
+      const existing = await ddbClient.send(new GetItemCommand({
+        TableName: process.env['USER_TABLE_NAME']!,
+        Key: { userId: { S: userId } },
+      }));
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          accessPointId: existing.Item?.['efsAccessPointId']?.S,
+          alreadyProvisioned: true,
+        }),
+      };
+    }
+    throw err;
+  }
 
   return { statusCode: 200, body: JSON.stringify({ accessPointId: accessPoint.AccessPointId }) };
 }
@@ -98,7 +121,7 @@ async function startContainer(userId: string) {
     networkConfiguration: {
       awsvpcConfiguration: {
         subnets: process.env['PRIVATE_SUBNET_IDS']!.split(','),
-        securityGroups: [process.env['CONTAINER_SECURITY_GROUP_ID']!],
+        securityGroups: [process.env['SECURITY_GROUP_ID']!],
         assignPublicIp: 'DISABLED',
       },
     },
@@ -115,12 +138,16 @@ async function startContainer(userId: string) {
   }));
 
   const taskArn = result.tasks?.[0]?.taskArn;
+  if (!taskArn) {
+    const reason = result.failures?.[0]?.reason ?? 'unknown';
+    return { statusCode: 503, body: JSON.stringify({ error: `ECS launch failed: ${reason}` }) };
+  }
 
   await ddbClient.send(new PutItemCommand({
     TableName: process.env['USER_TABLE_NAME']!,
     Item: {
       ...userRecord.Item,
-      taskArn: { S: taskArn || '' },
+      taskArn: { S: taskArn },
       status: { S: 'running' },
     },
   }));

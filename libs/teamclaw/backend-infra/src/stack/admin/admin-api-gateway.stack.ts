@@ -77,7 +77,7 @@ export class AdminApiGatewayStack extends Stack {
           ],
           allowCredentials: false,
           allowOrigins: corsOrigins,
-          maxAge: Duration.days(10),
+          maxAge: Duration.hours(1),
         },
       },
     );

@@ -30,7 +30,6 @@ export const handler = adminLambdaHandlerDecorator(
       FilterExpression: '#name = :name',
       ExpressionAttributeNames: { '#name': 'name' },
       ExpressionAttributeValues: { ':name': { S: body.name } },
-      Limit: 1,
     }));
 
     if (existingTeams.Items && existingTeams.Items.length > 0) {

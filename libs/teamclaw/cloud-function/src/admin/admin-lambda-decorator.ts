@@ -67,6 +67,8 @@ export function adminLambdaHandlerDecorator(
     event: APIGatewayProxyEvent,
     context: Context,
   ): Promise<APIGatewayProxyResult> => {
+    withRequest(event, context);
+
     const corsHeaders = getAdminCorsHeaders(event);
     const securityHeaders = getAdminSecurityHeaders();
     const allHeaders = {
@@ -94,7 +96,6 @@ export function adminLambdaHandlerDecorator(
     }
 
     try {
-      withRequest(event, context);
       const result = await handler(event);
       return {
         statusCode: result.status,

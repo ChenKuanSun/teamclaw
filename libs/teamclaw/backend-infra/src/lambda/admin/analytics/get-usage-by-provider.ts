@@ -20,7 +20,7 @@ export const handler = adminLambdaHandlerDecorator(
     if (!from) {
       return {
         status: HttpStatusCode.BAD_REQUEST,
-        body: { error: 'from query parameter is required (ISO 8601 date)' },
+        body: { message: 'from query parameter is required (ISO 8601 date)' },
       };
     }
 

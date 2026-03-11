@@ -1,4 +1,4 @@
 export * from './common';
-export * from './types/stack';
-export * from './ssm/ssm';
-export * from './secret/policy';
+export * from './secret';
+export * from './ssm';
+export * from './types';

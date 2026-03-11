@@ -12,11 +12,38 @@ jest.mock('@aws-sdk/client-cognito-identity-provider', () => ({
   AdminUpdateUserAttributesCommand: jest.fn((input: any) => ({ input })),
 }));
 
+jest.mock('@TeamClaw/teamclaw/cloud-function', () => {
+  const actual = jest.requireActual('@TeamClaw/teamclaw/cloud-function');
+  return {
+    ...actual,
+    adminLambdaHandlerDecorator: (_method: string, fn: any) => {
+      return async (event: any, context: any) => {
+        try {
+          const result = await fn(event);
+          return {
+            statusCode: result.status,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(result.body),
+          };
+        } catch (error: any) {
+          return {
+            statusCode: 500,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: error.message || 'Internal server error' }),
+          };
+        }
+      };
+    },
+    validateRequiredEnvVars: jest.fn(),
+  };
+});
+
 process.env['USERS_TABLE_NAME'] = 'UsersTable';
 process.env['COGNITO_USER_POOL_ID'] = 'us-east-1_test';
+process.env['DEPLOY_ENV'] = 'dev';
 
 import { handler } from './update-user';
-import type { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
+import type { APIGatewayProxyEvent, Context } from 'aws-lambda';
 
 const makeEvent = (overrides: Partial<APIGatewayProxyEvent> = {}): APIGatewayProxyEvent =>
   ({
@@ -36,7 +63,7 @@ const makeEvent = (overrides: Partial<APIGatewayProxyEvent> = {}): APIGatewayPro
   }) as APIGatewayProxyEvent;
 
 const invoke = async (event = makeEvent()) =>
-  (await handler(event, {} as Context, undefined as unknown as Callback)) as {
+  (await handler(event, {} as Context)) as {
     statusCode: number;
     headers: any;
     body: string;
@@ -48,13 +75,13 @@ describe('update-user handler', () => {
   it('should return 400 when userId is missing', async () => {
     const res = await invoke();
     expect(res.statusCode).toBe(400);
-    expect(JSON.parse(res.body).error).toContain('Missing userId');
+    expect(JSON.parse(res.body).message).toContain('Missing userId');
   });
 
   it('should return 400 when body is missing', async () => {
     const res = await invoke(makeEvent({ pathParameters: { userId: 'u1' } }));
     expect(res.statusCode).toBe(400);
-    expect(JSON.parse(res.body).error).toContain('Missing request body');
+    expect(JSON.parse(res.body).message).toContain('Missing request body');
   });
 
   it('should return 400 when no valid fields provided', async () => {
@@ -62,7 +89,7 @@ describe('update-user handler', () => {
       makeEvent({ pathParameters: { userId: 'u1' }, body: JSON.stringify({ invalidField: 'x' }) }),
     );
     expect(res.statusCode).toBe(400);
-    expect(JSON.parse(res.body).error).toContain('No valid fields');
+    expect(JSON.parse(res.body).message).toContain('No valid fields');
   });
 
   it('should return 404 when user not found', async () => {
@@ -85,7 +112,6 @@ describe('update-user handler', () => {
       }),
     );
     expect(res.statusCode).toBe(200);
-    expect(res.headers['Access-Control-Allow-Origin']).toBe('*');
     const body = JSON.parse(res.body);
     expect(body.message).toBe('User updated');
     expect(body.userId).toBe('u1');
@@ -133,6 +159,5 @@ describe('update-user handler', () => {
       }),
     );
     expect(res.statusCode).toBe(500);
-    expect(res.headers['Access-Control-Allow-Origin']).toBe('*');
   });
 });

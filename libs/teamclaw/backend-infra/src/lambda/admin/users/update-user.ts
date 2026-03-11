@@ -3,39 +3,39 @@ import {
   CognitoIdentityProviderClient,
   AdminUpdateUserAttributesCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
-import { APIGatewayProxyHandler } from 'aws-lambda';
+import {
+  adminLambdaHandlerDecorator,
+  HandlerMethod,
+  HttpStatusCode,
+  validateRequiredEnvVars,
+} from '@TeamClaw/teamclaw/cloud-function';
+
+validateRequiredEnvVars(['USERS_TABLE_NAME', 'COGNITO_USER_POOL_ID']);
 
 const dynamodb = new DynamoDBClient({});
 const cognito = new CognitoIdentityProviderClient({});
 const USERS_TABLE = process.env['USERS_TABLE_NAME']!;
 const USER_POOL_ID = process.env['COGNITO_USER_POOL_ID']!;
 
-const corsHeaders = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': process.env['ADMIN_ORIGIN'] || '*',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-};
-
 const ALLOWED_FIELDS = ['teamId', 'status', 'displayName'] as const;
 type AllowedField = typeof ALLOWED_FIELDS[number];
 
-export const handler: APIGatewayProxyHandler = async (event) => {
-  try {
+export const handler = adminLambdaHandlerDecorator(
+  HandlerMethod.PUT,
+  async (event) => {
     const userId = event.pathParameters?.['userId'];
 
     if (!userId) {
       return {
-        statusCode: 400,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: 'Missing userId path parameter' }),
+        status: HttpStatusCode.BAD_REQUEST,
+        body: { message: 'Missing userId path parameter' },
       };
     }
 
     if (!event.body) {
       return {
-        statusCode: 400,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: 'Missing request body' }),
+        status: HttpStatusCode.BAD_REQUEST,
+        body: { message: 'Missing request body' },
       };
     }
 
@@ -51,9 +51,8 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 
     if (Object.keys(updates).length === 0) {
       return {
-        statusCode: 400,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: 'No valid fields to update. Allowed: teamId, status, displayName' }),
+        status: HttpStatusCode.BAD_REQUEST,
+        body: { message: 'No valid fields to update. Allowed: teamId, status, displayName' },
       };
     }
 
@@ -65,9 +64,8 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 
     if (!existing.Item) {
       return {
-        statusCode: 404,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: 'User not found' }),
+        status: HttpStatusCode.NOT_FOUND,
+        body: { message: 'User not found' },
       };
     }
 
@@ -112,16 +110,8 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     }
 
     return {
-      statusCode: 200,
-      headers: corsHeaders,
-      body: JSON.stringify({ message: 'User updated', userId, updates }),
+      status: HttpStatusCode.OK,
+      body: { message: 'User updated', userId, updates },
     };
-  } catch (error) {
-    console.error('Failed to update user:', error);
-    return {
-      statusCode: 500,
-      headers: corsHeaders,
-      body: JSON.stringify({ error: 'Internal server error' }),
-    };
-  }
-};
+  },
+);

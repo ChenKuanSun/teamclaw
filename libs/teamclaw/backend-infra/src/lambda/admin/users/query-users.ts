@@ -1,17 +1,19 @@
 import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
-import { APIGatewayProxyHandler } from 'aws-lambda';
+import {
+  adminLambdaHandlerDecorator,
+  HandlerMethod,
+  HttpStatusCode,
+  validateRequiredEnvVars,
+} from '@TeamClaw/teamclaw/cloud-function';
+
+validateRequiredEnvVars(['USERS_TABLE_NAME']);
 
 const dynamodb = new DynamoDBClient({});
 const USERS_TABLE = process.env['USERS_TABLE_NAME']!;
 
-const corsHeaders = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': process.env['ADMIN_ORIGIN'] || '*',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-};
-
-export const handler: APIGatewayProxyHandler = async (event) => {
-  try {
+export const handler = adminLambdaHandlerDecorator(
+  HandlerMethod.GET,
+  async (event) => {
     const params = event.queryStringParameters ?? {};
     const limit = Math.min(parseInt(params['limit'] || '50', 10), 100);
     const email = params['email'];
@@ -24,7 +26,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
           exclusiveStartKey = decoded;
         }
       } catch {
-        return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: 'Invalid nextToken' }) };
+        return { status: HttpStatusCode.BAD_REQUEST, body: { message: 'Invalid nextToken' } };
       }
     }
 
@@ -76,16 +78,8 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       : undefined;
 
     return {
-      statusCode: 200,
-      headers: corsHeaders,
-      body: JSON.stringify({ users, nextToken }),
+      status: HttpStatusCode.OK,
+      body: { users, nextToken },
     };
-  } catch (error) {
-    console.error('Failed to query users:', error);
-    return {
-      statusCode: 500,
-      headers: corsHeaders,
-      body: JSON.stringify({ error: 'Internal server error' }),
-    };
-  }
-};
+  },
+);

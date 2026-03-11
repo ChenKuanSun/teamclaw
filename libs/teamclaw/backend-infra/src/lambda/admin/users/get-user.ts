@@ -1,24 +1,25 @@
 import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
-import { APIGatewayProxyHandler } from 'aws-lambda';
+import {
+  adminLambdaHandlerDecorator,
+  HandlerMethod,
+  HttpStatusCode,
+  validateRequiredEnvVars,
+} from '@TeamClaw/teamclaw/cloud-function';
+
+validateRequiredEnvVars(['USERS_TABLE_NAME']);
 
 const dynamodb = new DynamoDBClient({});
 const USERS_TABLE = process.env['USERS_TABLE_NAME']!;
 
-const corsHeaders = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': process.env['ADMIN_ORIGIN'] || '*',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-};
-
-export const handler: APIGatewayProxyHandler = async (event) => {
-  try {
+export const handler = adminLambdaHandlerDecorator(
+  HandlerMethod.GET,
+  async (event) => {
     const userId = event.pathParameters?.['userId'];
 
     if (!userId) {
       return {
-        statusCode: 400,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: 'Missing userId path parameter' }),
+        status: HttpStatusCode.BAD_REQUEST,
+        body: { message: 'Missing userId path parameter' },
       };
     }
 
@@ -29,9 +30,8 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 
     if (!result.Item) {
       return {
-        statusCode: 404,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: 'User not found' }),
+        status: HttpStatusCode.NOT_FOUND,
+        body: { message: 'User not found' },
       };
     }
 
@@ -49,16 +49,8 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     };
 
     return {
-      statusCode: 200,
-      headers: corsHeaders,
-      body: JSON.stringify(user),
+      status: HttpStatusCode.OK,
+      body: user,
     };
-  } catch (error) {
-    console.error('Failed to get user:', error);
-    return {
-      statusCode: 500,
-      headers: corsHeaders,
-      body: JSON.stringify({ error: 'Internal server error' }),
-    };
-  }
-};
+  },
+);

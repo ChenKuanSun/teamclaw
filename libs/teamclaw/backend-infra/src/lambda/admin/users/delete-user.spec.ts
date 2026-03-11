@@ -24,12 +24,39 @@ jest.mock('@aws-sdk/client-cognito-identity-provider', () => ({
   AdminDeleteUserCommand: jest.fn((input: any) => ({ input })),
 }));
 
+jest.mock('@TeamClaw/teamclaw/cloud-function', () => {
+  const actual = jest.requireActual('@TeamClaw/teamclaw/cloud-function');
+  return {
+    ...actual,
+    adminLambdaHandlerDecorator: (_method: string, fn: any) => {
+      return async (event: any, context: any) => {
+        try {
+          const result = await fn(event);
+          return {
+            statusCode: result.status,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(result.body),
+          };
+        } catch (error: any) {
+          return {
+            statusCode: 500,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: error.message || 'Internal server error' }),
+          };
+        }
+      };
+    },
+    validateRequiredEnvVars: jest.fn(),
+  };
+});
+
 process.env['USERS_TABLE_NAME'] = 'UsersTable';
 process.env['LIFECYCLE_FUNCTION_NAME'] = 'lifecycle-fn';
 process.env['COGNITO_USER_POOL_ID'] = 'us-east-1_test';
+process.env['DEPLOY_ENV'] = 'dev';
 
 import { handler } from './delete-user';
-import type { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
+import type { APIGatewayProxyEvent, Context } from 'aws-lambda';
 
 const makeEvent = (overrides: Partial<APIGatewayProxyEvent> = {}): APIGatewayProxyEvent =>
   ({
@@ -49,7 +76,7 @@ const makeEvent = (overrides: Partial<APIGatewayProxyEvent> = {}): APIGatewayPro
   }) as APIGatewayProxyEvent;
 
 const invoke = async (event = makeEvent()) =>
-  (await handler(event, {} as Context, undefined as unknown as Callback)) as {
+  (await handler(event, {} as Context)) as {
     statusCode: number;
     headers: any;
     body: string;
@@ -61,7 +88,6 @@ describe('delete-user handler', () => {
   it('should return 400 when userId is missing', async () => {
     const res = await invoke();
     expect(res.statusCode).toBe(400);
-    expect(res.headers['Access-Control-Allow-Origin']).toBe('*');
   });
 
   it('should return 404 when user is not found', async () => {
@@ -88,7 +114,6 @@ describe('delete-user handler', () => {
 
     const res = await invoke(makeEvent({ pathParameters: { userId: 'u1' } }));
     expect(res.statusCode).toBe(202);
-    expect(res.headers['Access-Control-Allow-Origin']).toBe('*');
     expect(JSON.parse(res.body).message).toBe('User deletion initiated');
     expect(mockLambdaSend).toHaveBeenCalledTimes(1);
     expect(mockEfsSend).toHaveBeenCalledTimes(1);
@@ -134,6 +159,5 @@ describe('delete-user handler', () => {
     mockDdbSend.mockRejectedValueOnce(new Error('DDB error'));
     const res = await invoke(makeEvent({ pathParameters: { userId: 'u1' } }));
     expect(res.statusCode).toBe(500);
-    expect(res.headers['Access-Control-Allow-Origin']).toBe('*');
   });
 });

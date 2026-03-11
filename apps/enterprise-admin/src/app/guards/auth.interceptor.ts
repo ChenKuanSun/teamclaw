@@ -1,6 +1,6 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { catchError, from, switchMap, throwError } from 'rxjs';
 import { AdminAuthService } from '../services/admin-auth.service';
 import { environment } from '../../environments/environment';
 
@@ -26,17 +26,18 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       // Use service state to prevent concurrent refresh attempts (no global variable race condition)
       if (
         error.status === 401 &&
-        req.url.startsWith(environment.adminApiUrl)
+        req.url.startsWith(environment.adminApiUrl) &&
+        !authService.isRefreshing()
       ) {
-        return authService.refreshAccessTokenOnce().pipe(
+        authService.setRefreshing(true);
+
+        return from(authService.refreshAccessToken()).pipe(
           switchMap((refreshSuccess) => {
+            authService.setRefreshing(false);
+
             if (refreshSuccess) {
               // Retry the original request with new ID token
               const newToken = authService.idToken();
-              if (!newToken) {
-                authService.signOut();
-                return throwError(() => error);
-              }
               const retryReq = req.clone({
                 setHeaders: {
                   Authorization: `Bearer ${newToken}`,
@@ -50,6 +51,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             return throwError(() => error);
           }),
           catchError((refreshError) => {
+            authService.setRefreshing(false);
             authService.signOut();
             return throwError(() => refreshError);
           }),

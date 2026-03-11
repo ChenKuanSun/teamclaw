@@ -81,9 +81,6 @@ export class AdminCognitoStack extends Stack {
         supportedIdentityProviders: [
           aws_cognito.UserPoolClientIdentityProvider.COGNITO,
         ],
-        authFlows: {
-          userSrp: true,
-        },
         oAuth: {
           callbackUrls: adminCallbackUrls,
           logoutUrls: adminLogoutUrls,

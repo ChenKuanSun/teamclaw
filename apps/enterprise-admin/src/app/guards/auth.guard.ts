@@ -20,7 +20,8 @@ export const authGuard: CanActivateFn = async (route, state) => {
   }
 
   // Store the attempted URL for redirecting after login (with validation)
-  if (state.url !== '/auth/login') {
+  // Don't store auth routes as redirect targets
+  if (!state.url.startsWith('/auth/')) {
     authService.setRedirectUrl(state.url);
   }
 

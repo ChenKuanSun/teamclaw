@@ -1,61 +1,53 @@
 import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 import { AdminAuthService } from './admin-auth.service';
+import { environment } from '../../environments/environment';
 
-// Mock amazon-cognito-identity-js
-const mockAuthenticateUser = jest.fn();
-const mockGetSession = jest.fn();
-const mockSignOut = jest.fn();
-const mockGetCurrentUser = jest.fn();
-
-jest.mock('amazon-cognito-identity-js', () => {
-  return {
-    CognitoUserPool: jest.fn().mockImplementation(() => ({
-      getCurrentUser: mockGetCurrentUser,
-    })),
-    CognitoUser: jest.fn().mockImplementation(() => ({
-      authenticateUser: mockAuthenticateUser,
-      getSession: mockGetSession,
-      signOut: mockSignOut,
-    })),
-    AuthenticationDetails: jest.fn(),
-  };
-});
+// Polyfill crypto.subtle for jsdom test environment
+if (typeof globalThis.crypto?.subtle === 'undefined') {
+  const { webcrypto } = require('crypto');
+  Object.defineProperty(globalThis, 'crypto', {
+    value: webcrypto,
+    configurable: true,
+  });
+}
 
 describe('AdminAuthService', () => {
   let service: AdminAuthService;
   let router: jest.Mocked<Router>;
+  let httpMock: HttpTestingController;
 
   const TOKEN_STORAGE_KEY = 'admin_auth_result';
   const REDIRECT_URL_KEY = 'admin_redirect_url';
+  const PKCE_VERIFIER_KEY = 'admin_pkce_verifier';
+  const OAUTH_STATE_KEY = 'admin_oauth_state';
 
   const mockIdToken =
     'eyJhbGciOiJIUzI1NiJ9.' +
     btoa(JSON.stringify({ email: 'admin@test.com' })) +
     '.sig';
 
-  const mockSession = {
-    isValid: () => true,
-    getAccessToken: () => ({
-      getJwtToken: () => 'mock-access-token',
-      getExpiration: () => Math.floor(Date.now() / 1000) + 3600,
-    }),
-    getIdToken: () => ({
-      getJwtToken: () => mockIdToken,
-    }),
-    getRefreshToken: () => ({
-      getToken: () => 'mock-refresh-token',
-    }),
+  const mockTokenResponse = {
+    access_token: 'mock-access-token',
+    id_token: mockIdToken,
+    refresh_token: 'mock-refresh-token',
+    expires_in: 3600,
+    token_type: 'Bearer',
   };
 
   function createService() {
     TestBed.configureTestingModule({
       providers: [
         AdminAuthService,
+        provideHttpClient(),
+        provideHttpClientTesting(),
         { provide: Router, useValue: router },
       ],
     });
     service = TestBed.inject(AdminAuthService);
+    httpMock = TestBed.inject(HttpTestingController);
   }
 
   beforeEach(() => {
@@ -66,11 +58,11 @@ describe('AdminAuthService', () => {
       navigateByUrl: jest.fn().mockResolvedValue(true),
     } as unknown as jest.Mocked<Router>;
 
-    mockGetCurrentUser.mockReturnValue(null);
     createService();
   });
 
   afterEach(() => {
+    httpMock.verify();
     sessionStorage.clear();
   });
 
@@ -142,91 +134,124 @@ describe('AdminAuthService', () => {
   });
 
   describe('login()', () => {
-    it('should authenticate and navigate to dashboard on success', async () => {
-      mockAuthenticateUser.mockImplementation((_details: unknown, callbacks: { onSuccess: (session: typeof mockSession) => void }) => {
-        callbacks.onSuccess(mockSession);
-      });
+    it('should store PKCE verifier and state in sessionStorage and redirect', async () => {
+      // In jsdom, window.location.href assignment navigates to about:blank
+      // but doesn't throw. We verify PKCE state is stored.
+      const originalHref = window.location.href;
 
-      const result = await service.login('admin@test.com', 'Password123!');
+      await service.login();
 
-      expect(result).toBe(true);
+      // Verify PKCE verifier and state are stored
+      expect(sessionStorage.getItem(PKCE_VERIFIER_KEY)).toBeTruthy();
+      expect(sessionStorage.getItem(OAUTH_STATE_KEY)).toBeTruthy();
+
+      // Verifier should be a hex string of sufficient length
+      const verifier = sessionStorage.getItem(PKCE_VERIFIER_KEY)!;
+      expect(verifier.length).toBeGreaterThanOrEqual(64);
+
+      // State should be a hex string
+      const state = sessionStorage.getItem(OAUTH_STATE_KEY)!;
+      expect(state.length).toBeGreaterThanOrEqual(32);
+    });
+  });
+
+  describe('handleCallback()', () => {
+    it('should exchange code for tokens and store them', async () => {
+      const storedState = 'test-state-value';
+      sessionStorage.setItem(OAUTH_STATE_KEY, storedState);
+      sessionStorage.setItem(PKCE_VERIFIER_KEY, 'test-verifier');
+
+      const callbackPromise = service.handleCallback('auth-code-123', storedState);
+
+      const tokenUrl = `https://${environment.auth.domain}/oauth2/token`;
+      const req = httpMock.expectOne(tokenUrl);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.headers.get('Content-Type')).toBe('application/x-www-form-urlencoded');
+      expect(req.request.body).toContain('grant_type=authorization_code');
+      expect(req.request.body).toContain('code=auth-code-123');
+      expect(req.request.body).toContain('code_verifier=test-verifier');
+
+      req.flush(mockTokenResponse);
+
+      const success = await callbackPromise;
+
+      expect(success).toBe(true);
       expect(service.isAuthenticated()).toBe(true);
       expect(service.accessToken()).toBe('mock-access-token');
-      expect(router.navigateByUrl).toHaveBeenCalledWith('/dashboard');
       expect(sessionStorage.getItem(TOKEN_STORAGE_KEY)).toBeTruthy();
+      // PKCE values should be cleared
+      expect(sessionStorage.getItem(PKCE_VERIFIER_KEY)).toBeNull();
+      expect(sessionStorage.getItem(OAUTH_STATE_KEY)).toBeNull();
     });
 
-    it('should navigate to stored redirect URL after login', async () => {
-      sessionStorage.setItem(REDIRECT_URL_KEY, '/users');
+    it('should reject on state mismatch (CSRF protection)', async () => {
+      sessionStorage.setItem(OAUTH_STATE_KEY, 'correct-state');
+      sessionStorage.setItem(PKCE_VERIFIER_KEY, 'test-verifier');
 
-      mockAuthenticateUser.mockImplementation((_details: unknown, callbacks: { onSuccess: (session: typeof mockSession) => void }) => {
-        callbacks.onSuccess(mockSession);
-      });
-
-      await service.login('admin@test.com', 'Password123!');
-
-      expect(router.navigateByUrl).toHaveBeenCalledWith('/users');
-      expect(sessionStorage.getItem(REDIRECT_URL_KEY)).toBeNull();
-    });
-
-    it('should set error on invalid credentials', async () => {
-      mockAuthenticateUser.mockImplementation((_details: unknown, callbacks: { onFailure: (err: Error & { code?: string }) => void }) => {
-        const err = new Error('Incorrect username or password.') as Error & { code?: string };
-        err.code = 'NotAuthorizedException';
-        callbacks.onFailure(err);
-      });
-
-      const result = await service.login('admin@test.com', 'wrong');
+      const result = await service.handleCallback('code', 'wrong-state');
 
       expect(result).toBe(false);
       expect(service.isAuthenticated()).toBe(false);
-      expect(service.error()).toBe('Invalid email or password.');
-      expect(service.isLoading()).toBe(false);
     });
 
-    it('should handle newPasswordRequired challenge', async () => {
-      mockAuthenticateUser.mockImplementation((_details: unknown, callbacks: { newPasswordRequired: () => void }) => {
-        callbacks.newPasswordRequired();
-      });
+    it('should reject when PKCE verifier is missing', async () => {
+      sessionStorage.setItem(OAUTH_STATE_KEY, 'test-state');
+      // No PKCE verifier
 
-      const result = await service.login('admin@test.com', 'Password123!');
+      const result = await service.handleCallback('code', 'test-state');
 
       expect(result).toBe(false);
-      expect(service.error()).toContain('Password change required');
+      expect(service.isAuthenticated()).toBe(false);
     });
 
-    it('should set isLoading during authentication', async () => {
-      let resolveAuth: (session: typeof mockSession) => void;
-      mockAuthenticateUser.mockImplementation((_details: unknown, callbacks: { onSuccess: (session: typeof mockSession) => void }) => {
-        resolveAuth = callbacks.onSuccess;
-      });
+    it('should handle token exchange failure', async () => {
+      const storedState = 'test-state';
+      sessionStorage.setItem(OAUTH_STATE_KEY, storedState);
+      sessionStorage.setItem(PKCE_VERIFIER_KEY, 'test-verifier');
 
-      const loginPromise = service.login('admin@test.com', 'Password123!');
-      expect(service.isLoading()).toBe(true);
+      const callbackPromise = service.handleCallback('bad-code', storedState);
 
-      resolveAuth!(mockSession);
-      await loginPromise;
+      const tokenUrl = `https://${environment.auth.domain}/oauth2/token`;
+      const req = httpMock.expectOne(tokenUrl);
+      req.flush('Invalid grant', { status: 400, statusText: 'Bad Request' });
 
+      const result = await callbackPromise;
+
+      expect(result).toBe(false);
+      expect(service.isAuthenticated()).toBe(false);
       expect(service.isLoading()).toBe(false);
     });
   });
 
   describe('refreshAccessToken()', () => {
-    it('should return false when no current user', async () => {
-      mockGetCurrentUser.mockReturnValue(null);
+    it('should return false when no refresh token', async () => {
       const result = await service.refreshAccessToken();
       expect(result).toBe(false);
     });
 
-    it('should refresh token via Cognito SDK', async () => {
-      const mockUser = {
-        getSession: (cb: (err: Error | null, session: typeof mockSession | null) => void) => {
-          cb(null, mockSession);
-        },
+    it('should refresh token via OAuth token endpoint', async () => {
+      // Set up initial state with refresh token
+      const stored = {
+        accessToken: 'old-access',
+        idToken: 'old-id',
+        refreshToken: 'valid-refresh-token',
+        expiresAt: Date.now() - 100_000, // expired
       };
-      mockGetCurrentUser.mockReturnValue(mockUser);
+      sessionStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(stored));
+      TestBed.resetTestingModule();
+      createService();
 
-      const result = await service.refreshAccessToken();
+      const refreshPromise = service.refreshAccessToken();
+
+      const tokenUrl = `https://${environment.auth.domain}/oauth2/token`;
+      const req = httpMock.expectOne(tokenUrl);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toContain('grant_type=refresh_token');
+      expect(req.request.body).toContain('refresh_token=valid-refresh-token');
+
+      req.flush(mockTokenResponse);
+
+      const result = await refreshPromise;
 
       expect(result).toBe(true);
       expect(service.isAuthenticated()).toBe(true);
@@ -234,15 +259,23 @@ describe('AdminAuthService', () => {
     });
 
     it('should sign out when refresh fails', async () => {
-      const mockUser = {
-        getSession: (cb: (err: Error | null, session: null) => void) => {
-          cb(new Error('Refresh failed'), null);
-        },
-        signOut: jest.fn(),
+      const stored = {
+        accessToken: 'old',
+        idToken: 'old',
+        refreshToken: 'bad-refresh',
+        expiresAt: Date.now() - 100_000,
       };
-      mockGetCurrentUser.mockReturnValue(mockUser);
+      sessionStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(stored));
+      TestBed.resetTestingModule();
+      createService();
 
-      const result = await service.refreshAccessToken();
+      const refreshPromise = service.refreshAccessToken();
+
+      const tokenUrl = `https://${environment.auth.domain}/oauth2/token`;
+      const req = httpMock.expectOne(tokenUrl);
+      req.flush('Invalid refresh token', { status: 400, statusText: 'Bad Request' });
+
+      const result = await refreshPromise;
 
       expect(result).toBe(false);
       expect(router.navigateByUrl).toHaveBeenCalledWith('/auth/login');
@@ -266,11 +299,17 @@ describe('AdminAuthService', () => {
 
   describe('userEmail', () => {
     it('should decode email from id token', async () => {
-      mockAuthenticateUser.mockImplementation((_details: unknown, callbacks: { onSuccess: (session: typeof mockSession) => void }) => {
-        callbacks.onSuccess(mockSession);
-      });
+      const storedState = 'test-state';
+      sessionStorage.setItem(OAUTH_STATE_KEY, storedState);
+      sessionStorage.setItem(PKCE_VERIFIER_KEY, 'test-verifier');
 
-      await service.login('admin@test.com', 'Password123!');
+      const callbackPromise = service.handleCallback('code', storedState);
+
+      const tokenUrl = `https://${environment.auth.domain}/oauth2/token`;
+      const req = httpMock.expectOne(tokenUrl);
+      req.flush(mockTokenResponse);
+      await callbackPromise;
+
       expect(service.userEmail()).toBe('admin@test.com');
     });
 

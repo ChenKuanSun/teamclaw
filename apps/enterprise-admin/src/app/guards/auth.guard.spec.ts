@@ -81,7 +81,7 @@ describe('authGuard', () => {
     expect(authService.setRedirectUrl).toHaveBeenCalledWith('/users?page=2');
   });
 
-  it('should not store auth routes as redirect URL', async () => {
+  it('should not store /auth/login as redirect URL', async () => {
     authService.isAuthenticated.mockReturnValue(false);
 
     mockState.url = '/auth/login';
@@ -92,10 +92,10 @@ describe('authGuard', () => {
     expect(authService.setRedirectUrl).not.toHaveBeenCalled();
   });
 
-  it('should not store /auth/login as redirect URL', async () => {
+  it('should not store /auth/callback as redirect URL', async () => {
     authService.isAuthenticated.mockReturnValue(false);
 
-    mockState.url = '/auth/login';
+    mockState.url = '/auth/callback?code=123&state=abc';
 
     const result = await runGuard();
 

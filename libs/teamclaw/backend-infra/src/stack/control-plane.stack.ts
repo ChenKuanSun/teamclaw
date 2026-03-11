@@ -85,14 +85,14 @@ export class ControlPlaneStack extends Stack {
     });
 
     // ─── DynamoDB: Teams & Config ───
-    const teamsTable = new aws_dynamodb.TableV2(this, 'TeamsTable', {
+    const teamsTable = new aws_dynamodb.TableV2(this, id + 'TeamsTable', {
       tableName: `teamclaw-teams-${deployEnv}`,
       partitionKey: { name: 'teamId', type: aws_dynamodb.AttributeType.STRING },
       removalPolicy: RemovalPolicy.RETAIN,
       billing: aws_dynamodb.Billing.onDemand(),
     });
 
-    const configTable = new aws_dynamodb.TableV2(this, 'ConfigTable', {
+    const configTable = new aws_dynamodb.TableV2(this, id + 'ConfigTable', {
       tableName: `teamclaw-config-${deployEnv}`,
       partitionKey: { name: 'scopeKey', type: aws_dynamodb.AttributeType.STRING },
       sortKey: { name: 'configKey', type: aws_dynamodb.AttributeType.STRING },

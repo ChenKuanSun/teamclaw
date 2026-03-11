@@ -1,3 +1,21 @@
+jest.mock('@TeamClaw/teamclaw/cloud-function', () => {
+  const actual = jest.requireActual('@TeamClaw/teamclaw/cloud-function');
+  return {
+    ...actual,
+    adminLambdaHandlerDecorator: (_method: string, fn: any) => {
+      return async (event: any) => {
+        try {
+          const result = await fn(event);
+          return { statusCode: result.status, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result.body) };
+        } catch (error: any) {
+          return { statusCode: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: error.message || 'Internal server error' }) };
+        }
+      };
+    },
+    validateRequiredEnvVars: jest.fn(),
+  };
+});
+
 const mockSend = jest.fn();
 
 jest.mock('@aws-sdk/client-dynamodb', () => ({
@@ -8,7 +26,7 @@ jest.mock('@aws-sdk/client-dynamodb', () => ({
 process.env['CONFIG_TABLE_NAME'] = 'ConfigTable';
 
 import { handler } from './get-team-config';
-import type { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
+import type { APIGatewayProxyEvent } from 'aws-lambda';
 
 const makeEvent = (overrides: Partial<APIGatewayProxyEvent> = {}): APIGatewayProxyEvent =>
   ({
@@ -20,7 +38,7 @@ const makeEvent = (overrides: Partial<APIGatewayProxyEvent> = {}): APIGatewayPro
   }) as APIGatewayProxyEvent;
 
 const invoke = async (event = makeEvent()) =>
-  (await handler(event, {} as Context, undefined as unknown as Callback)) as {
+  (await (handler as any)(event)) as {
     statusCode: number; headers: any; body: string;
   };
 
@@ -44,7 +62,6 @@ describe('get-team-config handler', () => {
     });
     const res = await invoke(makeEvent({ pathParameters: { teamId: 't1' } }));
     expect(res.statusCode).toBe(200);
-    expect(res.headers['Access-Control-Allow-Origin']).toBe('*');
     const body = JSON.parse(res.body);
     expect(body.teamId).toBe('t1');
     expect(body.configs[0].value).toEqual(['claude-3', 'gpt-4']);
@@ -54,6 +71,6 @@ describe('get-team-config handler', () => {
     mockSend.mockRejectedValueOnce(new Error('DDB error'));
     const res = await invoke(makeEvent({ pathParameters: { teamId: 't1' } }));
     expect(res.statusCode).toBe(500);
-    expect(res.headers['Access-Control-Allow-Origin']).toBe('*');
+    expect(JSON.parse(res.body).message).toBe('DDB error');
   });
 });

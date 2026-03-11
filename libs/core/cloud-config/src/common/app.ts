@@ -43,16 +43,16 @@ export const TC_ADMIN_USER_POOL_DOMAIN_PREFIX = {
 };
 
 export const TC_ADMIN_AUTH_CALLBACK_URL = {
-  [ENVIRONMENT.PROD]: 'https://admin.teamclaw.com/auth/callback', // placeholder
-  [ENVIRONMENT.DEV]: 'https://admin-dev.teamclaw.com/auth/callback', // placeholder
+  [ENVIRONMENT.PROD]: 'https://main.d2m2o9gjll7vqx.amplifyapp.com/auth/callback',
+  [ENVIRONMENT.DEV]: 'https://main.d2m2o9gjll7vqx.amplifyapp.com/auth/callback',
 };
 
 export const TC_ADMIN_AUTH_LOGOUT_URL = {
-  [ENVIRONMENT.PROD]: 'https://admin.teamclaw.com/auth/login', // placeholder
-  [ENVIRONMENT.DEV]: 'https://admin-dev.teamclaw.com/auth/login', // placeholder
+  [ENVIRONMENT.PROD]: 'https://main.d2m2o9gjll7vqx.amplifyapp.com/auth/login',
+  [ENVIRONMENT.DEV]: 'https://main.d2m2o9gjll7vqx.amplifyapp.com/auth/login',
 };
 
 export const TC_ADMIN_APP_DOMAIN_NAME = {
-  [ENVIRONMENT.PROD]: 'admin.teamclaw.com', // placeholder
-  [ENVIRONMENT.DEV]: 'admin-dev.teamclaw.com', // placeholder
+  [ENVIRONMENT.PROD]: 'main.d2m2o9gjll7vqx.amplifyapp.com',
+  [ENVIRONMENT.DEV]: 'main.d2m2o9gjll7vqx.amplifyapp.com',
 };

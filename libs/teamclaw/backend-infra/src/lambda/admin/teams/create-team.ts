@@ -1,24 +1,26 @@
 import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { randomUUID } from 'crypto';
+import {
+  adminLambdaHandlerDecorator,
+  HandlerMethod,
+  HttpStatusCode,
+  validateRequiredEnvVars,
+} from '@TeamClaw/teamclaw/cloud-function';
+
+validateRequiredEnvVars(['TEAMS_TABLE_NAME']);
 
 const ddbClient = new DynamoDBClient({});
 const TABLE_NAME = process.env['TEAMS_TABLE_NAME']!;
 
-const CORS_HEADERS = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': process.env['ADMIN_ORIGIN'] || '*',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-};
-
-export const handler = async (event: any) => {
-  try {
+export const handler = adminLambdaHandlerDecorator(
+  HandlerMethod.POST,
+  async (event) => {
     const body = event.body ? JSON.parse(event.body) : {};
 
     if (!body.name) {
       return {
-        statusCode: 400,
-        headers: CORS_HEADERS,
-        body: JSON.stringify({ error: 'Missing required field: name' }),
+        status: HttpStatusCode.BAD_REQUEST,
+        body: { message: 'Missing required field: name' },
       };
     }
 
@@ -37,22 +39,14 @@ export const handler = async (event: any) => {
     }));
 
     return {
-      statusCode: 201,
-      headers: CORS_HEADERS,
-      body: JSON.stringify({
+      status: HttpStatusCode.CREATED,
+      body: {
         teamId,
         name: body.name,
         description: body.description || '',
         createdAt: now,
         updatedAt: now,
-      }),
+      },
     };
-  } catch (error) {
-    console.error('Error creating team:', error);
-    return {
-      statusCode: 500,
-      headers: CORS_HEADERS,
-      body: JSON.stringify({ error: 'Failed to create team' }),
-    };
-  }
-};
+  },
+);

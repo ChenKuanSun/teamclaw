@@ -1,23 +1,25 @@
 import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
+import {
+  adminLambdaHandlerDecorator,
+  HandlerMethod,
+  HttpStatusCode,
+  validateRequiredEnvVars,
+} from '@TeamClaw/teamclaw/cloud-function';
+
+validateRequiredEnvVars(['TEAMS_TABLE_NAME']);
 
 const ddbClient = new DynamoDBClient({});
 const TABLE_NAME = process.env['TEAMS_TABLE_NAME']!;
 
-const CORS_HEADERS = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': process.env['ADMIN_ORIGIN'] || '*',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-};
-
-export const handler = async (event: any) => {
-  try {
-    const teamId = event.pathParameters?.teamId;
+export const handler = adminLambdaHandlerDecorator(
+  HandlerMethod.GET,
+  async (event) => {
+    const teamId = event.pathParameters?.['teamId'];
 
     if (!teamId) {
       return {
-        statusCode: 400,
-        headers: CORS_HEADERS,
-        body: JSON.stringify({ error: 'Missing teamId path parameter' }),
+        status: HttpStatusCode.BAD_REQUEST,
+        body: { message: 'Missing teamId path parameter' },
       };
     }
 
@@ -28,9 +30,8 @@ export const handler = async (event: any) => {
 
     if (!result.Item) {
       return {
-        statusCode: 404,
-        headers: CORS_HEADERS,
-        body: JSON.stringify({ error: 'Team not found' }),
+        status: HttpStatusCode.NOT_FOUND,
+        body: { message: 'Team not found' },
       };
     }
 
@@ -46,16 +47,8 @@ export const handler = async (event: any) => {
     };
 
     return {
-      statusCode: 200,
-      headers: CORS_HEADERS,
-      body: JSON.stringify(team),
+      status: HttpStatusCode.OK,
+      body: team,
     };
-  } catch (error) {
-    console.error('Error getting team:', error);
-    return {
-      statusCode: 500,
-      headers: CORS_HEADERS,
-      body: JSON.stringify({ error: 'Failed to get team' }),
-    };
-  }
-};
+  },
+);

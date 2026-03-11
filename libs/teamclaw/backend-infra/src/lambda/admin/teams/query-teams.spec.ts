@@ -5,18 +5,61 @@ jest.mock('@aws-sdk/client-dynamodb', () => ({
   ScanCommand: jest.fn((input: any) => ({ input })),
 }));
 
+jest.mock('@TeamClaw/teamclaw/cloud-function', () => {
+  const actual = jest.requireActual('@TeamClaw/teamclaw/cloud-function');
+  return {
+    ...actual,
+    adminLambdaHandlerDecorator: (_method: string, fn: any) => {
+      return async (event: any, context: any) => {
+        try {
+          const result = await fn(event);
+          return {
+            statusCode: result.status,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(result.body),
+          };
+        } catch (error: any) {
+          return {
+            statusCode: 500,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: error.message || 'Internal server error' }),
+          };
+        }
+      };
+    },
+    validateRequiredEnvVars: jest.fn(),
+  };
+});
+
 process.env['TEAMS_TABLE_NAME'] = 'TeamsTable';
+process.env['DEPLOY_ENV'] = 'dev';
 
 import { handler } from './query-teams';
+import type { APIGatewayProxyEvent, Context } from 'aws-lambda';
 
-const makeEvent = (overrides: any = {}) => ({
-  queryStringParameters: null,
-  pathParameters: null,
-  body: null,
-  headers: {},
-  requestContext: {} as any,
-  ...overrides,
-});
+const makeEvent = (overrides: Partial<APIGatewayProxyEvent> = {}): APIGatewayProxyEvent =>
+  ({
+    httpMethod: 'GET',
+    path: '/admin/teams',
+    pathParameters: null,
+    queryStringParameters: null,
+    body: null,
+    headers: {},
+    multiValueHeaders: {},
+    isBase64Encoded: false,
+    requestContext: {} as any,
+    resource: '',
+    stageVariables: null,
+    multiValueQueryStringParameters: null,
+    ...overrides,
+  }) as APIGatewayProxyEvent;
+
+const invoke = async (event = makeEvent()) =>
+  (await handler(event, {} as Context)) as {
+    statusCode: number;
+    headers: any;
+    body: string;
+  };
 
 describe('query-teams handler', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -32,9 +75,8 @@ describe('query-teams handler', () => {
       LastEvaluatedKey: undefined,
     });
 
-    const res = await handler(makeEvent());
+    const res = await invoke();
     expect(res.statusCode).toBe(200);
-    expect(res.headers['Access-Control-Allow-Origin']).toBe('*');
     const body = JSON.parse(res.body);
     expect(body.teams).toHaveLength(1);
     expect(body.teams[0].teamId).toBe('t1');
@@ -44,7 +86,7 @@ describe('query-teams handler', () => {
 
   it('should filter by name', async () => {
     mockSend.mockResolvedValueOnce({ Items: [], LastEvaluatedKey: undefined });
-    await handler(makeEvent({ queryStringParameters: { name: 'Alpha' } }));
+    await invoke(makeEvent({ queryStringParameters: { name: 'Alpha' } }));
     const cmd = mockSend.mock.calls[0][0];
     expect(cmd.input.FilterExpression).toBe('contains(#n, :name)');
     expect(cmd.input.ExpressionAttributeValues[':name']).toEqual({ S: 'Alpha' });
@@ -53,7 +95,7 @@ describe('query-teams handler', () => {
   it('should handle pagination', async () => {
     const lastKey = { teamId: { S: 't1' } };
     mockSend.mockResolvedValueOnce({ Items: [], LastEvaluatedKey: lastKey });
-    const res = await handler(makeEvent());
+    const res = await invoke();
     const body = JSON.parse(res.body);
     expect(body.nextToken).toBeDefined();
     expect(JSON.parse(Buffer.from(body.nextToken, 'base64').toString())).toEqual(lastKey);
@@ -63,7 +105,7 @@ describe('query-teams handler', () => {
     const key = { teamId: { S: 't1' } };
     const nextToken = Buffer.from(JSON.stringify(key)).toString('base64');
     mockSend.mockResolvedValueOnce({ Items: [], LastEvaluatedKey: undefined });
-    await handler(makeEvent({ queryStringParameters: { nextToken } }));
+    await invoke(makeEvent({ queryStringParameters: { nextToken } }));
     const cmd = mockSend.mock.calls[0][0];
     expect(cmd.input.ExclusiveStartKey).toEqual(key);
   });
@@ -73,14 +115,13 @@ describe('query-teams handler', () => {
       Items: [{ teamId: { S: 't1' }, name: { S: 'Empty' } }],
       LastEvaluatedKey: undefined,
     });
-    const res = await handler(makeEvent());
+    const res = await invoke();
     expect(JSON.parse(res.body).teams[0].memberCount).toBe(0);
   });
 
   it('should return 500 on error', async () => {
     mockSend.mockRejectedValueOnce(new Error('fail'));
-    const res = await handler(makeEvent());
+    const res = await invoke();
     expect(res.statusCode).toBe(500);
-    expect(res.headers['Access-Control-Allow-Origin']).toBe('*');
   });
 });

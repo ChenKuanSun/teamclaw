@@ -4,26 +4,28 @@ import {
   GetItemCommand,
   UpdateItemCommand,
 } from '@aws-sdk/client-dynamodb';
+import {
+  adminLambdaHandlerDecorator,
+  HandlerMethod,
+  HttpStatusCode,
+  validateRequiredEnvVars,
+} from '@TeamClaw/teamclaw/cloud-function';
+
+validateRequiredEnvVars(['TEAMS_TABLE_NAME', 'USERS_TABLE_NAME']);
 
 const ddbClient = new DynamoDBClient({});
 const TEAMS_TABLE = process.env['TEAMS_TABLE_NAME']!;
 const USERS_TABLE = process.env['USERS_TABLE_NAME']!;
 
-const CORS_HEADERS = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': process.env['ADMIN_ORIGIN'] || '*',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-};
-
-export const handler = async (event: any) => {
-  try {
-    const teamId = event.pathParameters?.teamId;
+export const handler = adminLambdaHandlerDecorator(
+  HandlerMethod.DELETE,
+  async (event) => {
+    const teamId = event.pathParameters?.['teamId'];
 
     if (!teamId) {
       return {
-        statusCode: 400,
-        headers: CORS_HEADERS,
-        body: JSON.stringify({ error: 'Missing teamId path parameter' }),
+        status: HttpStatusCode.BAD_REQUEST,
+        body: { message: 'Missing teamId path parameter' },
       };
     }
 
@@ -35,9 +37,8 @@ export const handler = async (event: any) => {
 
     if (!teamResult.Item) {
       return {
-        statusCode: 404,
-        headers: CORS_HEADERS,
-        body: JSON.stringify({ error: 'Team not found' }),
+        status: HttpStatusCode.NOT_FOUND,
+        body: { message: 'Team not found' },
       };
     }
 
@@ -62,16 +63,8 @@ export const handler = async (event: any) => {
     }));
 
     return {
-      statusCode: 200,
-      headers: CORS_HEADERS,
-      body: JSON.stringify({ deleted: true, teamId, membersUpdated: memberIds.length }),
+      status: HttpStatusCode.OK,
+      body: { deleted: true, teamId, membersUpdated: memberIds.length },
     };
-  } catch (error) {
-    console.error('Error deleting team:', error);
-    return {
-      statusCode: 500,
-      headers: CORS_HEADERS,
-      body: JSON.stringify({ error: 'Failed to delete team' }),
-    };
-  }
-};
+  },
+);

@@ -22,7 +22,7 @@ export class ControlPlaneStack extends Stack {
     const ssm = TC_SSM_PARAMETER[deployEnv];
 
     // ─── Cognito ───
-    const userPool = new aws_cognito.UserPool(this, id + 'UserPool', {
+    const userPool = new aws_cognito.UserPool(this, 'UserPool', {
       userPoolName: `teamclaw-${deployEnv}`,
       selfSignUpEnabled: false, // Admin-only user creation
       signInAliases: { email: true },
@@ -40,7 +40,7 @@ export class ControlPlaneStack extends Stack {
       removalPolicy: RemovalPolicy.RETAIN,
     });
 
-    const userPoolClient = userPool.addClient(id + 'WebClient', {
+    const userPoolClient = userPool.addClient('WebClient', {
       authFlows: {
         userSrp: true,
       },
@@ -50,15 +50,15 @@ export class ControlPlaneStack extends Stack {
       refreshTokenValidity: Duration.days(30),
     });
 
-    new aws_ssm.StringParameter(this, id + 'UserPoolIdParam', {
+    new aws_ssm.StringParameter(this, 'UserPoolIdParam', {
       parameterName: ssm.COGNITO.USER_POOL_ID,
       stringValue: userPool.userPoolId,
     });
-    new aws_ssm.StringParameter(this, id + 'UserPoolArnParam', {
+    new aws_ssm.StringParameter(this, 'UserPoolArnParam', {
       parameterName: ssm.COGNITO.USER_POOL_ARN,
       stringValue: userPool.userPoolArn,
     });
-    new aws_ssm.StringParameter(this, id + 'UserPoolClientIdParam', {
+    new aws_ssm.StringParameter(this, 'UserPoolClientIdParam', {
       parameterName: ssm.COGNITO.USER_POOL_CLIENT_ID,
       stringValue: userPoolClient.userPoolClientId,
     });
@@ -66,7 +66,7 @@ export class ControlPlaneStack extends Stack {
     // ─── DynamoDB: User-Container mapping & usage tracking ───
     // TODO: [Affiora compliance] Consider migrating to TableV2 for consistency.
     // Cannot change in-place as it changes CloudFormation resource type and destroys the table.
-    const userTable = new aws_dynamodb.Table(this, id + 'UserTable', {
+    const userTable = new aws_dynamodb.Table(this, 'UserTable', {
       tableName: `teamclaw-users-${deployEnv}`,
       partitionKey: { name: 'userId', type: aws_dynamodb.AttributeType.STRING },
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
@@ -75,7 +75,7 @@ export class ControlPlaneStack extends Stack {
 
     // TODO: [Affiora compliance] Consider migrating to TableV2 for consistency.
     // Cannot change in-place as it changes CloudFormation resource type and destroys the table.
-    const usageTable = new aws_dynamodb.Table(this, id + 'UsageTable', {
+    const usageTable = new aws_dynamodb.Table(this, 'UsageTable', {
       tableName: `teamclaw-usage-${deployEnv}`,
       partitionKey: { name: 'userId', type: aws_dynamodb.AttributeType.STRING },
       sortKey: { name: 'timestamp', type: aws_dynamodb.AttributeType.STRING },
@@ -85,14 +85,14 @@ export class ControlPlaneStack extends Stack {
     });
 
     // ─── DynamoDB: Teams & Config ───
-    const teamsTable = new aws_dynamodb.TableV2(this, id + 'TeamsTable', {
+    const teamsTable = new aws_dynamodb.TableV2(this, 'TeamsTable', {
       tableName: `teamclaw-teams-${deployEnv}`,
       partitionKey: { name: 'teamId', type: aws_dynamodb.AttributeType.STRING },
       removalPolicy: RemovalPolicy.RETAIN,
       billing: aws_dynamodb.Billing.onDemand(),
     });
 
-    const configTable = new aws_dynamodb.TableV2(this, id + 'ConfigTable', {
+    const configTable = new aws_dynamodb.TableV2(this, 'ConfigTable', {
       tableName: `teamclaw-config-${deployEnv}`,
       partitionKey: { name: 'scopeKey', type: aws_dynamodb.AttributeType.STRING },
       sortKey: { name: 'configKey', type: aws_dynamodb.AttributeType.STRING },
@@ -101,35 +101,35 @@ export class ControlPlaneStack extends Stack {
     });
 
     // ─── DynamoDB SSM Parameters ───
-    new aws_ssm.StringParameter(this, id + 'UsersTableArnParam', {
+    new aws_ssm.StringParameter(this, 'UsersTableArnParam', {
       parameterName: ssm.DYNAMODB.USERS_TABLE_ARN,
       stringValue: userTable.tableArn,
     });
-    new aws_ssm.StringParameter(this, id + 'UsersTableNameParam', {
+    new aws_ssm.StringParameter(this, 'UsersTableNameParam', {
       parameterName: ssm.DYNAMODB.USERS_TABLE_NAME,
       stringValue: userTable.tableName,
     });
-    new aws_ssm.StringParameter(this, id + 'UsageTableArnParam', {
+    new aws_ssm.StringParameter(this, 'UsageTableArnParam', {
       parameterName: ssm.DYNAMODB.USAGE_TABLE_ARN,
       stringValue: usageTable.tableArn,
     });
-    new aws_ssm.StringParameter(this, id + 'UsageTableNameParam', {
+    new aws_ssm.StringParameter(this, 'UsageTableNameParam', {
       parameterName: ssm.DYNAMODB.USAGE_TABLE_NAME,
       stringValue: usageTable.tableName,
     });
-    new aws_ssm.StringParameter(this, id + 'TeamsTableArnParam', {
+    new aws_ssm.StringParameter(this, 'TeamsTableArnParam', {
       parameterName: ssm.DYNAMODB.TEAMS_TABLE_ARN,
       stringValue: teamsTable.tableArn,
     });
-    new aws_ssm.StringParameter(this, id + 'TeamsTableNameParam', {
+    new aws_ssm.StringParameter(this, 'TeamsTableNameParam', {
       parameterName: ssm.DYNAMODB.TEAMS_TABLE_NAME,
       stringValue: teamsTable.tableName,
     });
-    new aws_ssm.StringParameter(this, id + 'ConfigTableArnParam', {
+    new aws_ssm.StringParameter(this, 'ConfigTableArnParam', {
       parameterName: ssm.DYNAMODB.CONFIG_TABLE_ARN,
       stringValue: configTable.tableArn,
     });
-    new aws_ssm.StringParameter(this, id + 'ConfigTableNameParam', {
+    new aws_ssm.StringParameter(this, 'ConfigTableNameParam', {
       parameterName: ssm.DYNAMODB.CONFIG_TABLE_NAME,
       stringValue: configTable.tableName,
     });
@@ -139,10 +139,10 @@ export class ControlPlaneStack extends Stack {
       this, ssm.SECRETS.API_KEYS_SECRET_ARN,
     );
     const apiKeysSecret = aws_secretsmanager.Secret.fromSecretCompleteArn(
-      this, id + 'ApiKeysSecret', apiKeysSecretArn,
+      this, 'ApiKeysSecret', apiKeysSecretArn,
     );
 
-    const keyPoolLambda = new aws_lambda_nodejs.NodejsFunction(this, id + 'KeyPoolProxyLambda', {
+    const keyPoolLambda = new aws_lambda_nodejs.NodejsFunction(this, 'KeyPoolProxyLambda', {
       ...TC_LAMBDA_DEFAULT_PROPS,
       functionName: `teamclaw-key-pool-proxy-${deployEnv}`,
       entry: `${LAMBDA_ENTRY_PATH}/key-pool-proxy/index.ts`,
@@ -155,7 +155,7 @@ export class ControlPlaneStack extends Stack {
     usageTable.grantWriteData(keyPoolLambda);
 
     // API Gateway fronting the Key Pool Proxy
-    const api = new aws_apigateway.RestApi(this, id + 'KeyPoolApi', {
+    const api = new aws_apigateway.RestApi(this, 'KeyPoolApi', {
       restApiName: `teamclaw-key-pool-${deployEnv}`,
       description: 'Proxies AI provider API calls, injects keys server-side',
     });
@@ -168,13 +168,13 @@ export class ControlPlaneStack extends Stack {
       },
     });
 
-    new aws_ssm.StringParameter(this, id + 'KeyPoolProxyUrlParam', {
+    new aws_ssm.StringParameter(this, 'KeyPoolProxyUrlParam', {
       parameterName: ssm.API_GATEWAY.KEY_POOL_PROXY_URL,
       stringValue: api.url,
     });
 
     // ─── Lifecycle Lambda (start/stop/provision/cron-sync) ───
-    const lifecycleLambda = new aws_lambda_nodejs.NodejsFunction(this, id + 'LifecycleLambda', {
+    const lifecycleLambda = new aws_lambda_nodejs.NodejsFunction(this, 'LifecycleLambda', {
       ...TC_LIFECYCLE_LAMBDA_PROPS,
       functionName: `teamclaw-lifecycle-${deployEnv}`,
       entry: `${LAMBDA_ENTRY_PATH}/lifecycle/index.ts`,
@@ -192,7 +192,7 @@ export class ControlPlaneStack extends Stack {
 
     // ─── EventBridge Scheduler Role (for cron-aware wakeup) ───
     // This role allows EventBridge Scheduler to invoke the Lifecycle Lambda
-    const schedulerRole = new aws_iam.Role(this, id + 'CronSchedulerRole', {
+    const schedulerRole = new aws_iam.Role(this, 'CronSchedulerRole', {
       roleName: `teamclaw-cron-scheduler-${deployEnv}`,
       assumedBy: new aws_iam.ServicePrincipal('scheduler.amazonaws.com'),
     });

@@ -67,3 +67,4 @@ cdk.out/
 *.log
 
 temp
+.worktrees/

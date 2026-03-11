@@ -26,33 +26,22 @@ export const TC_SERVICE_NAME_PREFIX = {
   [ENVIRONMENT.DEV]: 'Dev_Tc_',
 };
 
-export const TC_SECRET_MANAGER_ARN = {
-  [ENVIRONMENT.PROD]: {
-    GITHUB_OAUTH_TOKEN:
-      'arn:aws:secretsmanager:ap-southeast-1:023371593417:secret:prod/CHD/github/oauth-Tf3qVq',
-  },
-  [ENVIRONMENT.DEV]: {
-    GITHUB_OAUTH_TOKEN:
-      'arn:aws:secretsmanager:ap-southeast-1:023371593417:secret:prod/CHD/github/oauth-Tf3qVq',
-  },
+export const TC_DOMAIN_NAME = 'teamclaw.com';
+
+export const TC_ADMIN_APP_SUB_DOMAIN = {
+  [ENVIRONMENT.PROD]: 'admin',
+  [ENVIRONMENT.DEV]: 'admin-dev',
+};
+
+// Temporary: Amplify preview URL until custom domain is configured
+export const TC_ADMIN_APP_AMPLIFY_DOMAIN = 'main.d2m2o9gjll7vqx.amplifyapp.com';
+
+export const TC_ADMIN_APP_DOMAIN_NAME = {
+  [ENVIRONMENT.PROD]: TC_ADMIN_APP_AMPLIFY_DOMAIN, // TODO: `${TC_ADMIN_APP_SUB_DOMAIN[ENVIRONMENT.PROD]}.${TC_DOMAIN_NAME}`
+  [ENVIRONMENT.DEV]: TC_ADMIN_APP_AMPLIFY_DOMAIN,
 };
 
 export const TC_ADMIN_USER_POOL_DOMAIN_PREFIX = {
   [ENVIRONMENT.PROD]: 'teamclaw-admin',
   [ENVIRONMENT.DEV]: 'teamclaw-admin-dev',
-};
-
-export const TC_ADMIN_AUTH_CALLBACK_URL = {
-  [ENVIRONMENT.PROD]: 'https://main.d2m2o9gjll7vqx.amplifyapp.com/auth/callback',
-  [ENVIRONMENT.DEV]: 'https://main.d2m2o9gjll7vqx.amplifyapp.com/auth/callback',
-};
-
-export const TC_ADMIN_AUTH_LOGOUT_URL = {
-  [ENVIRONMENT.PROD]: 'https://main.d2m2o9gjll7vqx.amplifyapp.com/auth/login',
-  [ENVIRONMENT.DEV]: 'https://main.d2m2o9gjll7vqx.amplifyapp.com/auth/login',
-};
-
-export const TC_ADMIN_APP_DOMAIN_NAME = {
-  [ENVIRONMENT.PROD]: 'main.d2m2o9gjll7vqx.amplifyapp.com',
-  [ENVIRONMENT.DEV]: 'main.d2m2o9gjll7vqx.amplifyapp.com',
 };

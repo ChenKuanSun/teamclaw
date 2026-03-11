@@ -13,7 +13,7 @@ const API_KEYS_SECRET_ARN = process.env['API_KEYS_SECRET_ARN']!;
 export const handler = adminLambdaHandlerDecorator(HandlerMethod.DELETE, async (event) => {
   const body = JSON.parse(event.body || '{}');
   const provider = body.provider || event.pathParameters?.['provider'];
-  const keyIndex = body.keyIndex ?? parseInt(event.pathParameters?.['keyIndex'] || '', 10);
+  const keyIndex = body.keyIndex ?? parseInt(event.pathParameters?.['keyId'] || '', 10);
 
   if (!provider || isNaN(keyIndex)) {
     return {

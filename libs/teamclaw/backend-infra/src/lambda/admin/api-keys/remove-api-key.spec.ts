@@ -101,7 +101,7 @@ describe('remove-api-key handler', () => {
       .mockResolvedValueOnce({});
 
     const res = await invoke(
-      makeEvent({ pathParameters: { provider: 'openai', keyIndex: '0' }, body: JSON.stringify({}) }),
+      makeEvent({ pathParameters: { provider: 'openai', keyId: '0' }, body: JSON.stringify({}) }),
     );
     expect(res.statusCode).toBe(200);
   });

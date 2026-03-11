@@ -108,8 +108,10 @@ export class AdminLambdaStack extends Stack {
       SSM.COGNITO.USER_POOL_ID,
     );
 
-    // Lifecycle Lambda function name (deterministic naming from control-plane)
-    const lifecycleLambdaName = `teamclaw-lifecycle-${deployEnv}`;
+    // Lifecycle Lambda function name (imported from SSM, set by control-plane stack)
+    const lifecycleLambdaName = aws_ssm.StringParameter.valueForStringParameter(
+      this, `/tc/${deployEnv}/lifecycle-lambda-name`,
+    );
     const lifecycleLambda = aws_lambda.Function.fromFunctionName(
       this,
       id + 'LifecycleLambda',
@@ -268,6 +270,20 @@ export class AdminLambdaStack extends Stack {
         actions: ['cognito-idp:AdminDeleteUser'],
         resources: [
           `arn:aws:cognito-idp:${this.region}:${this.account}:userpool/${cognitoUserPoolId}`,
+        ],
+      }),
+    );
+    // delete-user handler directly calls EFS DeleteAccessPoint
+    deleteUserLambda.addToRolePolicy(
+      new aws_iam.PolicyStatement({
+        effect: aws_iam.Effect.ALLOW,
+        actions: ['elasticfilesystem:DeleteAccessPoint'],
+        resources: [
+          Stack.of(this).formatArn({
+            service: 'elasticfilesystem',
+            resource: 'access-point',
+            resourceName: '*',
+          }),
         ],
       }),
     );

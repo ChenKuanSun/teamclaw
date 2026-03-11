@@ -22,7 +22,7 @@ export class ControlPlaneStack extends Stack {
     const ssm = TC_SSM_PARAMETER[deployEnv];
 
     // ─── Cognito ───
-    const userPool = new aws_cognito.UserPool(this, 'UserPool', {
+    const userPool = new aws_cognito.UserPool(this, id + 'UserPool', {
       userPoolName: `teamclaw-${deployEnv}`,
       selfSignUpEnabled: false, // Admin-only user creation
       signInAliases: { email: true },
@@ -40,7 +40,7 @@ export class ControlPlaneStack extends Stack {
       removalPolicy: RemovalPolicy.RETAIN,
     });
 
-    const userPoolClient = userPool.addClient('WebClient', {
+    const userPoolClient = userPool.addClient(id + 'WebClient', {
       authFlows: {
         userSrp: true,
       },
@@ -50,33 +50,37 @@ export class ControlPlaneStack extends Stack {
       refreshTokenValidity: Duration.days(30),
     });
 
-    new aws_ssm.StringParameter(this, 'UserPoolIdParam', {
+    new aws_ssm.StringParameter(this, id + 'UserPoolIdParam', {
       parameterName: ssm.COGNITO.USER_POOL_ID,
       stringValue: userPool.userPoolId,
     });
-    new aws_ssm.StringParameter(this, 'UserPoolArnParam', {
+    new aws_ssm.StringParameter(this, id + 'UserPoolArnParam', {
       parameterName: ssm.COGNITO.USER_POOL_ARN,
       stringValue: userPool.userPoolArn,
     });
-    new aws_ssm.StringParameter(this, 'UserPoolClientIdParam', {
+    new aws_ssm.StringParameter(this, id + 'UserPoolClientIdParam', {
       parameterName: ssm.COGNITO.USER_POOL_CLIENT_ID,
       stringValue: userPoolClient.userPoolClientId,
     });
 
     // ─── DynamoDB: User-Container mapping & usage tracking ───
-    const userTable = new aws_dynamodb.Table(this, 'UserTable', {
+    // TODO: [Affiora compliance] Consider migrating to TableV2 for consistency.
+    // Cannot change in-place as it changes CloudFormation resource type and destroys the table.
+    const userTable = new aws_dynamodb.Table(this, id + 'UserTable', {
       tableName: `teamclaw-users-${deployEnv}`,
       partitionKey: { name: 'userId', type: aws_dynamodb.AttributeType.STRING },
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: RemovalPolicy.RETAIN,
     });
 
-    const usageTable = new aws_dynamodb.Table(this, 'UsageTable', {
+    // TODO: [Affiora compliance] Consider migrating to TableV2 for consistency.
+    // Cannot change in-place as it changes CloudFormation resource type and destroys the table.
+    const usageTable = new aws_dynamodb.Table(this, id + 'UsageTable', {
       tableName: `teamclaw-usage-${deployEnv}`,
       partitionKey: { name: 'userId', type: aws_dynamodb.AttributeType.STRING },
       sortKey: { name: 'timestamp', type: aws_dynamodb.AttributeType.STRING },
       billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
-      removalPolicy: RemovalPolicy.DESTROY,
+      removalPolicy: RemovalPolicy.RETAIN,
       timeToLiveAttribute: 'ttl',
     });
 
@@ -97,35 +101,35 @@ export class ControlPlaneStack extends Stack {
     });
 
     // ─── DynamoDB SSM Parameters ───
-    new aws_ssm.StringParameter(this, 'UsersTableArnParam', {
+    new aws_ssm.StringParameter(this, id + 'UsersTableArnParam', {
       parameterName: ssm.DYNAMODB.USERS_TABLE_ARN,
       stringValue: userTable.tableArn,
     });
-    new aws_ssm.StringParameter(this, 'UsersTableNameParam', {
+    new aws_ssm.StringParameter(this, id + 'UsersTableNameParam', {
       parameterName: ssm.DYNAMODB.USERS_TABLE_NAME,
       stringValue: userTable.tableName,
     });
-    new aws_ssm.StringParameter(this, 'UsageTableArnParam', {
+    new aws_ssm.StringParameter(this, id + 'UsageTableArnParam', {
       parameterName: ssm.DYNAMODB.USAGE_TABLE_ARN,
       stringValue: usageTable.tableArn,
     });
-    new aws_ssm.StringParameter(this, 'UsageTableNameParam', {
+    new aws_ssm.StringParameter(this, id + 'UsageTableNameParam', {
       parameterName: ssm.DYNAMODB.USAGE_TABLE_NAME,
       stringValue: usageTable.tableName,
     });
-    new aws_ssm.StringParameter(this, 'TeamsTableArnParam', {
+    new aws_ssm.StringParameter(this, id + 'TeamsTableArnParam', {
       parameterName: ssm.DYNAMODB.TEAMS_TABLE_ARN,
       stringValue: teamsTable.tableArn,
     });
-    new aws_ssm.StringParameter(this, 'TeamsTableNameParam', {
+    new aws_ssm.StringParameter(this, id + 'TeamsTableNameParam', {
       parameterName: ssm.DYNAMODB.TEAMS_TABLE_NAME,
       stringValue: teamsTable.tableName,
     });
-    new aws_ssm.StringParameter(this, 'ConfigTableArnParam', {
+    new aws_ssm.StringParameter(this, id + 'ConfigTableArnParam', {
       parameterName: ssm.DYNAMODB.CONFIG_TABLE_ARN,
       stringValue: configTable.tableArn,
     });
-    new aws_ssm.StringParameter(this, 'ConfigTableNameParam', {
+    new aws_ssm.StringParameter(this, id + 'ConfigTableNameParam', {
       parameterName: ssm.DYNAMODB.CONFIG_TABLE_NAME,
       stringValue: configTable.tableName,
     });
@@ -135,10 +139,10 @@ export class ControlPlaneStack extends Stack {
       this, ssm.SECRETS.API_KEYS_SECRET_ARN,
     );
     const apiKeysSecret = aws_secretsmanager.Secret.fromSecretCompleteArn(
-      this, 'ApiKeysSecret', apiKeysSecretArn,
+      this, id + 'ApiKeysSecret', apiKeysSecretArn,
     );
 
-    const keyPoolLambda = new aws_lambda_nodejs.NodejsFunction(this, 'KeyPoolProxyLambda', {
+    const keyPoolLambda = new aws_lambda_nodejs.NodejsFunction(this, id + 'KeyPoolProxyLambda', {
       ...TC_LAMBDA_DEFAULT_PROPS,
       functionName: `teamclaw-key-pool-proxy-${deployEnv}`,
       entry: `${LAMBDA_ENTRY_PATH}/key-pool-proxy/index.ts`,
@@ -151,7 +155,7 @@ export class ControlPlaneStack extends Stack {
     usageTable.grantWriteData(keyPoolLambda);
 
     // API Gateway fronting the Key Pool Proxy
-    const api = new aws_apigateway.RestApi(this, 'KeyPoolApi', {
+    const api = new aws_apigateway.RestApi(this, id + 'KeyPoolApi', {
       restApiName: `teamclaw-key-pool-${deployEnv}`,
       description: 'Proxies AI provider API calls, injects keys server-side',
     });
@@ -164,13 +168,13 @@ export class ControlPlaneStack extends Stack {
       },
     });
 
-    new aws_ssm.StringParameter(this, 'KeyPoolProxyUrlParam', {
+    new aws_ssm.StringParameter(this, id + 'KeyPoolProxyUrlParam', {
       parameterName: ssm.API_GATEWAY.KEY_POOL_PROXY_URL,
       stringValue: api.url,
     });
 
     // ─── Lifecycle Lambda (start/stop/provision/cron-sync) ───
-    const lifecycleLambda = new aws_lambda_nodejs.NodejsFunction(this, 'LifecycleLambda', {
+    const lifecycleLambda = new aws_lambda_nodejs.NodejsFunction(this, id + 'LifecycleLambda', {
       ...TC_LIFECYCLE_LAMBDA_PROPS,
       functionName: `teamclaw-lifecycle-${deployEnv}`,
       entry: `${LAMBDA_ENTRY_PATH}/lifecycle/index.ts`,
@@ -188,29 +192,47 @@ export class ControlPlaneStack extends Stack {
 
     // ─── EventBridge Scheduler Role (for cron-aware wakeup) ───
     // This role allows EventBridge Scheduler to invoke the Lifecycle Lambda
-    const schedulerRole = new aws_iam.Role(this, 'CronSchedulerRole', {
+    const schedulerRole = new aws_iam.Role(this, id + 'CronSchedulerRole', {
       roleName: `teamclaw-cron-scheduler-${deployEnv}`,
       assumedBy: new aws_iam.ServicePrincipal('scheduler.amazonaws.com'),
     });
-    // Use '*' to break circular dependency (role → lambda ARN → role)
-    // Scoped to lambda:InvokeFunction only, so blast radius is limited
-    schedulerRole.addToPolicy(new aws_iam.PolicyStatement({
-      actions: ['lambda:InvokeFunction'],
-      resources: ['*'],
-    }));
-
     // Construct ARN manually to avoid circular dependency (Lambda referencing itself)
     const lifecycleLambdaArn = `arn:aws:lambda:${this.region}:${this.account}:function:teamclaw-lifecycle-${deployEnv}`;
+
+    schedulerRole.addToPolicy(new aws_iam.PolicyStatement({
+      actions: ['lambda:InvokeFunction'],
+      resources: [lifecycleLambdaArn],
+    }));
+
+    new aws_ssm.StringParameter(this, id + 'LifecycleLambdaNameParam', {
+      parameterName: `/tc/${deployEnv}/lifecycle-lambda-name`,
+      stringValue: lifecycleLambda.functionName,
+    });
     lifecycleLambda.addEnvironment('LIFECYCLE_LAMBDA_ARN', lifecycleLambdaArn);
     lifecycleLambda.addEnvironment('SCHEDULER_ROLE_ARN', schedulerRole.roleArn);
 
     // ECS permissions for lifecycle Lambda
+    const ecsClusterArn = Stack.of(this).formatArn({
+      service: 'ecs',
+      resource: 'cluster',
+      resourceName: `teamclaw-*-${deployEnv}`,
+    });
     lifecycleLambda.addToRolePolicy(new aws_iam.PolicyStatement({
       actions: [
         'ecs:RunTask',
         'ecs:StopTask',
         'ecs:DescribeTasks',
         'ecs:ListTasks',
+      ],
+      resources: [
+        ecsClusterArn,
+        // Task ARNs in the same cluster
+        Stack.of(this).formatArn({ service: 'ecs', resource: 'task', resourceName: `teamclaw-*-${deployEnv}/*` }),
+      ],
+    }));
+    // RegisterTaskDefinition / DeregisterTaskDefinition only support '*' as resource
+    lifecycleLambda.addToRolePolicy(new aws_iam.PolicyStatement({
+      actions: [
         'ecs:RegisterTaskDefinition',
         'ecs:DeregisterTaskDefinition',
       ],
@@ -225,14 +247,27 @@ export class ControlPlaneStack extends Stack {
         StringEquals: { 'iam:PassedToService': 'ecs-tasks.amazonaws.com' },
       },
     }));
-    // EFS Access Point creation
+    // EFS Access Point creation — scoped to the provisioned file system
+    const efsFileSystemArn = Stack.of(this).formatArn({
+      service: 'elasticfilesystem',
+      resource: 'file-system',
+      resourceName: aws_ssm.StringParameter.valueForStringParameter(this, ssm.EFS.FILE_SYSTEM_ID),
+    });
     lifecycleLambda.addToRolePolicy(new aws_iam.PolicyStatement({
       actions: [
         'elasticfilesystem:CreateAccessPoint',
         'elasticfilesystem:DeleteAccessPoint',
         'elasticfilesystem:DescribeAccessPoints',
       ],
-      resources: ['*'],
+      resources: [
+        efsFileSystemArn,
+        // Access point ARNs under this file system
+        Stack.of(this).formatArn({
+          service: 'elasticfilesystem',
+          resource: 'access-point',
+          resourceName: '*',
+        }),
+      ],
     }));
 
     // EventBridge Scheduler permissions for cron-aware wakeup

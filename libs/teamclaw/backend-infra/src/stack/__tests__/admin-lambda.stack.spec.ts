@@ -127,7 +127,7 @@ describe('AdminLambdaStack', () => {
     template.hasResourceProperties('AWS::Lambda::Function', {
       Environment: {
         Variables: Match.objectLike({
-          LIFECYCLE_LAMBDA_NAME: 'teamclaw-lifecycle-dev',
+          LIFECYCLE_LAMBDA_NAME: Match.anyValue(),
         }),
       },
     });

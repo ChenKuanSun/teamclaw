@@ -152,6 +152,16 @@ export interface UsageByProviderResponse {
   providers: { provider: string; requests: number; tokens: number; cost?: number }[];
 }
 
+export interface OnboardingStatus {
+  complete: boolean;
+  steps: {
+    apiKey: boolean;
+    team: boolean;
+    allowedDomains: boolean;
+    defaultTeamId: boolean;
+  };
+}
+
 // ============================================
 // Admin API Service
 // ============================================
@@ -170,6 +180,16 @@ export class AdminApiService {
   getDashboardStats() {
     return this.http.get<DashboardStats>(
       `${this.baseUrl}/admin/dashboard/stats`,
+    );
+  }
+
+  // ============================================
+  // Onboarding
+  // ============================================
+
+  getOnboardingStatus() {
+    return this.http.get<OnboardingStatus>(
+      `${this.baseUrl}/admin/onboarding/status`,
     );
   }
 

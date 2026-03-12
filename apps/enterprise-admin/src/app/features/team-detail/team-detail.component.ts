@@ -10,6 +10,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import {
   AdminApiService,
   Team,
@@ -30,6 +31,7 @@ import {
     MatFormFieldModule,
     MatInputModule,
     MatProgressSpinnerModule,
+    MatSelectModule,
     DatePipe,
   ],
   template: `
@@ -72,6 +74,20 @@ import {
           }
         </mat-card>
 
+        <div class="member-actions">
+          <mat-form-field appearance="outline" class="member-select">
+            <mat-label>Add Member</mat-label>
+            <mat-select [(ngModel)]="selectedUserId">
+              @for (user of availableUsers(); track user.userId) {
+                <mat-option [value]="user.userId">{{ user.email }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <button mat-raised-button color="primary" [disabled]="!selectedUserId" (click)="addMember()">
+            <mat-icon>person_add</mat-icon> Add
+          </button>
+        </div>
+
         <h3>Members</h3>
         <mat-card>
           <table mat-table [dataSource]="members()" class="full-width">
@@ -113,6 +129,8 @@ import {
     .full-width { width: 100%; }
     .spinner-wrapper { display: flex; justify-content: center; padding: 48px; }
     h3 { margin-top: 24px; }
+    .member-actions { display: flex; align-items: center; gap: 16px; margin-top: 24px; }
+    .member-select { width: 300px; }
   `],
 })
 export class TeamDetailComponent implements OnInit {
@@ -126,6 +144,8 @@ export class TeamDetailComponent implements OnInit {
   readonly editing = signal(false);
   readonly memberColumns = ['email', 'status', 'actions'];
 
+  readonly availableUsers = signal<AdminUser[]>([]);
+  selectedUserId = '';
   editName = '';
   editDescription = '';
 
@@ -147,6 +167,7 @@ export class TeamDetailComponent implements OnInit {
         this.team.set(team);
         this.loading.set(false);
         this.loadMembers(team);
+        this.loadAvailableUsers(team);
       },
       error: () => this.loading.set(false),
     });
@@ -167,6 +188,28 @@ export class TeamDetailComponent implements OnInit {
         },
       });
     }
+  }
+
+  private loadAvailableUsers(team: Team): void {
+    this.adminApi.queryUsers({ limit: 100 }).subscribe({
+      next: (res) => {
+        const memberSet = new Set(team.memberIds ?? []);
+        this.availableUsers.set(res.users.filter(u => !memberSet.has(u.userId)));
+      },
+    });
+  }
+
+  addMember(): void {
+    if (!this.selectedUserId) return;
+    const currentTeam = this.team();
+    if (!currentTeam) return;
+    const updatedIds = [...(currentTeam.memberIds ?? []), this.selectedUserId];
+    this.adminApi.updateTeam(currentTeam.teamId, { memberIds: updatedIds }).subscribe({
+      next: () => {
+        this.selectedUserId = '';
+        this.loadTeam(currentTeam.teamId);
+      },
+    });
   }
 
   toggleEdit(): void {

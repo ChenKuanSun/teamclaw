@@ -1,12 +1,15 @@
 import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
 import { adminLambdaHandlerDecorator, HandlerMethod, HttpStatusCode, validateRequiredEnvVars } from '@TeamClaw/teamclaw/cloud-function';
+import type { GETAndDELETECloudFunctionInput } from '@TeamClaw/teamclaw/cloud-function';
 
-validateRequiredEnvVars(['USAGE_TABLE_NAME']);
+validateRequiredEnvVars({ USAGE_TABLE_NAME: process.env['USAGE_TABLE_NAME'] });
 
 const dynamodb = new DynamoDBClient({});
 const USAGE_TABLE = process.env['USAGE_TABLE_NAME']!;
 
-export const handler = adminLambdaHandlerDecorator(HandlerMethod.GET, async () => {
+const handlerFn = async (
+  request: GETAndDELETECloudFunctionInput,
+): Promise<{ status: number; body: unknown }> => {
   const providerCounts: Record<string, number> = {};
   let lastEvaluatedKey: Record<string, any> | undefined;
 
@@ -28,10 +31,15 @@ export const handler = adminLambdaHandlerDecorator(HandlerMethod.GET, async () =
   const totalRequests = Object.values(providerCounts).reduce((sum, c) => sum + c, 0);
 
   return {
-    status: HttpStatusCode.OK,
+    status: HttpStatusCode.SUCCESS,
     body: {
       totalRequests,
       byProvider: providerCounts,
     },
   };
-});
+};
+
+export const handler = adminLambdaHandlerDecorator(
+  HandlerMethod.GET,
+  handlerFn,
+);

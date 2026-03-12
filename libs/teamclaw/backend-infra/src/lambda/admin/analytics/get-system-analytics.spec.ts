@@ -9,13 +9,27 @@ jest.mock('@TeamClaw/teamclaw/cloud-function', () => {
   const actual = jest.requireActual('@TeamClaw/teamclaw/cloud-function');
   return {
     ...actual,
-    adminLambdaHandlerDecorator: (_method: string, fn: any) => {
-      return async (event: any) => {
+    adminLambdaHandlerDecorator: (method: string, fn: any) => {
+      return async (event: any, context: any) => {
         try {
-          const result = await fn(event);
-          return { statusCode: result.status, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result.body) };
+          const input = {
+            raw: event,
+            queryStringParameters: event.queryStringParameters,
+            pathParameters: event.pathParameters,
+            body: event.body ? JSON.parse(event.body) : undefined,
+          };
+          const result = await fn(input);
+          return {
+            statusCode: result.status,
+            headers: { 'Content-Type': 'application/json; charset=utf-8' },
+            body: JSON.stringify(result.body),
+          };
         } catch (error: any) {
-          return { statusCode: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: error.message || 'Internal server error' }) };
+          return {
+            statusCode: 500,
+            headers: { 'Content-Type': 'application/json; charset=utf-8' },
+            body: JSON.stringify({ message: error.message || 'Internal server error' }),
+          };
         }
       };
     },
@@ -26,16 +40,34 @@ jest.mock('@TeamClaw/teamclaw/cloud-function', () => {
 process.env['USAGE_TABLE_NAME'] = 'UsageTable';
 
 import { handler } from './get-system-analytics';
-import type { APIGatewayProxyEvent, Context } from 'aws-lambda';
+import type { APIGatewayProxyEventV2WithJWTAuthorizer, Context } from 'aws-lambda';
 
-const makeEvent = (overrides: Partial<APIGatewayProxyEvent> = {}): APIGatewayProxyEvent =>
+const makeEvent = (overrides: Partial<APIGatewayProxyEventV2WithJWTAuthorizer> = {}): APIGatewayProxyEventV2WithJWTAuthorizer =>
   ({
-    httpMethod: 'GET', path: '/admin/analytics/system', pathParameters: null,
-    queryStringParameters: null, body: null, headers: {}, multiValueHeaders: {},
-    isBase64Encoded: false, requestContext: {} as any, resource: '',
-    stageVariables: null, multiValueQueryStringParameters: null,
+    version: '2.0',
+    routeKey: 'GET /admin/analytics/system',
+    rawPath: '/admin/analytics/system',
+    rawQueryString: '',
+    headers: {},
+    requestContext: {
+      http: { method: 'GET', path: '/admin/analytics/system', protocol: 'HTTP/1.1', sourceIp: '127.0.0.1', userAgent: 'test' },
+      accountId: '123456789012',
+      apiId: 'test',
+      domainName: 'test',
+      domainPrefix: 'test',
+      requestId: 'test',
+      routeKey: 'GET /admin/analytics/system',
+      stage: '$default',
+      time: '01/Jan/2026:00:00:00 +0000',
+      timeEpoch: 0,
+      authorizer: { jwt: { claims: { sub: 'admin-user' }, scopes: [] } },
+    },
+    pathParameters: null,
+    queryStringParameters: null,
+    body: null,
+    isBase64Encoded: false,
     ...overrides,
-  }) as APIGatewayProxyEvent;
+  }) as unknown as APIGatewayProxyEventV2WithJWTAuthorizer;
 
 const invoke = async (event = makeEvent()) =>
   (await (handler as any)(event, {} as Context)) as {

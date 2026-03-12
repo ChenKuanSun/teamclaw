@@ -4,17 +4,20 @@ import {
   PutSecretValueCommand,
 } from '@aws-sdk/client-secrets-manager';
 import { adminLambdaHandlerDecorator, HandlerMethod, HttpStatusCode, validateRequiredEnvVars } from '@TeamClaw/teamclaw/cloud-function';
+import type { POSTAndPUTCloudFunctionInput } from '@TeamClaw/teamclaw/cloud-function';
 
-validateRequiredEnvVars(['API_KEYS_SECRET_ARN']);
+validateRequiredEnvVars({ API_KEYS_SECRET_ARN: process.env['API_KEYS_SECRET_ARN'] });
 
 const smClient = new SecretsManagerClient({});
 const API_KEYS_SECRET_ARN = process.env['API_KEYS_SECRET_ARN']!;
 
-export const handler = adminLambdaHandlerDecorator(HandlerMethod.POST, async (event) => {
-  const body = JSON.parse(event.body || '{}');
+const handlerFn = async (
+  request: POSTAndPUTCloudFunctionInput<Record<string, unknown>>,
+): Promise<{ status: number; body: unknown }> => {
+  const { body } = request;
   const { provider, key } = body;
 
-  if (!provider || !key || typeof key !== 'string' || key.length > 256) {
+  if (!provider || !key || typeof key !== 'string' || (key as string).length > 256) {
     return {
       status: HttpStatusCode.BAD_REQUEST,
       body: { message: 'provider and key are required (key must be a non-empty string, max 256 chars)' },
@@ -34,10 +37,10 @@ export const handler = adminLambdaHandlerDecorator(HandlerMethod.POST, async (ev
   const keys: Record<string, string[]> = JSON.parse(result.SecretString || '{}');
 
   // Append key to provider
-  if (!keys[provider]) {
-    keys[provider] = [];
+  if (!keys[provider as string]) {
+    keys[provider as string] = [];
   }
-  keys[provider].push(key);
+  keys[provider as string].push(key as string);
 
   // Write back
   await smClient.send(new PutSecretValueCommand({
@@ -46,11 +49,16 @@ export const handler = adminLambdaHandlerDecorator(HandlerMethod.POST, async (ev
   }));
 
   return {
-    status: HttpStatusCode.OK,
+    status: HttpStatusCode.SUCCESS,
     body: {
       message: 'API key added',
       provider,
-      totalKeys: keys[provider].length,
+      totalKeys: keys[provider as string].length,
     },
   };
-});
+};
+
+export const handler = adminLambdaHandlerDecorator(
+  HandlerMethod.POST,
+  handlerFn,
+);

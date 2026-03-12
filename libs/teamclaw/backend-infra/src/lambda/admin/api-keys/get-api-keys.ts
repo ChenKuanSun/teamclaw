@@ -1,7 +1,8 @@
 import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
 import { adminLambdaHandlerDecorator, HandlerMethod, HttpStatusCode, validateRequiredEnvVars } from '@TeamClaw/teamclaw/cloud-function';
+import type { GETAndDELETECloudFunctionInput } from '@TeamClaw/teamclaw/cloud-function';
 
-validateRequiredEnvVars(['API_KEYS_SECRET_ARN']);
+validateRequiredEnvVars({ API_KEYS_SECRET_ARN: process.env['API_KEYS_SECRET_ARN'] });
 
 const smClient = new SecretsManagerClient({});
 const API_KEYS_SECRET_ARN = process.env['API_KEYS_SECRET_ARN']!;
@@ -11,7 +12,9 @@ function maskKey(key: string): string {
   return '*'.repeat(key.length - 4) + key.slice(-4);
 }
 
-export const handler = adminLambdaHandlerDecorator(HandlerMethod.GET, async () => {
+const handlerFn = async (
+  request: GETAndDELETECloudFunctionInput,
+): Promise<{ status: number; body: unknown }> => {
   const result = await smClient.send(new GetSecretValueCommand({
     SecretId: API_KEYS_SECRET_ARN,
   }));
@@ -27,7 +30,12 @@ export const handler = adminLambdaHandlerDecorator(HandlerMethod.GET, async () =
   }
 
   return {
-    status: HttpStatusCode.OK,
+    status: HttpStatusCode.SUCCESS,
     body: { providers: masked },
   };
-});
+};
+
+export const handler = adminLambdaHandlerDecorator(
+  HandlerMethod.GET,
+  handlerFn,
+);

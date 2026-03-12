@@ -4,16 +4,20 @@ import {
   PutSecretValueCommand,
 } from '@aws-sdk/client-secrets-manager';
 import { adminLambdaHandlerDecorator, HandlerMethod, HttpStatusCode, validateRequiredEnvVars } from '@TeamClaw/teamclaw/cloud-function';
+import type { GETAndDELETECloudFunctionInput } from '@TeamClaw/teamclaw/cloud-function';
 
-validateRequiredEnvVars(['API_KEYS_SECRET_ARN']);
+validateRequiredEnvVars({ API_KEYS_SECRET_ARN: process.env['API_KEYS_SECRET_ARN'] });
 
 const smClient = new SecretsManagerClient({});
 const API_KEYS_SECRET_ARN = process.env['API_KEYS_SECRET_ARN']!;
 
-export const handler = adminLambdaHandlerDecorator(HandlerMethod.DELETE, async (event) => {
-  const body = JSON.parse(event.body || '{}');
-  const provider = body.provider || event.pathParameters?.['provider'];
-  const keyIndex = body.keyIndex ?? parseInt(event.pathParameters?.['keyId'] || '', 10);
+const handlerFn = async (
+  request: GETAndDELETECloudFunctionInput,
+): Promise<{ status: number; body: unknown }> => {
+  const { pathParameters, queryStringParameters } = request;
+  const provider = pathParameters?.['provider'] || queryStringParameters?.['provider'];
+  const keyIdParam = pathParameters?.['keyId'] || queryStringParameters?.['keyIndex'];
+  const keyIndex = keyIdParam !== undefined ? parseInt(keyIdParam, 10) : NaN;
 
   if (!provider || isNaN(keyIndex)) {
     return {
@@ -46,11 +50,16 @@ export const handler = adminLambdaHandlerDecorator(HandlerMethod.DELETE, async (
   }));
 
   return {
-    status: HttpStatusCode.OK,
+    status: HttpStatusCode.SUCCESS,
     body: {
       message: 'API key removed',
       provider,
       remainingKeys: keys[provider].length,
     },
   };
-});
+};
+
+export const handler = adminLambdaHandlerDecorator(
+  HandlerMethod.DELETE,
+  handlerFn,
+);

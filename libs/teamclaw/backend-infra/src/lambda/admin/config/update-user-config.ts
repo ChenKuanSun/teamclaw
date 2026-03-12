@@ -1,13 +1,17 @@
 import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { adminLambdaHandlerDecorator, HandlerMethod, HttpStatusCode, validateRequiredEnvVars } from '@TeamClaw/teamclaw/cloud-function';
+import type { POSTAndPUTCloudFunctionInput } from '@TeamClaw/teamclaw/cloud-function';
 
-validateRequiredEnvVars(['CONFIG_TABLE_NAME']);
+validateRequiredEnvVars({ CONFIG_TABLE_NAME: process.env['CONFIG_TABLE_NAME'] });
 
 const dynamodb = new DynamoDBClient({});
 const CONFIG_TABLE = process.env['CONFIG_TABLE_NAME']!;
 
-export const handler = adminLambdaHandlerDecorator(HandlerMethod.PUT, async (event) => {
-  const userId = event.pathParameters?.['userId'];
+const handlerFn = async (
+  request: POSTAndPUTCloudFunctionInput<Record<string, unknown>>,
+): Promise<{ status: number; body: unknown }> => {
+  const { body, pathParameters } = request;
+  const userId = pathParameters?.['userId'];
   if (!userId) {
     return {
       status: HttpStatusCode.BAD_REQUEST,
@@ -15,7 +19,6 @@ export const handler = adminLambdaHandlerDecorator(HandlerMethod.PUT, async (eve
     };
   }
 
-  const body = JSON.parse(event.body || '{}');
   const { configKey, value } = body;
 
   if (!configKey || value === undefined) {
@@ -25,13 +28,13 @@ export const handler = adminLambdaHandlerDecorator(HandlerMethod.PUT, async (eve
     };
   }
 
-  const updatedBy = event.requestContext?.authorizer?.['claims']?.sub || 'admin';
+  const updatedBy = (request.raw?.requestContext?.authorizer?.jwt?.claims?.['sub'] as string) || 'admin';
 
   await dynamodb.send(new PutItemCommand({
     TableName: CONFIG_TABLE,
     Item: {
       scopeKey: { S: `user#${userId}` },
-      configKey: { S: configKey },
+      configKey: { S: configKey as string },
       value: { S: JSON.stringify(value) },
       updatedAt: { S: new Date().toISOString() },
       updatedBy: { S: updatedBy },
@@ -39,7 +42,12 @@ export const handler = adminLambdaHandlerDecorator(HandlerMethod.PUT, async (eve
   }));
 
   return {
-    status: HttpStatusCode.OK,
+    status: HttpStatusCode.SUCCESS,
     body: { message: 'User config updated', userId, configKey },
   };
-});
+};
+
+export const handler = adminLambdaHandlerDecorator(
+  HandlerMethod.PUT,
+  handlerFn,
+);

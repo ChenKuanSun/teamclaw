@@ -1,13 +1,17 @@
 import { DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { adminLambdaHandlerDecorator, HandlerMethod, HttpStatusCode, validateRequiredEnvVars } from '@TeamClaw/teamclaw/cloud-function';
+import type { GETAndDELETECloudFunctionInput } from '@TeamClaw/teamclaw/cloud-function';
 
-validateRequiredEnvVars(['CONFIG_TABLE_NAME']);
+validateRequiredEnvVars({ CONFIG_TABLE_NAME: process.env['CONFIG_TABLE_NAME'] });
 
 const dynamodb = new DynamoDBClient({});
 const CONFIG_TABLE = process.env['CONFIG_TABLE_NAME']!;
 
-export const handler = adminLambdaHandlerDecorator(HandlerMethod.GET, async (event) => {
-  const teamId = event.pathParameters?.['teamId'];
+const handlerFn = async (
+  request: GETAndDELETECloudFunctionInput,
+): Promise<{ status: number; body: unknown }> => {
+  const { pathParameters } = request;
+  const teamId = pathParameters?.['teamId'];
   if (!teamId) {
     return {
       status: HttpStatusCode.BAD_REQUEST,
@@ -31,7 +35,12 @@ export const handler = adminLambdaHandlerDecorator(HandlerMethod.GET, async (eve
   }));
 
   return {
-    status: HttpStatusCode.OK,
+    status: HttpStatusCode.SUCCESS,
     body: { teamId, configs },
   };
-});
+};
+
+export const handler = adminLambdaHandlerDecorator(
+  HandlerMethod.GET,
+  handlerFn,
+);

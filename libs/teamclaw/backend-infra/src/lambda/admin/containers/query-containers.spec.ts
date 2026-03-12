@@ -9,19 +9,25 @@ jest.mock('@TeamClaw/teamclaw/cloud-function', () => {
   const actual = jest.requireActual('@TeamClaw/teamclaw/cloud-function');
   return {
     ...actual,
-    adminLambdaHandlerDecorator: (_method: string, fn: any) => {
-      return async (event: any, _context: any) => {
+    adminLambdaHandlerDecorator: (method: string, fn: any) => {
+      return async (event: any, context: any) => {
         try {
-          const result = await fn(event);
+          const input = {
+            raw: event,
+            queryStringParameters: event.queryStringParameters,
+            pathParameters: event.pathParameters,
+            body: event.body ? JSON.parse(event.body) : undefined,
+          };
+          const result = await fn(input);
           return {
             statusCode: result.status,
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json; charset=utf-8' },
             body: JSON.stringify(result.body),
           };
         } catch (error: any) {
           return {
             statusCode: 500,
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json; charset=utf-8' },
             body: JSON.stringify({ message: error.message || 'Internal server error' }),
           };
         }
@@ -35,18 +41,41 @@ process.env['USERS_TABLE_NAME'] = 'UsersTable';
 process.env['DEPLOY_ENV'] = 'dev';
 
 import { handler } from './query-containers';
+import type { APIGatewayProxyEventV2WithJWTAuthorizer, Context } from 'aws-lambda';
 
-const makeEvent = (overrides: any = {}) => ({
-  queryStringParameters: null,
-  pathParameters: null,
-  body: null,
-  headers: {},
-  requestContext: {} as any,
-  ...overrides,
-});
+const makeEvent = (overrides: Partial<APIGatewayProxyEventV2WithJWTAuthorizer> = {}): APIGatewayProxyEventV2WithJWTAuthorizer =>
+  ({
+    version: '2.0',
+    routeKey: 'GET /admin/containers',
+    rawPath: '/admin/containers',
+    rawQueryString: '',
+    headers: {},
+    requestContext: {
+      http: { method: 'GET', path: '/admin/containers', protocol: 'HTTP/1.1', sourceIp: '127.0.0.1', userAgent: 'test' },
+      accountId: '123456789012',
+      apiId: 'test',
+      domainName: 'test',
+      domainPrefix: 'test',
+      requestId: 'test',
+      routeKey: 'GET /admin/containers',
+      stage: '$default',
+      time: '01/Jan/2026:00:00:00 +0000',
+      timeEpoch: 0,
+      authorizer: { jwt: { claims: { sub: 'admin-user' }, scopes: [] } },
+    },
+    pathParameters: null,
+    queryStringParameters: null,
+    body: null,
+    isBase64Encoded: false,
+    ...overrides,
+  }) as unknown as APIGatewayProxyEventV2WithJWTAuthorizer;
 
 const invoke = async (event = makeEvent()) =>
-  handler(event, {} as any) as Promise<{ statusCode: number; headers: any; body: string }>;
+  (await handler(event, {} as Context)) as {
+    statusCode: number;
+    headers: any;
+    body: string;
+  };
 
 describe('query-containers handler', () => {
   beforeEach(() => jest.clearAllMocks());

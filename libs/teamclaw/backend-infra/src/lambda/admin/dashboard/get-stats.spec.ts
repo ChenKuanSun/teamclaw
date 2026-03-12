@@ -9,20 +9,26 @@ jest.mock('@TeamClaw/teamclaw/cloud-function', () => {
   const actual = jest.requireActual('@TeamClaw/teamclaw/cloud-function');
   return {
     ...actual,
-    // Simplified decorator for tests — just calls handler directly
     adminLambdaHandlerDecorator: (method: string, fn: any) => {
       return async (event: any, context: any) => {
         try {
-          const result = await fn(event);
+          // Create structured input matching Affiora pattern
+          const input = {
+            raw: event,
+            queryStringParameters: event.queryStringParameters,
+            pathParameters: event.pathParameters,
+            body: event.body ? JSON.parse(event.body) : undefined,
+          };
+          const result = await fn(input);
           return {
             statusCode: result.status,
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json; charset=utf-8' },
             body: JSON.stringify(result.body),
           };
         } catch (error: any) {
           return {
             statusCode: 500,
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json; charset=utf-8' },
             body: JSON.stringify({ message: error.message || 'Internal server error' }),
           };
         }
@@ -37,23 +43,33 @@ process.env['USAGE_TABLE_NAME'] = 'UsageTable';
 process.env['DEPLOY_ENV'] = 'dev';
 
 import { handler } from './get-stats';
-import type { APIGatewayProxyEvent, Context, Callback } from 'aws-lambda';
+import type { APIGatewayProxyEventV2WithJWTAuthorizer, Context } from 'aws-lambda';
 
-const makeEvent = (): APIGatewayProxyEvent =>
+const makeEvent = (): APIGatewayProxyEventV2WithJWTAuthorizer =>
   ({
-    httpMethod: 'GET',
-    path: '/admin/dashboard/stats',
+    version: '2.0',
+    routeKey: 'GET /admin/dashboard/stats',
+    rawPath: '/admin/dashboard/stats',
+    rawQueryString: '',
+    headers: {},
+    requestContext: {
+      http: { method: 'GET', path: '/admin/dashboard/stats', protocol: 'HTTP/1.1', sourceIp: '127.0.0.1', userAgent: 'test' },
+      accountId: '123456789012',
+      apiId: 'test',
+      domainName: 'test',
+      domainPrefix: 'test',
+      requestId: 'test',
+      routeKey: 'GET /admin/dashboard/stats',
+      stage: '$default',
+      time: '01/Jan/2026:00:00:00 +0000',
+      timeEpoch: 0,
+      authorizer: { jwt: { claims: { sub: 'admin-user' }, scopes: [] } },
+    },
     pathParameters: null,
     queryStringParameters: null,
     body: null,
-    headers: {},
-    multiValueHeaders: {},
     isBase64Encoded: false,
-    requestContext: {} as any,
-    resource: '',
-    stageVariables: null,
-    multiValueQueryStringParameters: null,
-  }) as APIGatewayProxyEvent;
+  }) as unknown as APIGatewayProxyEventV2WithJWTAuthorizer;
 
 const invoke = async (event = makeEvent()) =>
   (await (handler as any)(event, {} as Context)) as {

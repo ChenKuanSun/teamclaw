@@ -8,6 +8,16 @@ export const appRoutes: Routes = [
       import('./pages/login/login.component').then(m => m.LoginComponent),
   },
   {
+    path: 'signup',
+    loadComponent: () =>
+      import('./pages/signup/signup.component').then(m => m.SignupComponent),
+  },
+  {
+    path: 'verify',
+    loadComponent: () =>
+      import('./pages/verify/verify.component').then(m => m.VerifyComponent),
+  },
+  {
     path: '',
     loadComponent: () =>
       import('./layout/layout.component').then(m => m.LayoutComponent),

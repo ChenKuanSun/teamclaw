@@ -1,7 +1,7 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -16,6 +16,7 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [
     FormsModule,
+    RouterLink,
     MatCardModule,
     MatInputModule,
     MatButtonModule,
@@ -41,7 +42,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.subs.add(
       this.isAuthenticated$.subscribe(isAuthenticated => {
         if (isAuthenticated) {
-          this.router.navigate(['/chat']);
+          this.router.navigate(['/session']);
         }
       }),
     );
@@ -63,7 +64,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.errorMessage.set('');
     try {
       await this.authService.login(email, password);
-      this.router.navigate(['/chat']);
+      this.router.navigate(['/session']);
     } catch (e: unknown) {
       this.errorMessage.set(e instanceof Error ? e.message : 'Login failed');
     }

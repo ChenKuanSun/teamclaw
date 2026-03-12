@@ -909,5 +909,31 @@ export class AdminLambdaStack extends Stack {
       parameterName: ADMIN_LAMBDA_SSM.USER_SESSION_LAMBDA_NAME,
       stringValue: userSessionLambda.functionName,
     });
+
+    // ==========================================================
+    // Onboarding Lambda (1)
+    // ==========================================================
+    const getOnboardingStatusLambda = new aws_lambda_nodejs.NodejsFunction(
+      this,
+      id + 'GetOnboardingStatusLambda',
+      {
+        ...TC_LAMBDA_DEFAULT_PROPS,
+        entry: path.join(LAMBDA_ENTRY_PATH, 'admin', 'onboarding', 'get-onboarding-status.ts'),
+        environment: {
+          ...baseEnv,
+          TEAMS_TABLE_NAME: teamsTableName,
+          CONFIG_TABLE_NAME: configTableName,
+          API_KEYS_SECRET_ARN: apiKeysSecret.secretArn,
+        },
+      },
+    );
+    teamsTable.grantReadData(getOnboardingStatusLambda);
+    configTable.grantReadData(getOnboardingStatusLambda);
+    apiKeysSecret.grantRead(getOnboardingStatusLambda);
+
+    new aws_ssm.StringParameter(this, id + 'GetOnboardingStatusLambdaNameParam', {
+      parameterName: ADMIN_LAMBDA_SSM.GET_ONBOARDING_STATUS_LAMBDA_NAME,
+      stringValue: getOnboardingStatusLambda.functionName,
+    });
   }
 }

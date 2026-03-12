@@ -88,6 +88,8 @@ export const TC_SSM_PARAMETER = {
         GET_USAGE_BY_PROVIDER_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/getUsageByProviderLambdaName`,
         // Session
         USER_SESSION_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/userSessionLambdaName`,
+        // Onboarding
+        GET_ONBOARDING_STATUS_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/getOnboardingStatusLambdaName`,
       },
     },
   },
@@ -178,6 +180,8 @@ export const TC_SSM_PARAMETER = {
         GET_USAGE_BY_PROVIDER_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/getUsageByProviderLambdaName`,
         // Session
         USER_SESSION_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/userSessionLambdaName`,
+        // Onboarding
+        GET_ONBOARDING_STATUS_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/getOnboardingStatusLambdaName`,
       },
     },
   },

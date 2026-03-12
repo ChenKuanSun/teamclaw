@@ -14,12 +14,12 @@ describe('AdminLambdaStack', () => {
     template = Template.fromStack(stack);
   });
 
-  test('creates exactly 29 Lambda functions', () => {
-    // AdminLambdaStack creates 29 NodejsFunctions
-    // 1 dashboard + 4 users + 5 teams + 5 containers + 6 config + 4 api-keys + 3 analytics + 1 session = 29
+  test('creates exactly 30 Lambda functions', () => {
+    // AdminLambdaStack creates 30 NodejsFunctions
+    // 1 dashboard + 4 users + 5 teams + 5 containers + 6 config + 4 api-keys + 3 analytics + 1 session + 1 onboarding = 30
     const lambdas = template.findResources('AWS::Lambda::Function');
     const lambdaCount = Object.keys(lambdas).length;
-    expect(lambdaCount).toBe(29);
+    expect(lambdaCount).toBe(30);
   });
 
   test('all Lambdas use Node.js 22 runtime', () => {
@@ -75,13 +75,13 @@ describe('AdminLambdaStack', () => {
     });
   });
 
-  test('creates SSM parameters for all 29 Lambda function names', () => {
+  test('creates SSM parameters for all 30 Lambda function names', () => {
     const ssmParams = template.findResources('AWS::SSM::Parameter');
     const lambdaSsmParams = Object.entries(ssmParams).filter(
       ([, param]) =>
         (param as any).Properties?.Name?.includes('/admin-api/lambda/'),
     );
-    expect(lambdaSsmParams).toHaveLength(29);
+    expect(lambdaSsmParams).toHaveLength(30);
   });
 
   test('SSM parameters include all expected Lambda names', () => {
@@ -115,6 +115,7 @@ describe('AdminLambdaStack', () => {
       '/tc/dev/admin-api/lambda/queryUsersUsageLambdaName',
       '/tc/dev/admin-api/lambda/getUsageByProviderLambdaName',
       '/tc/dev/admin-api/lambda/userSessionLambdaName',
+      '/tc/dev/admin-api/lambda/getOnboardingStatusLambdaName',
     ];
 
     for (const name of expectedSsmNames) {

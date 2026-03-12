@@ -365,5 +365,15 @@ export class AdminApiGatewayRouteStack extends Stack {
       routeKey: HttpRouteKey.with('/user/session', HttpMethod.POST),
       authorizer: chatAuthorizer,
     });
+
+    // ==========================================================
+    // ONBOARDING ROUTES
+    // ==========================================================
+    addRoute(
+      'GetOnboardingStatus',
+      HttpMethod.GET,
+      '/admin/onboarding/status',
+      getLambda('GetOnboardingStatusLambda', ADMIN_LAMBDA_SSM.GET_ONBOARDING_STATUS_LAMBDA_NAME),
+    );
   }
 }

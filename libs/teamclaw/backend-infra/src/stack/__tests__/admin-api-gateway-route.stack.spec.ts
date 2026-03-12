@@ -14,10 +14,10 @@ describe('AdminApiGatewayRouteStack', () => {
     template = Template.fromStack(stack);
   });
 
-  test('creates 28 HttpApi routes', () => {
-    // 1 dashboard + 4 users + 5 teams + 5 containers + 6 config + 4 api-keys + 3 analytics = 28
+  test('creates 29 HttpApi routes', () => {
+    // 1 dashboard + 4 users + 5 teams + 5 containers + 6 config + 4 api-keys + 3 analytics + 1 session = 29
     const routes = template.findResources('AWS::ApiGatewayV2::Route');
-    expect(Object.keys(routes)).toHaveLength(28);
+    expect(Object.keys(routes)).toHaveLength(29);
   });
 
   test('all routes have JWT authorization', () => {
@@ -68,6 +68,7 @@ describe('AdminApiGatewayRouteStack', () => {
       '/admin/analytics/system',
       '/admin/analytics/users-usage',
       '/admin/analytics/usage-by-provider',
+      '/user/session',
     ];
 
     for (const path of expectedPaths) {
@@ -77,7 +78,7 @@ describe('AdminApiGatewayRouteStack', () => {
 
   test('each route has a Lambda integration', () => {
     const integrations = template.findResources('AWS::ApiGatewayV2::Integration');
-    // Each of the 28 routes gets its own integration
-    expect(Object.keys(integrations).length).toBe(28);
+    // Each of the 29 routes gets its own integration
+    expect(Object.keys(integrations).length).toBe(29);
   });
 });

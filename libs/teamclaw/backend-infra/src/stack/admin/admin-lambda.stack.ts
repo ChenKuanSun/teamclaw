@@ -879,5 +879,35 @@ export class AdminLambdaStack extends Stack {
         stringValue: getUsageByProviderLambda.functionName,
       },
     );
+
+    // ==========================================================
+    // Session Lambda (1) — user-facing, not admin
+    // ==========================================================
+    const userSessionLambda = new aws_lambda_nodejs.NodejsFunction(
+      this,
+      id + 'UserSessionLambda',
+      {
+        ...TC_LAMBDA_DEFAULT_PROPS,
+        entry: path.join(
+          LAMBDA_ENTRY_PATH,
+          'session',
+          'user-session.ts',
+        ),
+        environment: {
+          ...baseEnv,
+          USERS_TABLE_NAME: usersTableName,
+          CONFIG_TABLE_NAME: configTableName,
+          LIFECYCLE_LAMBDA_NAME: lifecycleLambdaName,
+        },
+      },
+    );
+    usersTable.grantReadWriteData(userSessionLambda);
+    configTable.grantReadData(userSessionLambda);
+    lifecycleLambda.grantInvoke(userSessionLambda);
+
+    new aws_ssm.StringParameter(this, id + 'UserSessionLambdaNameParam', {
+      parameterName: ADMIN_LAMBDA_SSM.USER_SESSION_LAMBDA_NAME,
+      stringValue: userSessionLambda.functionName,
+    });
   }
 }

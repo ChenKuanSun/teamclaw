@@ -48,6 +48,35 @@ export class AdminApiGatewayRouteStack extends Stack {
       SSM.ADMIN_COGNITO.USER_POOL_CLIENT_ID,
     );
 
+    // Get Chat Cognito User Pool for session endpoint JWT authorizer
+    const chatUserPool = aws_cognito.UserPool.fromUserPoolId(
+      this,
+      id + 'ChatUserPool',
+      aws_ssm.StringParameter.valueForStringParameter(
+        this,
+        SSM.COGNITO.USER_POOL_ID,
+      ),
+    );
+
+    const chatUserPoolClientId = aws_ssm.StringParameter.valueForStringParameter(
+      this,
+      SSM.COGNITO.USER_POOL_CLIENT_ID,
+    );
+
+    const chatAuthorizer = new HttpUserPoolAuthorizer(
+      'ChatJwtAuthorizer',
+      chatUserPool,
+      {
+        userPoolClients: [
+          aws_cognito.UserPoolClient.fromUserPoolClientId(
+            this,
+            id + 'ChatUserPoolClient',
+            chatUserPoolClientId,
+          ),
+        ],
+      },
+    );
+
     // JWT Authorizer using Admin Cognito User Pool (Affiora pattern)
     const adminAuthorizer = new HttpUserPoolAuthorizer(
       'AdminJwtAuthorizer',
@@ -318,5 +347,23 @@ export class AdminApiGatewayRouteStack extends Stack {
       '/admin/analytics/usage-by-provider',
       getLambda('GetUsageByProviderLambda', ADMIN_LAMBDA_SSM.GET_USAGE_BY_PROVIDER_LAMBDA_NAME),
     );
+
+    // ==========================================================
+    // SESSION ROUTES: /user/session (uses Chat Cognito, not Admin)
+    // ==========================================================
+    const userSessionLambda = getLambda(
+      'UserSessionLambda',
+      ADMIN_LAMBDA_SSM.USER_SESSION_LAMBDA_NAME,
+    );
+
+    new HttpRoute(this, id + 'UserSession', {
+      httpApi: adminHttpApi as aws_apigatewayv2.IHttpApi,
+      integration: new HttpLambdaIntegration(
+        id + 'UserSessionIntegration',
+        userSessionLambda,
+      ),
+      routeKey: HttpRouteKey.with('/user/session', HttpMethod.POST),
+      authorizer: chatAuthorizer,
+    });
   }
 }

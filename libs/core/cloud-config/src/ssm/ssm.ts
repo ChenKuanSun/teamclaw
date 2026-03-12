@@ -86,6 +86,8 @@ export const TC_SSM_PARAMETER = {
         GET_SYSTEM_ANALYTICS_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/getSystemAnalyticsLambdaName`,
         QUERY_USERS_USAGE_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/queryUsersUsageLambdaName`,
         GET_USAGE_BY_PROVIDER_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/getUsageByProviderLambdaName`,
+        // Session
+        USER_SESSION_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/userSessionLambdaName`,
       },
     },
   },
@@ -174,6 +176,8 @@ export const TC_SSM_PARAMETER = {
         GET_SYSTEM_ANALYTICS_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/getSystemAnalyticsLambdaName`,
         QUERY_USERS_USAGE_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/queryUsersUsageLambdaName`,
         GET_USAGE_BY_PROVIDER_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/getUsageByProviderLambdaName`,
+        // Session
+        USER_SESSION_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/userSessionLambdaName`,
       },
     },
   },

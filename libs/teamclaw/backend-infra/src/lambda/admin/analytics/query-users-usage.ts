@@ -16,8 +16,8 @@ const handlerFn = async (
   request: GETAndDELETECloudFunctionInput,
 ): Promise<{ status: number; body: unknown }> => {
   const { queryStringParameters } = request;
-  const from = queryStringParameters?.['from'];
-  const to = queryStringParameters?.['to'] || new Date().toISOString();
+  const from = queryStringParameters?.['from'] || queryStringParameters?.['startDate'];
+  const to = queryStringParameters?.['to'] || queryStringParameters?.['endDate'] || new Date().toISOString();
   const limit = parseInt(queryStringParameters?.['limit'] || '50', 10);
   const nextToken = queryStringParameters?.['nextToken'];
 

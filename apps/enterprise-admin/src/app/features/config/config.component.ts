@@ -18,6 +18,7 @@ import {
   AdminUser,
 } from '../../services/admin-api.service';
 import { ConfigEditDialogComponent } from './config-edit-dialog.component';
+import { ConfigAddDialogComponent } from './config-add-dialog.component';
 
 @Component({
   selector: 'tc-config',
@@ -49,6 +50,11 @@ import { ConfigEditDialogComponent } from './config-edit-dialog.component';
                 <mat-progress-spinner mode="indeterminate" diameter="40" />
               </div>
             } @else {
+              <div class="tab-actions">
+                <button mat-raised-button color="primary" (click)="addConfig()">
+                  <mat-icon>add</mat-icon> Add Config
+                </button>
+              </div>
               <mat-card>
                 <table mat-table [dataSource]="configs()" class="full-width">
                   <ng-container matColumnDef="configKey">
@@ -94,6 +100,11 @@ import { ConfigEditDialogComponent } from './config-edit-dialog.component';
                 <mat-progress-spinner mode="indeterminate" diameter="40" />
               </div>
             } @else if (selectedTeamId) {
+              <div class="tab-actions">
+                <button mat-raised-button color="primary" (click)="addConfig()">
+                  <mat-icon>add</mat-icon> Add Config
+                </button>
+              </div>
               <mat-card>
                 <table mat-table [dataSource]="configs()" class="full-width">
                   <ng-container matColumnDef="configKey">
@@ -139,6 +150,11 @@ import { ConfigEditDialogComponent } from './config-edit-dialog.component';
                 <mat-progress-spinner mode="indeterminate" diameter="40" />
               </div>
             } @else if (selectedUserId) {
+              <div class="tab-actions">
+                <button mat-raised-button color="primary" (click)="addConfig()">
+                  <mat-icon>add</mat-icon> Add Config
+                </button>
+              </div>
               <mat-card>
                 <table mat-table [dataSource]="configs()" class="full-width">
                   <ng-container matColumnDef="configKey">
@@ -176,6 +192,7 @@ import { ConfigEditDialogComponent } from './config-edit-dialog.component';
     .full-width { width: 100%; }
     .value-cell { max-width: 400px; word-break: break-all; }
     .spinner-wrapper { display: flex; justify-content: center; padding: 48px; }
+    .tab-actions { margin-bottom: 16px; }
   `],
 })
 export class ConfigComponent implements OnInit {
@@ -250,6 +267,13 @@ export class ConfigComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
+    });
+  }
+
+  addConfig(): void {
+    const dialogRef = this.dialog.open(ConfigAddDialogComponent, { width: '480px' });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) this.saveConfig(result);
     });
   }
 

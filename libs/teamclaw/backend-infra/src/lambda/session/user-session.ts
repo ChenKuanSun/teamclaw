@@ -1,4 +1,4 @@
-import { DynamoDBClient, GetItemCommand, PutItemCommand, ScanCommand } from '@aws-sdk/client-dynamodb';
+import { ConditionalCheckFailedException, DynamoDBClient, GetItemCommand, PutItemCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import {
   adminLambdaHandlerDecorator,
@@ -21,10 +21,10 @@ const CONFIG_TABLE = process.env['CONFIG_TABLE_NAME']!;
 const LIFECYCLE_LAMBDA = process.env['LIFECYCLE_LAMBDA_NAME']!;
 
 async function getGlobalConfig(): Promise<Record<string, string>> {
-  const result = await ddb.send(new ScanCommand({
+  const result = await ddb.send(new QueryCommand({
     TableName: CONFIG_TABLE,
-    FilterExpression: 'begins_with(scopeKey, :scope)',
-    ExpressionAttributeValues: { ':scope': { S: 'global#' } },
+    KeyConditionExpression: 'scopeKey = :sk',
+    ExpressionAttributeValues: { ':sk': { S: 'global#default' } },
   }));
   const config: Record<string, string> = {};
   for (const item of result.Items ?? []) {
@@ -108,20 +108,37 @@ const handlerFn = async (
   }
 
   // 3. Auto-register
-  const defaultTeamId = globalConfig['defaultTeamId']
-    ? JSON.parse(globalConfig['defaultTeamId'])
-    : undefined;
+  let defaultTeamId: string | undefined;
+  try {
+    defaultTeamId = globalConfig['defaultTeamId']
+      ? JSON.parse(globalConfig['defaultTeamId'])
+      : undefined;
+  } catch {
+    defaultTeamId = undefined;
+  }
 
-  await ddb.send(new PutItemCommand({
-    TableName: USERS_TABLE,
-    Item: {
-      userId: { S: sub },
-      email: { S: email },
-      status: { S: 'provisioning' },
-      ...(defaultTeamId ? { teamId: { S: defaultTeamId } } : {}),
-      createdAt: { S: new Date().toISOString() },
-    },
-  }));
+  try {
+    await ddb.send(new PutItemCommand({
+      TableName: USERS_TABLE,
+      Item: {
+        userId: { S: sub },
+        email: { S: email },
+        status: { S: 'provisioning' },
+        ...(defaultTeamId ? { teamId: { S: defaultTeamId } } : {}),
+        createdAt: { S: new Date().toISOString() },
+      },
+      ConditionExpression: 'attribute_not_exists(userId)',
+    }));
+  } catch (err) {
+    if (err instanceof ConditionalCheckFailedException) {
+      // Another request just created this user — return provisioning status
+      return {
+        status: HttpStatusCode.SUCCESS,
+        body: { status: 'provisioning', userId: sub, message: 'First time setup, please wait...', estimatedWaitSeconds: 60 },
+      };
+    }
+    throw err;
+  }
 
   // 4. Provision + start (async)
   await invokeLifecycle('provision', sub, defaultTeamId);
@@ -137,6 +154,8 @@ const handlerFn = async (
   };
 };
 
+// Intentionally reusing adminLambdaHandlerDecorator — it has no admin-specific logic,
+// just provides standard request parsing and error handling.
 export const handler = adminLambdaHandlerDecorator(
   HandlerMethod.POST,
   handlerFn,

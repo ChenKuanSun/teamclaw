@@ -5,7 +5,10 @@ jest.mock('@aws-sdk/client-dynamodb', () => ({
   DynamoDBClient: jest.fn(() => ({ send: mockDdbSend })),
   GetItemCommand: jest.fn((input: any) => ({ input })),
   PutItemCommand: jest.fn((input: any) => ({ input })),
-  ScanCommand: jest.fn((input: any) => ({ input })),
+  QueryCommand: jest.fn((input: any) => ({ input })),
+  ConditionalCheckFailedException: class ConditionalCheckFailedException extends Error {
+    override name = 'ConditionalCheckFailedException';
+  },
 }));
 
 jest.mock('@aws-sdk/client-lambda', () => ({
@@ -150,5 +153,24 @@ describe('user-session handler', () => {
       .mockResolvedValueOnce({ Items: [] });
     const res = await invoke();
     expect(res.statusCode).toBe(403);
+  });
+
+  it('should return 400 when JWT claims are missing email', async () => {
+    const event = makeEvent({
+      requestContext: {
+        ...makeEvent().requestContext,
+        authorizer: { jwt: { claims: { sub: 'user-123' }, scopes: [] } },
+      },
+    } as any);
+    const res = await invoke(event);
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.body).message).toContain('Missing');
+  });
+
+  it('should return 500 when DynamoDB throws an error', async () => {
+    mockDdbSend.mockRejectedValueOnce(new Error('DDB failure'));
+    const res = await invoke();
+    expect(res.statusCode).toBe(500);
+    expect(JSON.parse(res.body).message).toContain('DDB failure');
   });
 });

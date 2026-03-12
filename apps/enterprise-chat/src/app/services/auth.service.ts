@@ -5,6 +5,7 @@ import {
   CognitoUser,
   AuthenticationDetails,
   CognitoUserSession,
+  CognitoUserAttribute,
 } from 'amazon-cognito-identity-js';
 import { environment } from '../../environments/environment';
 
@@ -99,5 +100,36 @@ export class AuthService {
    */
   getIdToken(): string | null {
     return this._session()?.getIdToken()?.getJwtToken() || null;
+  }
+
+  async signUp(email: string, password: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.userPool.signUp(
+        email,
+        password,
+        [new CognitoUserAttribute({ Name: 'email', Value: email })],
+        [],
+        (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        },
+      );
+    });
+  }
+
+  async confirmRegistration(email: string, code: string): Promise<void> {
+    const user = new CognitoUser({ Username: email, Pool: this.userPool });
+    return new Promise((resolve, reject) => {
+      user.confirmRegistration(code, true, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
   }
 }

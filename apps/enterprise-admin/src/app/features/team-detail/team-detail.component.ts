@@ -11,11 +11,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import {
   AdminApiService,
   Team,
   AdminUser,
 } from '../../services/admin-api.service';
+import { ConfirmDialogComponent } from '../../shared/confirm-dialog.component';
 
 @Component({
   selector: 'tc-team-detail',
@@ -32,6 +34,7 @@ import {
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    MatDialogModule,
     DatePipe,
   ],
   template: `
@@ -136,6 +139,7 @@ import {
 export class TeamDetailComponent implements OnInit {
   private readonly adminApi = inject(AdminApiService);
   private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
 
   readonly teamId = input.required<string>();
   readonly team = signal<Team | null>(null);
@@ -233,12 +237,23 @@ export class TeamDetailComponent implements OnInit {
   }
 
   removeMember(member: AdminUser): void {
-    if (!confirm(`Remove ${member.email} from team?`)) return;
-    const currentTeam = this.team();
-    if (!currentTeam) return;
-    const updatedIds = (currentTeam.memberIds ?? []).filter((id) => id !== member.userId);
-    this.adminApi.updateTeam(currentTeam.teamId, { memberIds: updatedIds }).subscribe({
-      next: () => this.loadTeam(currentTeam.teamId),
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Remove Member',
+        message: `Remove ${member.email} from this team?`,
+        confirmText: 'Remove',
+        confirmColor: 'warn',
+        icon: 'person_remove',
+      },
+    });
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (!confirmed) return;
+      const currentTeam = this.team();
+      if (!currentTeam) return;
+      const updatedIds = (currentTeam.memberIds ?? []).filter((id) => id !== member.userId);
+      this.adminApi.updateTeam(currentTeam.teamId, { memberIds: updatedIds }).subscribe({
+        next: () => this.loadTeam(currentTeam.teamId),
+      });
     });
   }
 

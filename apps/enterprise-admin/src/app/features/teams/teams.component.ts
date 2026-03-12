@@ -15,6 +15,7 @@ import {
   Team,
 } from '../../services/admin-api.service';
 import { CreateTeamDialogComponent } from './create-team-dialog.component';
+import { ConfirmDialogComponent } from '../../shared/confirm-dialog.component';
 
 @Component({
   selector: 'tc-teams',
@@ -132,9 +133,20 @@ export class TeamsComponent implements OnInit {
   }
 
   deleteTeam(team: Team): void {
-    if (!confirm(`Delete team "${team.name}"?`)) return;
-    this.adminApi.deleteTeam(team.teamId).subscribe({
-      next: () => this.loadTeams(),
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete Team',
+        message: `Delete team "${team.name}"? This action cannot be undone.`,
+        confirmText: 'Delete',
+        confirmColor: 'warn',
+        icon: 'delete',
+      },
+    });
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (!confirmed) return;
+      this.adminApi.deleteTeam(team.teamId).subscribe({
+        next: () => this.loadTeams(),
+      });
     });
   }
 }

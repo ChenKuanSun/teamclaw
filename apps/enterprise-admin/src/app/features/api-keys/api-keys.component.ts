@@ -14,6 +14,7 @@ import {
   KeyUsageStats,
 } from '../../services/admin-api.service';
 import { AddApiKeyDialogComponent } from './add-api-key-dialog.component';
+import { ConfirmDialogComponent } from '../../shared/confirm-dialog.component';
 
 @Component({
   selector: 'tc-api-keys',
@@ -175,12 +176,23 @@ export class ApiKeysComponent implements OnInit {
   }
 
   removeKey(key: ApiKey): void {
-    if (!confirm(`Remove API key for ${key.provider}?`)) return;
-    this.adminApi.removeApiKey(key.keyId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.loadKeys();
-        this.loadUsageStats();
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Remove API Key',
+        message: `Remove API key for ${key.provider}?`,
+        confirmText: 'Remove',
+        confirmColor: 'warn',
+        icon: 'vpn_key_off',
       },
+    });
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (!confirmed) return;
+      this.adminApi.removeApiKey(key.keyId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: () => {
+          this.loadKeys();
+          this.loadUsageStats();
+        },
+      });
     });
   }
 }

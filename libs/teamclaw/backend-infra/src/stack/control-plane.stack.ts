@@ -24,7 +24,7 @@ export class ControlPlaneStack extends Stack {
     // ─── Cognito ───
     const userPool = new aws_cognito.UserPool(this, 'UserPool', {
       userPoolName: `teamclaw-${deployEnv}`,
-      selfSignUpEnabled: false, // Admin-only user creation
+      selfSignUpEnabled: true, // Allow employee self-registration
       signInAliases: { email: true },
       autoVerify: { email: true },
       mfa: aws_cognito.Mfa.OPTIONAL,

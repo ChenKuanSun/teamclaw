@@ -14,13 +14,18 @@ export const appRoutes: Routes = [
     canActivate: [authGuard],
     children: [
       {
+        path: 'session',
+        loadComponent: () =>
+          import('./pages/session-init/session-init.component').then(m => m.SessionInitComponent),
+      },
+      {
         path: 'chat',
         loadComponent: () =>
           import('./pages/chat/chat.component').then(m => m.ChatComponent),
       },
       {
         path: '',
-        redirectTo: 'chat',
+        redirectTo: 'session',
         pathMatch: 'full',
       },
     ],

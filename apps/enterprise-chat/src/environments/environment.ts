@@ -5,4 +5,5 @@ export const environment = {
     clientId: '',
   },
   teamclawGatewayUrl: '',
+  adminApiUrl: 'https://9qt1dgv5d5.execute-api.us-west-1.amazonaws.com',
 };

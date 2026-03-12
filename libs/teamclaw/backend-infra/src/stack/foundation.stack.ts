@@ -1,5 +1,6 @@
 import {
   Stack,
+  SecretValue,
   aws_ec2,
   aws_efs,
   aws_ecr,
@@ -89,6 +90,7 @@ export class FoundationStack extends Stack {
     const apiKeysSecret = new aws_secretsmanager.Secret(this, 'ApiKeysSecret', {
       secretName: `${deployEnv}/teamclaw/api-keys`,
       description: 'Shared API key pool for TeamClaw',
+      secretStringValue: SecretValue.unsafePlainText('{}'),
     });
 
     new aws_ssm.StringParameter(this, 'ApiKeysSecretArnParam', {

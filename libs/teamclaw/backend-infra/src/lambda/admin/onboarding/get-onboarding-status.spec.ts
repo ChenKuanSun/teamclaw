@@ -86,10 +86,34 @@ describe('get-onboarding-status', () => {
     expect(body.steps.defaultTeamId).toBe(true);
   });
 
-  it('should return complete: false when no API keys', async () => {
+  it('should return complete: false when only API keys missing', async () => {
     mockSmSend.mockResolvedValueOnce({ SecretString: '{}' });
-    mockDdbSend.mockResolvedValueOnce({ Count: 0 });
-    mockDdbSend.mockResolvedValueOnce({ Items: [] });
+    mockDdbSend.mockResolvedValueOnce({ Count: 1 });
+    mockDdbSend.mockResolvedValueOnce({
+      Items: [
+        { configKey: { S: 'allowedDomains' }, value: { S: '["company.com"]' } },
+        { configKey: { S: 'defaultTeamId' }, value: { S: '"team-1"' } },
+      ],
+    });
+
+    const res = await invoke();
+    const body = JSON.parse(res.body);
+    expect(body.complete).toBe(false);
+    expect(body.steps.apiKey).toBe(false);
+    expect(body.steps.team).toBe(true);
+    expect(body.steps.allowedDomains).toBe(true);
+    expect(body.steps.defaultTeamId).toBe(true);
+  });
+
+  it('should handle Secrets Manager error gracefully', async () => {
+    mockSmSend.mockRejectedValueOnce(new Error('Access denied'));
+    mockDdbSend.mockResolvedValueOnce({ Count: 1 });
+    mockDdbSend.mockResolvedValueOnce({
+      Items: [
+        { configKey: { S: 'allowedDomains' }, value: { S: '["company.com"]' } },
+        { configKey: { S: 'defaultTeamId' }, value: { S: '"team-1"' } },
+      ],
+    });
 
     const res = await invoke();
     const body = JSON.parse(res.body);
@@ -97,13 +121,16 @@ describe('get-onboarding-status', () => {
     expect(body.steps.apiKey).toBe(false);
   });
 
-  it('should handle Secrets Manager error gracefully', async () => {
-    mockSmSend.mockRejectedValueOnce(new Error('Access denied'));
-    mockDdbSend.mockResolvedValueOnce({ Count: 0 });
-    mockDdbSend.mockResolvedValueOnce({ Items: [] });
+  it('should handle DynamoDB error gracefully', async () => {
+    mockSmSend.mockResolvedValueOnce({
+      SecretString: JSON.stringify({ anthropic: ['sk-test'] }),
+    });
+    mockDdbSend.mockRejectedValueOnce(new Error('DDB throttle'));
 
     const res = await invoke();
     const body = JSON.parse(res.body);
-    expect(body.steps.apiKey).toBe(false);
+    expect(body.complete).toBe(false);
+    expect(body.steps.apiKey).toBe(true);
+    expect(body.steps.team).toBe(false);
   });
 });

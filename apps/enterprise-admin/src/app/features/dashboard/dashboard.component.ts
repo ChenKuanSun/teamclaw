@@ -1,12 +1,14 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { OnboardingWizardComponent } from './onboarding-wizard.component';
 import {
   AdminApiService,
   DashboardStats,
+  OnboardingStatus,
 } from '../../services/admin-api.service';
 
 @Component({
@@ -17,9 +19,13 @@ import {
     MatCardModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    OnboardingWizardComponent,
   ],
   template: `
     <div class="dashboard-container">
+      @if (onboardingStatus() && !onboardingStatus()!.complete) {
+        <tc-onboarding-wizard (onComplete)="onOnboardingComplete()" />
+      } @else {
       <h1>Dashboard</h1>
 
       @if (isLoading()) {
@@ -84,6 +90,7 @@ import {
             <button mat-button color="primary" (click)="loadStats()">Retry</button>
           </mat-card-content>
         </mat-card>
+      }
       }
     </div>
   `,
@@ -163,8 +170,34 @@ export class DashboardComponent implements OnInit {
   readonly isLoading = signal(true);
   readonly stats = signal<DashboardStats | null>(null);
   readonly error = signal<string | null>(null);
+  readonly onboardingStatus = signal<OnboardingStatus | null>(null);
+  @ViewChild(OnboardingWizardComponent) wizard?: OnboardingWizardComponent;
 
   ngOnInit(): void {
+    this.checkOnboarding();
+  }
+
+  private checkOnboarding(): void {
+    this.api.getOnboardingStatus()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (status) => {
+          this.onboardingStatus.set(status);
+          if (status.complete) {
+            this.loadStats();
+          } else {
+            this.isLoading.set(false);
+            setTimeout(() => this.wizard?.setStatus(status));
+          }
+        },
+        error: () => {
+          this.loadStats();
+        },
+      });
+  }
+
+  onOnboardingComplete(): void {
+    this.onboardingStatus.set(null);
     this.loadStats();
   }
 

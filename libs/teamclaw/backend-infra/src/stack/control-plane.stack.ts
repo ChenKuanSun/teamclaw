@@ -231,6 +231,8 @@ export class ControlPlaneStack extends Stack {
         ecsClusterArn,
         // Task ARNs in the same cluster
         Stack.of(this).formatArn({ service: 'ecs', resource: 'task', resourceName: `teamclaw-*-${deployEnv}/*` }),
+        // Task definition ARNs (required by RunTask)
+        Stack.of(this).formatArn({ service: 'ecs', resource: 'task-definition', resourceName: `teamclaw-*-${deployEnv}:*` }),
       ],
     }));
     // RegisterTaskDefinition / DeregisterTaskDefinition only support '*' as resource

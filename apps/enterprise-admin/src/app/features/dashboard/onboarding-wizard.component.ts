@@ -48,16 +48,25 @@ import {
             } @else {
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Provider</mat-label>
-                <mat-select [(ngModel)]="apiKeyProvider">
-                  <mat-option value="anthropic">Anthropic</mat-option>
-                  <mat-option value="openai">OpenAI</mat-option>
-                  <mat-option value="google">Google</mat-option>
+                <mat-select [(ngModel)]="apiKeyProvider" (selectionChange)="onProviderChange()">
+                  @for (p of providerOptions; track p.id) {
+                    <mat-option [value]="p.id">{{ p.name }}</mat-option>
+                  }
                 </mat-select>
               </mat-form-field>
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>API Key</mat-label>
-                <input matInput [(ngModel)]="apiKeyValue" type="password" />
-              </mat-form-field>
+              @if (selectedAuthType === 'apiKey') {
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>API Key</mat-label>
+                  <input matInput [(ngModel)]="apiKeyValue" type="password" />
+                </mat-form-field>
+              } @else if (selectedAuthType === 'oauthToken') {
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Token</mat-label>
+                  <input matInput [(ngModel)]="apiKeyValue" type="password"
+                    placeholder="Paste token here" />
+                  <mat-hint>{{ tokenHint }}</mat-hint>
+                </mat-form-field>
+              }
               <button mat-raised-button color="primary"
                 [disabled]="!apiKeyProvider || !apiKeyValue || saving()"
                 (click)="saveApiKey()">
@@ -185,6 +194,37 @@ export class OnboardingWizardComponent {
   teamDescription = '';
   private createdTeamId = '';
 
+  readonly providerOptions = [
+    { id: 'anthropic', name: 'Anthropic (API Key)', authType: 'apiKey' as const },
+    { id: 'anthropic-token', name: 'Anthropic (Setup Token)', authType: 'oauthToken' as const },
+    { id: 'openai', name: 'OpenAI (API Key)', authType: 'apiKey' as const },
+    { id: 'openai-codex', name: 'OpenAI Codex (Subscription)', authType: 'oauthToken' as const },
+    { id: 'google', name: 'Google Gemini', authType: 'apiKey' as const },
+    { id: 'openrouter', name: 'OpenRouter', authType: 'apiKey' as const },
+    { id: 'mistral', name: 'Mistral', authType: 'apiKey' as const },
+    { id: 'together', name: 'Together AI', authType: 'apiKey' as const },
+    { id: 'groq', name: 'Groq', authType: 'apiKey' as const },
+    { id: 'xai', name: 'xAI (Grok)', authType: 'apiKey' as const },
+    { id: 'deepseek', name: 'DeepSeek', authType: 'apiKey' as const },
+    { id: 'fireworks', name: 'Fireworks AI', authType: 'apiKey' as const },
+  ];
+
+  selectedAuthType: 'apiKey' | 'oauthToken' = 'apiKey';
+  tokenHint = '';
+
+  onProviderChange(): void {
+    const provider = this.providerOptions.find(p => p.id === this.apiKeyProvider);
+    this.selectedAuthType = provider?.authType || 'apiKey';
+    this.apiKeyValue = '';
+    if (this.apiKeyProvider === 'anthropic-token') {
+      this.tokenHint = 'Run `claude setup-token` and paste the token here';
+    } else if (this.apiKeyProvider === 'openai-codex') {
+      this.tokenHint = 'Paste your Codex access token here';
+    } else {
+      this.tokenHint = '';
+    }
+  }
+
   // Step 3
   emailDomain = '';
 
@@ -196,13 +236,22 @@ export class OnboardingWizardComponent {
   saveApiKey(): void {
     this.saving.set(true);
     this.stepError.set('');
-    this.adminApi.addApiKey({ provider: this.apiKeyProvider, key: this.apiKeyValue }).subscribe({
+    const payload: Record<string, unknown> = {
+      provider: this.apiKeyProvider,
+      authType: this.selectedAuthType,
+    };
+    if (this.selectedAuthType === 'apiKey') {
+      payload['key'] = this.apiKeyValue;
+    } else {
+      payload['token'] = this.apiKeyValue;
+    }
+    this.adminApi.addApiKey(payload).subscribe({
       next: () => {
         this.steps.update(s => ({ ...s, apiKey: true }));
         this.saving.set(false);
       },
       error: (err) => {
-        this.stepError.set(err.error?.message || 'Failed to save API key');
+        this.stepError.set(err.error?.message || 'Failed to save credential');
         this.saving.set(false);
       },
     });

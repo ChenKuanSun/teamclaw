@@ -367,7 +367,7 @@ export class AdminApiService {
     );
   }
 
-  addApiKey(data: AddApiKeyRequest) {
+  addApiKey(data: Record<string, unknown>) {
     return this.http.post<ApiKey>(
       `${this.baseUrl}/admin/api-keys`,
       data,

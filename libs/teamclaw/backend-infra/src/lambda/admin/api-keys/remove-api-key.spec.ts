@@ -75,6 +75,9 @@ const invoke = async (event = makeEvent()) =>
     statusCode: number; headers: any; body: string;
   };
 
+const newFormatSecret = (providers: Record<string, any>) =>
+  JSON.stringify({ providers });
+
 describe('remove-api-key handler', () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -83,21 +86,34 @@ describe('remove-api-key handler', () => {
     expect(res.statusCode).toBe(400);
   });
 
-  it('should return 400 when keyIndex is missing', async () => {
-    const res = await invoke(makeEvent({ pathParameters: { provider: 'openai' } }));
-    expect(res.statusCode).toBe(400);
-  });
-
   it('should return 404 when provider does not exist', async () => {
-    mockSend.mockResolvedValueOnce({ SecretString: JSON.stringify({ openai: ['sk-1'] }) });
+    mockSend.mockResolvedValueOnce({
+      SecretString: newFormatSecret({
+        openai: { authType: 'apiKey', keys: ['sk-1'] },
+      }),
+    });
     const res = await invoke(
       makeEvent({ pathParameters: { provider: 'anthropic', keyId: '0' } }),
     );
     expect(res.statusCode).toBe(404);
   });
 
+  it('should return 400 when keyIndex is missing for apiKey provider', async () => {
+    mockSend.mockResolvedValueOnce({
+      SecretString: newFormatSecret({
+        openai: { authType: 'apiKey', keys: ['sk-1'] },
+      }),
+    });
+    const res = await invoke(makeEvent({ pathParameters: { provider: 'openai' } }));
+    expect(res.statusCode).toBe(400);
+  });
+
   it('should return 404 when keyIndex is out of bounds', async () => {
-    mockSend.mockResolvedValueOnce({ SecretString: JSON.stringify({ openai: ['sk-1'] }) });
+    mockSend.mockResolvedValueOnce({
+      SecretString: newFormatSecret({
+        openai: { authType: 'apiKey', keys: ['sk-1'] },
+      }),
+    });
     const res = await invoke(
       makeEvent({ pathParameters: { provider: 'openai', keyId: '5' } }),
     );
@@ -105,7 +121,11 @@ describe('remove-api-key handler', () => {
   });
 
   it('should return 404 when keyIndex is negative', async () => {
-    mockSend.mockResolvedValueOnce({ SecretString: JSON.stringify({ openai: ['sk-1'] }) });
+    mockSend.mockResolvedValueOnce({
+      SecretString: newFormatSecret({
+        openai: { authType: 'apiKey', keys: ['sk-1'] },
+      }),
+    });
     const res = await invoke(
       makeEvent({ pathParameters: { provider: 'openai', keyId: '-1' } }),
     );
@@ -113,6 +133,81 @@ describe('remove-api-key handler', () => {
   });
 
   it('should remove key at specified index', async () => {
+    mockSend
+      .mockResolvedValueOnce({
+        SecretString: newFormatSecret({
+          openai: { authType: 'apiKey', keys: ['sk-0', 'sk-1', 'sk-2'] },
+        }),
+      })
+      .mockResolvedValueOnce({});
+
+    const res = await invoke(
+      makeEvent({ pathParameters: { provider: 'openai', keyId: '1' } }),
+    );
+    expect(res.statusCode).toBe(200);
+    expect(JSON.parse(res.body).remainingKeys).toBe(2);
+
+    const putInput = mockSend.mock.calls[1][0].input;
+    const written = JSON.parse(putInput.SecretString);
+    expect(written.providers.openai.keys).toEqual(['sk-0', 'sk-2']);
+  });
+
+  it('should delete provider when last key is removed', async () => {
+    mockSend
+      .mockResolvedValueOnce({
+        SecretString: newFormatSecret({
+          openai: { authType: 'apiKey', keys: ['sk-0'] },
+        }),
+      })
+      .mockResolvedValueOnce({});
+
+    const res = await invoke(
+      makeEvent({ pathParameters: { provider: 'openai', keyId: '0' } }),
+    );
+    expect(res.statusCode).toBe(200);
+    expect(JSON.parse(res.body).remainingKeys).toBe(0);
+
+    const putInput = mockSend.mock.calls[1][0].input;
+    const written = JSON.parse(putInput.SecretString);
+    expect(written.providers.openai).toBeUndefined();
+  });
+
+  it('should remove entire OAuth provider entry', async () => {
+    mockSend
+      .mockResolvedValueOnce({
+        SecretString: newFormatSecret({
+          google: { authType: 'oauthToken', token: 'tok-123', accessToken: 'acc-456' },
+        }),
+      })
+      .mockResolvedValueOnce({});
+
+    const res = await invoke(
+      makeEvent({ pathParameters: { provider: 'google' } }),
+    );
+    expect(res.statusCode).toBe(200);
+    expect(JSON.parse(res.body).message).toBe('OAuth credentials removed');
+
+    const putInput = mockSend.mock.calls[1][0].input;
+    const written = JSON.parse(putInput.SecretString);
+    expect(written.providers.google).toBeUndefined();
+  });
+
+  it('should accept provider from query string parameters', async () => {
+    mockSend
+      .mockResolvedValueOnce({
+        SecretString: newFormatSecret({
+          openai: { authType: 'apiKey', keys: ['sk-0'] },
+        }),
+      })
+      .mockResolvedValueOnce({});
+
+    const res = await invoke(
+      makeEvent({ queryStringParameters: { provider: 'openai', keyIndex: '0' } }),
+    );
+    expect(res.statusCode).toBe(200);
+  });
+
+  it('should handle legacy format migration', async () => {
     mockSend
       .mockResolvedValueOnce({ SecretString: JSON.stringify({ openai: ['sk-0', 'sk-1', 'sk-2'] }) })
       .mockResolvedValueOnce({});
@@ -124,18 +219,8 @@ describe('remove-api-key handler', () => {
     expect(JSON.parse(res.body).remainingKeys).toBe(2);
 
     const putInput = mockSend.mock.calls[1][0].input;
-    expect(JSON.parse(putInput.SecretString).openai).toEqual(['sk-0', 'sk-2']);
-  });
-
-  it('should accept provider from query string parameters', async () => {
-    mockSend
-      .mockResolvedValueOnce({ SecretString: JSON.stringify({ openai: ['sk-0'] }) })
-      .mockResolvedValueOnce({});
-
-    const res = await invoke(
-      makeEvent({ queryStringParameters: { provider: 'openai', keyIndex: '0' } }),
-    );
-    expect(res.statusCode).toBe(200);
+    const written = JSON.parse(putInput.SecretString);
+    expect(written.providers.openai.keys).toEqual(['sk-0', 'sk-2']);
   });
 
   it('should return 500 on error', async () => {

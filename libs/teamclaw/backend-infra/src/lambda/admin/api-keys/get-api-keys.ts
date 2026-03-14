@@ -1,6 +1,7 @@
 import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
 import { adminLambdaHandlerDecorator, HandlerMethod, HttpStatusCode, validateRequiredEnvVars } from '@TeamClaw/teamclaw/cloud-function';
 import type { GETAndDELETECloudFunctionInput } from '@TeamClaw/teamclaw/cloud-function';
+import { parseSecrets } from './secrets-format';
 
 validateRequiredEnvVars({ API_KEYS_SECRET_ARN: process.env['API_KEYS_SECRET_ARN'] });
 
@@ -19,14 +20,27 @@ const handlerFn = async (
     SecretId: API_KEYS_SECRET_ARN,
   }));
 
-  const keys: Record<string, string[]> = JSON.parse(result.SecretString || '{}');
+  const secret = parseSecrets(result.SecretString);
 
-  const masked: Record<string, { index: number; masked: string }[]> = {};
-  for (const [provider, providerKeys] of Object.entries(keys)) {
-    masked[provider] = providerKeys.map((key, index) => ({
-      index,
-      masked: maskKey(key),
-    }));
+  const masked: Record<string, unknown> = {};
+  for (const [provider, entry] of Object.entries(secret.providers)) {
+    if (entry.authType === 'oauthToken') {
+      masked[provider] = {
+        authType: 'oauthToken',
+        hasToken: !!entry.token,
+        hasAccessToken: !!entry.accessToken,
+        hasRefreshToken: !!entry.refreshToken,
+        ...(entry.expiresAt ? { expiresAt: entry.expiresAt } : {}),
+      };
+    } else {
+      masked[provider] = {
+        authType: 'apiKey',
+        keys: (entry.keys || []).map((key, index) => ({
+          index,
+          masked: maskKey(key),
+        })),
+      };
+    }
   }
 
   return {

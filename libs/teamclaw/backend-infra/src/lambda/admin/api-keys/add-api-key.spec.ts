@@ -75,6 +75,9 @@ const invoke = async (event = makeEvent()) =>
     statusCode: number; headers: any; body: string;
   };
 
+const newFormatSecret = (providers: Record<string, any>) =>
+  JSON.stringify({ providers });
+
 describe('add-api-key handler', () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -90,6 +93,43 @@ describe('add-api-key handler', () => {
 
   it('should add key to existing provider', async () => {
     mockSend
+      .mockResolvedValueOnce({
+        SecretString: newFormatSecret({
+          openai: { authType: 'apiKey', keys: ['sk-existing'] },
+        }),
+      })
+      .mockResolvedValueOnce({});
+
+    const res = await invoke(
+      makeEvent({ body: JSON.stringify({ provider: 'openai', key: 'sk-new' }) }),
+    );
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.totalKeys).toBe(2);
+
+    const putInput = mockSend.mock.calls[1][0].input;
+    const written = JSON.parse(putInput.SecretString);
+    expect(written.providers.openai.keys).toEqual(['sk-existing', 'sk-new']);
+    expect(written.providers.openai.authType).toBe('apiKey');
+  });
+
+  it('should create new provider when it does not exist', async () => {
+    mockSend
+      .mockResolvedValueOnce({ SecretString: newFormatSecret({}) })
+      .mockResolvedValueOnce({});
+
+    const res = await invoke(
+      makeEvent({ body: JSON.stringify({ provider: 'anthropic', key: 'ant-key' }) }),
+    );
+    expect(JSON.parse(res.body).totalKeys).toBe(1);
+
+    const putInput = mockSend.mock.calls[1][0].input;
+    const written = JSON.parse(putInput.SecretString);
+    expect(written.providers.anthropic).toEqual({ authType: 'apiKey', keys: ['ant-key'] });
+  });
+
+  it('should migrate legacy format and add key', async () => {
+    mockSend
       .mockResolvedValueOnce({ SecretString: JSON.stringify({ openai: ['sk-existing'] }) })
       .mockResolvedValueOnce({});
 
@@ -101,18 +141,64 @@ describe('add-api-key handler', () => {
     expect(body.totalKeys).toBe(2);
 
     const putInput = mockSend.mock.calls[1][0].input;
-    expect(JSON.parse(putInput.SecretString).openai).toEqual(['sk-existing', 'sk-new']);
+    const written = JSON.parse(putInput.SecretString);
+    expect(written.providers.openai.keys).toEqual(['sk-existing', 'sk-new']);
   });
 
-  it('should create new provider when it does not exist', async () => {
+  it('should save OAuth token', async () => {
     mockSend
-      .mockResolvedValueOnce({ SecretString: JSON.stringify({}) })
+      .mockResolvedValueOnce({ SecretString: newFormatSecret({}) })
       .mockResolvedValueOnce({});
 
     const res = await invoke(
-      makeEvent({ body: JSON.stringify({ provider: 'anthropic', key: 'ant-key' }) }),
+      makeEvent({
+        body: JSON.stringify({
+          provider: 'google',
+          authType: 'oauthToken',
+          token: 'tok-123',
+          accessToken: 'acc-456',
+          refreshToken: 'ref-789',
+          expiresAt: 1700000000,
+        }),
+      }),
     );
-    expect(JSON.parse(res.body).totalKeys).toBe(1);
+    expect(res.statusCode).toBe(200);
+    expect(JSON.parse(res.body).message).toBe('OAuth token saved');
+
+    const putInput = mockSend.mock.calls[1][0].input;
+    const written = JSON.parse(putInput.SecretString);
+    expect(written.providers.google).toEqual({
+      authType: 'oauthToken',
+      token: 'tok-123',
+      accessToken: 'acc-456',
+      refreshToken: 'ref-789',
+      expiresAt: 1700000000,
+    });
+  });
+
+  it('should return 400 when oauthToken has no token or accessToken', async () => {
+    const res = await invoke(
+      makeEvent({
+        body: JSON.stringify({
+          provider: 'google',
+          authType: 'oauthToken',
+        }),
+      }),
+    );
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('should return 400 for invalid authType', async () => {
+    const res = await invoke(
+      makeEvent({
+        body: JSON.stringify({
+          provider: 'openai',
+          authType: 'invalid',
+          key: 'sk-123',
+        }),
+      }),
+    );
+    expect(res.statusCode).toBe(400);
   });
 
   it('should return 500 on error', async () => {

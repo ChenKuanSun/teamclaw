@@ -74,30 +74,78 @@ const invoke = async (event = makeEvent()) =>
     statusCode: number; headers: any; body: string;
   };
 
+const newFormatSecret = (providers: Record<string, any>) =>
+  JSON.stringify({ providers });
+
 describe('get-api-keys handler', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('should return masked API keys by provider', async () => {
     mockSend.mockResolvedValueOnce({
-      SecretString: JSON.stringify({
-        openai: ['sk-abcdefghijklmnop', 'sk-1234567890abcdef'],
-        anthropic: ['ant-key12345'],
+      SecretString: newFormatSecret({
+        openai: { authType: 'apiKey', keys: ['sk-abcdefghijklmnop', 'sk-1234567890abcdef'] },
+        anthropic: { authType: 'apiKey', keys: ['ant-key12345'] },
       }),
     });
 
     const res = await invoke();
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(res.body);
-    expect(body.providers.openai).toHaveLength(2);
-    expect(body.providers.openai[0].index).toBe(0);
-    expect(body.providers.openai[0].masked).toMatch(/^\*+mnop$/);
-    expect(body.providers.anthropic).toHaveLength(1);
+    expect(body.providers.openai.authType).toBe('apiKey');
+    expect(body.providers.openai.keys).toHaveLength(2);
+    expect(body.providers.openai.keys[0].index).toBe(0);
+    expect(body.providers.openai.keys[0].masked).toMatch(/^\*+mnop$/);
+    expect(body.providers.anthropic.keys).toHaveLength(1);
+  });
+
+  it('should return OAuth provider info with boolean flags', async () => {
+    mockSend.mockResolvedValueOnce({
+      SecretString: newFormatSecret({
+        google: {
+          authType: 'oauthToken',
+          token: 'tok-secret',
+          accessToken: 'acc-secret',
+          refreshToken: 'ref-secret',
+          expiresAt: 1700000000,
+        },
+      }),
+    });
+
+    const res = await invoke();
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.providers.google).toEqual({
+      authType: 'oauthToken',
+      hasToken: true,
+      hasAccessToken: true,
+      hasRefreshToken: true,
+      expiresAt: 1700000000,
+    });
+  });
+
+  it('should handle legacy format (migration)', async () => {
+    mockSend.mockResolvedValueOnce({
+      SecretString: JSON.stringify({
+        openai: ['sk-abcdefghijklmnop'],
+      }),
+    });
+
+    const res = await invoke();
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.providers.openai.authType).toBe('apiKey');
+    expect(body.providers.openai.keys).toHaveLength(1);
+    expect(body.providers.openai.keys[0].masked).toMatch(/^\*+mnop$/);
   });
 
   it('should mask short keys with all asterisks', async () => {
-    mockSend.mockResolvedValueOnce({ SecretString: JSON.stringify({ test: ['ab'] }) });
+    mockSend.mockResolvedValueOnce({
+      SecretString: newFormatSecret({
+        test: { authType: 'apiKey', keys: ['ab'] },
+      }),
+    });
     const res = await invoke();
-    expect(JSON.parse(res.body).providers.test[0].masked).toBe('****');
+    expect(JSON.parse(res.body).providers.test.keys[0].masked).toBe('****');
   });
 
   it('should handle empty secret', async () => {

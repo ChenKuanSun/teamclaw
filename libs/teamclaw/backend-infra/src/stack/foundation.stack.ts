@@ -86,6 +86,18 @@ export class FoundationStack extends Stack {
       stringValue: ecrRepo.repositoryUri,
     });
 
+    // ECR repository for sidecar proxy image
+    const sidecarRepo = new aws_ecr.Repository(this, 'SidecarRepo', {
+      repositoryName: `teamclaw-sidecar-${deployEnv}`,
+      removalPolicy: RemovalPolicy.RETAIN,
+      imageScanOnPush: true,
+    });
+
+    new aws_ssm.StringParameter(this, 'SidecarRepoUriParam', {
+      parameterName: ssm.ECR.SIDECAR_REPO_URI,
+      stringValue: sidecarRepo.repositoryUri,
+    });
+
     // Secrets Manager — API keys pool
     const apiKeysSecret = new aws_secretsmanager.Secret(this, 'ApiKeysSecret', {
       secretName: `${deployEnv}/teamclaw/api-keys`,

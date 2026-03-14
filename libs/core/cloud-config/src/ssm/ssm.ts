@@ -14,6 +14,7 @@ export const TC_SSM_PARAMETER = {
     },
     ECR: {
       TEAMCLAW_REPO_URI: `/tc/${ENVIRONMENT.PROD}/ecr/teamclawRepoUri`,
+      SIDECAR_REPO_URI: `/tc/${ENVIRONMENT.PROD}/ecr/sidecarRepoUri`,
     },
     ECS: {
       CLUSTER_ARN: `/tc/${ENVIRONMENT.PROD}/ecs/clusterArn`,
@@ -106,6 +107,7 @@ export const TC_SSM_PARAMETER = {
     },
     ECR: {
       TEAMCLAW_REPO_URI: `/tc/${ENVIRONMENT.DEV}/ecr/teamclawRepoUri`,
+      SIDECAR_REPO_URI: `/tc/${ENVIRONMENT.DEV}/ecr/sidecarRepoUri`,
     },
     ECS: {
       CLUSTER_ARN: `/tc/${ENVIRONMENT.DEV}/ecs/clusterArn`,

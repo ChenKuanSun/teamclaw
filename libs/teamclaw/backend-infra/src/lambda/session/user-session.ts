@@ -12,6 +12,7 @@ validateRequiredEnvVars({
   USERS_TABLE_NAME: process.env['USERS_TABLE_NAME'],
   CONFIG_TABLE_NAME: process.env['CONFIG_TABLE_NAME'],
   LIFECYCLE_LAMBDA_NAME: process.env['LIFECYCLE_LAMBDA_NAME'],
+  ALB_DNS_NAME: process.env['ALB_DNS_NAME'],
 });
 
 const ddb = new DynamoDBClient({});
@@ -19,6 +20,7 @@ const lambda = new LambdaClient({});
 const USERS_TABLE = process.env['USERS_TABLE_NAME']!;
 const CONFIG_TABLE = process.env['CONFIG_TABLE_NAME']!;
 const LIFECYCLE_LAMBDA = process.env['LIFECYCLE_LAMBDA_NAME']!;
+const ALB_DNS_NAME = process.env['ALB_DNS_NAME']!;
 
 async function getGlobalConfig(): Promise<Record<string, string>> {
   const result = await ddb.send(new QueryCommand({
@@ -67,7 +69,7 @@ const handlerFn = async (
     if (userStatus === 'running') {
       return {
         status: HttpStatusCode.SUCCESS,
-        body: { status: 'ready', userId: sub },
+        body: { status: 'ready', userId: sub, gatewayUrl: `ws://${ALB_DNS_NAME}` },
       };
     }
 

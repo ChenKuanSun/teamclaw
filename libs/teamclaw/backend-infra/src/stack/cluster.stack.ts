@@ -1,5 +1,6 @@
 import {
   Stack,
+  Duration,
   aws_ec2,
   aws_ecs,
   aws_elasticloadbalancingv2 as elbv2,
@@ -7,6 +8,7 @@ import {
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { StackPropsWithEnv, TC_SSM_PARAMETER } from '@TeamClaw/core/cloud-config';
+import { TC_FARGATE_DEFAULTS } from '@TeamClaw/teamclaw/cloud-config';
 
 export class ClusterStack extends Stack {
   constructor(scope: Construct, id: string, props: StackPropsWithEnv) {
@@ -50,16 +52,31 @@ export class ClusterStack extends Stack {
       securityGroup: albSecurityGroup,
     });
 
+    // Target group for user containers (IP-based for Fargate)
+    const targetGroup = new elbv2.ApplicationTargetGroup(this, 'ContainerTargetGroup', {
+      vpc,
+      port: TC_FARGATE_DEFAULTS.port,
+      protocol: elbv2.ApplicationProtocol.HTTP,
+      targetType: elbv2.TargetType.IP,
+      healthCheck: {
+        path: TC_FARGATE_DEFAULTS.healthCheckPath,
+        port: String(TC_FARGATE_DEFAULTS.port),
+        healthyThresholdCount: 2,
+        unhealthyThresholdCount: 3,
+        interval: Duration.seconds(15),
+        timeout: Duration.seconds(5),
+      },
+      deregistrationDelay: Duration.seconds(10),
+      targetGroupName: `tc-containers-${deployEnv}`,
+    });
+
     // TODO: Add ACM certificate for HTTPS
     // When a certificate is available, change this to port 443 HTTPS listener
     // and add HTTP -> HTTPS redirect on port 80
     const listener = alb.addListener('HttpListener', {
       port: 80,
       protocol: elbv2.ApplicationProtocol.HTTP,
-      defaultAction: elbv2.ListenerAction.fixedResponse(404, {
-        contentType: 'text/plain',
-        messageBody: 'Not Found',
-      }),
+      defaultAction: elbv2.ListenerAction.forward([targetGroup]),
     });
 
     new aws_ssm.StringParameter(this, 'AlbListenerArnParam', {
@@ -69,6 +86,14 @@ export class ClusterStack extends Stack {
     new aws_ssm.StringParameter(this, 'AlbSecurityGroupIdParam', {
       parameterName: ssm.ECS.ALB_SECURITY_GROUP_ID,
       stringValue: albSecurityGroup.securityGroupId,
+    });
+    new aws_ssm.StringParameter(this, 'AlbDnsNameParam', {
+      parameterName: ssm.ECS.ALB_DNS_NAME,
+      stringValue: alb.loadBalancerDnsName,
+    });
+    new aws_ssm.StringParameter(this, 'AlbTargetGroupArnParam', {
+      parameterName: ssm.ECS.ALB_TARGET_GROUP_ARN,
+      stringValue: targetGroup.targetGroupArn,
     });
   }
 }

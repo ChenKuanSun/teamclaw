@@ -898,6 +898,7 @@ export class AdminLambdaStack extends Stack {
           USERS_TABLE_NAME: usersTableName,
           CONFIG_TABLE_NAME: configTableName,
           LIFECYCLE_LAMBDA_NAME: lifecycleLambdaName,
+          ALB_DNS_NAME: aws_ssm.StringParameter.valueForStringParameter(this, SSM.ECS.ALB_DNS_NAME),
         },
       },
     );

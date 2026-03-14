@@ -167,7 +167,9 @@ export class SessionInitComponent implements OnInit, OnDestroy {
   private handleResponse(res: SessionResponse): void {
     if (res.status === 'ready') {
       this.stopPolling();
-      this.router.navigate(['/chat']);
+      this.router.navigate(['/chat'], {
+        queryParams: res.gatewayUrl ? { gw: res.gatewayUrl } : {},
+      });
       return;
     }
 

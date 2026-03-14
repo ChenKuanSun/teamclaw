@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CdkTextareaAutosize, TextFieldModule } from '@angular/cdk/text-field';
+import { ActivatedRoute } from '@angular/router';
+import { TextFieldModule } from '@angular/cdk/text-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
@@ -26,6 +27,7 @@ import { environment } from '../../../environments/environment';
 })
 export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   @ViewChild('messageList') messageList!: ElementRef;
+  private readonly route = inject(ActivatedRoute);
   messages: ChatMessage[] = [];
   typing = false;
   connected = false;
@@ -39,8 +41,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   ngOnInit(): void {
     const token = this.auth.getIdToken();
-    if (token) {
-      this.ws.connect(environment.teamclawGatewayUrl, token);
+    // Gateway URL: prefer query param from session, fallback to environment
+    const gatewayUrl = this.route.snapshot.queryParamMap.get('gw') || environment.teamclawGatewayUrl;
+    if (token && gatewayUrl) {
+      this.ws.connect(gatewayUrl, token);
     }
     this.subs.push(
       this.ws.messages$.subscribe(msgs => this.messages = msgs),

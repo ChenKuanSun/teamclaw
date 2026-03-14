@@ -189,6 +189,8 @@ export class ControlPlaneStack extends Stack {
         API_KEYS_SECRET_ARN: apiKeysSecretArn,
         USAGE_TABLE_NAME: usageTable.tableName,
         SIDECAR_IMAGE: aws_ssm.StringParameter.valueForStringParameter(this, ssm.ECR.SIDECAR_REPO_URI),
+        ALB_TARGET_GROUP_ARN: aws_ssm.StringParameter.valueForStringParameter(this, ssm.ECS.ALB_TARGET_GROUP_ARN),
+        ALB_DNS_NAME: aws_ssm.StringParameter.valueForStringParameter(this, ssm.ECS.ALB_DNS_NAME),
       },
     });
     userTable.grantReadWriteData(lifecycleLambda);
@@ -229,8 +231,8 @@ export class ControlPlaneStack extends Stack {
       ],
       resources: [
         ecsClusterArn,
-        // Task ARNs in the same cluster
-        Stack.of(this).formatArn({ service: 'ecs', resource: 'task', resourceName: `teamclaw-*-${deployEnv}/*` }),
+        // Task ARNs in the cluster (cluster name: teamclaw-{env})
+        Stack.of(this).formatArn({ service: 'ecs', resource: 'task', resourceName: `teamclaw-${deployEnv}/*` }),
         // Task definition ARNs (required by RunTask)
         Stack.of(this).formatArn({ service: 'ecs', resource: 'task-definition', resourceName: `teamclaw-*-${deployEnv}:*` }),
       ],
@@ -251,6 +253,20 @@ export class ControlPlaneStack extends Stack {
       conditions: {
         StringEquals: { 'iam:PassedToService': 'ecs-tasks.amazonaws.com' },
       },
+    }));
+    // ELBV2 target group registration (lifecycle registers container IPs with ALB)
+    lifecycleLambda.addToRolePolicy(new aws_iam.PolicyStatement({
+      actions: [
+        'elasticloadbalancing:RegisterTargets',
+        'elasticloadbalancing:DeregisterTargets',
+      ],
+      resources: [
+        Stack.of(this).formatArn({
+          service: 'elasticloadbalancing',
+          resource: 'targetgroup',
+          resourceName: `tc-containers-${deployEnv}/*`,
+        }),
+      ],
     }));
     // EFS Access Point creation — scoped to the provisioned file system
     const efsFileSystemArn = Stack.of(this).formatArn({

@@ -6,6 +6,7 @@ import { environment } from '../../environments/environment';
 export interface SessionResponse {
   status: 'ready' | 'starting' | 'provisioning';
   userId: string;
+  gatewayUrl?: string;
   message?: string;
   estimatedWaitSeconds?: number;
 }

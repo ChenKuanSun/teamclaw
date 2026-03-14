@@ -2,6 +2,11 @@ import { ECSClient, RunTaskCommand, StopTaskCommand, DescribeTasksCommand } from
 import { EFSClient, CreateAccessPointCommand, DeleteAccessPointCommand } from '@aws-sdk/client-efs';
 import { DynamoDBClient, GetItemCommand, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import {
+  ElasticLoadBalancingV2Client,
+  RegisterTargetsCommand,
+  DeregisterTargetsCommand,
+} from '@aws-sdk/client-elastic-load-balancing-v2';
+import {
   SchedulerClient,
   CreateScheduleCommand,
   DeleteScheduleCommand,
@@ -12,6 +17,7 @@ import { shiftCronBack2Min } from './cron-utils';
 const ecsClient = new ECSClient({});
 const efsClient = new EFSClient({});
 const ddbClient = new DynamoDBClient({});
+const elbv2Client = new ElasticLoadBalancingV2Client({});
 const schedulerClient = new SchedulerClient({});
 
 const SCHEDULE_GROUP = `teamclaw-cron-${process.env['DEPLOY_ENV']}`;
@@ -153,16 +159,53 @@ async function startContainer(userId: string) {
     return { statusCode: 503, body: JSON.stringify({ error: `ECS launch failed: ${reason}` }) };
   }
 
+  // Wait for task to get a private IP and register with ALB target group
+  let privateIp: string | undefined;
+  const targetGroupArn = process.env['ALB_TARGET_GROUP_ARN'];
+  if (targetGroupArn) {
+    privateIp = await waitForTaskIp(taskArn);
+    if (privateIp) {
+      await elbv2Client.send(new RegisterTargetsCommand({
+        TargetGroupArn: targetGroupArn,
+        Targets: [{ Id: privateIp, Port: 18789 }],
+      }));
+    }
+  }
+
   await ddbClient.send(new PutItemCommand({
     TableName: process.env['USER_TABLE_NAME']!,
     Item: {
       ...userRecord.Item,
       taskArn: { S: taskArn },
+      ...(privateIp ? { privateIp: { S: privateIp } } : {}),
       status: { S: 'running' },
     },
   }));
 
-  return { statusCode: 200, body: JSON.stringify({ taskArn }) };
+  return { statusCode: 200, body: JSON.stringify({ taskArn, privateIp }) };
+}
+
+async function waitForTaskIp(taskArn: string, maxAttempts = 20): Promise<string | undefined> {
+  for (let i = 0; i < maxAttempts; i++) {
+    const desc = await ecsClient.send(new DescribeTasksCommand({
+      cluster: process.env['ECS_CLUSTER_NAME']!,
+      tasks: [taskArn],
+    }));
+    const task = desc.tasks?.[0];
+    if (!task) return undefined;
+    if (task.lastStatus === 'STOPPED') return undefined;
+
+    // Get private IP from ENI attachment
+    const eniAttachment = task.attachments?.find(a => a.type === 'ElasticNetworkInterface');
+    const privateIpDetail = eniAttachment?.details?.find(d => d.name === 'privateIPv4Address');
+    if (privateIpDetail?.value) {
+      return privateIpDetail.value;
+    }
+
+    // Wait 3 seconds before retrying
+    await new Promise(r => setTimeout(r, 3000));
+  }
+  return undefined;
 }
 
 async function stopContainer(userId: string) {
@@ -173,6 +216,20 @@ async function stopContainer(userId: string) {
 
   if (!userRecord.Item?.['taskArn']?.S) {
     return { statusCode: 404, body: 'No running container' };
+  }
+
+  // Deregister from ALB target group
+  const targetGroupArn = process.env['ALB_TARGET_GROUP_ARN'];
+  const privateIp = userRecord.Item['privateIp']?.S;
+  if (targetGroupArn && privateIp) {
+    try {
+      await elbv2Client.send(new DeregisterTargetsCommand({
+        TargetGroupArn: targetGroupArn,
+        Targets: [{ Id: privateIp, Port: 18789 }],
+      }));
+    } catch {
+      // Best-effort deregistration
+    }
   }
 
   await ecsClient.send(new StopTaskCommand({
@@ -186,6 +243,7 @@ async function stopContainer(userId: string) {
     Item: {
       ...userRecord.Item,
       taskArn: { S: '' },
+      privateIp: { S: '' },
       status: { S: 'stopped' },
     },
   }));

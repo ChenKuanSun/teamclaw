@@ -21,6 +21,8 @@ export const TC_SSM_PARAMETER = {
       CLUSTER_NAME: `/tc/${ENVIRONMENT.PROD}/ecs/clusterName`,
       ALB_LISTENER_ARN: `/tc/${ENVIRONMENT.PROD}/ecs/albListenerArn`,
       ALB_SECURITY_GROUP_ID: `/tc/${ENVIRONMENT.PROD}/ecs/albSecurityGroupId`,
+      ALB_DNS_NAME: `/tc/${ENVIRONMENT.PROD}/ecs/albDnsName`,
+      ALB_TARGET_GROUP_ARN: `/tc/${ENVIRONMENT.PROD}/ecs/albTargetGroupArn`,
     },
     COGNITO: {
       USER_POOL_ID: `/tc/${ENVIRONMENT.PROD}/cognito/userPoolId`,
@@ -114,6 +116,8 @@ export const TC_SSM_PARAMETER = {
       CLUSTER_NAME: `/tc/${ENVIRONMENT.DEV}/ecs/clusterName`,
       ALB_LISTENER_ARN: `/tc/${ENVIRONMENT.DEV}/ecs/albListenerArn`,
       ALB_SECURITY_GROUP_ID: `/tc/${ENVIRONMENT.DEV}/ecs/albSecurityGroupId`,
+      ALB_DNS_NAME: `/tc/${ENVIRONMENT.DEV}/ecs/albDnsName`,
+      ALB_TARGET_GROUP_ARN: `/tc/${ENVIRONMENT.DEV}/ecs/albTargetGroupArn`,
     },
     COGNITO: {
       USER_POOL_ID: `/tc/${ENVIRONMENT.DEV}/cognito/userPoolId`,

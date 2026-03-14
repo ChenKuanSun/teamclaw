@@ -4,6 +4,8 @@ import {
   aws_ec2,
   aws_ecs,
   aws_elasticloadbalancingv2 as elbv2,
+  aws_cloudfront,
+  aws_cloudfront_origins,
   aws_ssm,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
@@ -70,13 +72,26 @@ export class ClusterStack extends Stack {
       targetGroupName: `tc-containers-${deployEnv}`,
     });
 
-    // TODO: Add ACM certificate for HTTPS
-    // When a certificate is available, change this to port 443 HTTPS listener
-    // and add HTTP -> HTTPS redirect on port 80
     const listener = alb.addListener('HttpListener', {
       port: 80,
       protocol: elbv2.ApplicationProtocol.HTTP,
       defaultAction: elbv2.ListenerAction.forward([targetGroup]),
+    });
+
+    // CloudFront → ALB (provides HTTPS/WSS without custom domain)
+    const distribution = new aws_cloudfront.Distribution(this, 'GatewayDistribution', {
+      comment: `TeamClaw WebSocket Gateway (${deployEnv})`,
+      defaultBehavior: {
+        origin: new aws_cloudfront_origins.HttpOrigin(alb.loadBalancerDnsName, {
+          protocolPolicy: aws_cloudfront.OriginProtocolPolicy.HTTP_ONLY,
+          httpPort: 80,
+        }),
+        viewerProtocolPolicy: aws_cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
+        allowedMethods: aws_cloudfront.AllowedMethods.ALLOW_ALL,
+        cachePolicy: aws_cloudfront.CachePolicy.CACHING_DISABLED,
+        originRequestPolicy: aws_cloudfront.OriginRequestPolicy.ALL_VIEWER,
+      },
+      httpVersion: aws_cloudfront.HttpVersion.HTTP2_AND_3,
     });
 
     new aws_ssm.StringParameter(this, 'AlbListenerArnParam', {
@@ -89,7 +104,7 @@ export class ClusterStack extends Stack {
     });
     new aws_ssm.StringParameter(this, 'AlbDnsNameParam', {
       parameterName: ssm.ECS.ALB_DNS_NAME,
-      stringValue: alb.loadBalancerDnsName,
+      stringValue: distribution.distributionDomainName,
     });
     new aws_ssm.StringParameter(this, 'AlbTargetGroupArnParam', {
       parameterName: ssm.ECS.ALB_TARGET_GROUP_ARN,

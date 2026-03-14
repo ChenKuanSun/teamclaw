@@ -69,7 +69,7 @@ const handlerFn = async (
     if (userStatus === 'running') {
       return {
         status: HttpStatusCode.SUCCESS,
-        body: { status: 'ready', userId: sub, gatewayUrl: `ws://${ALB_DNS_NAME}` },
+        body: { status: 'ready', userId: sub, gatewayUrl: `wss://${ALB_DNS_NAME}` },
       };
     }
 

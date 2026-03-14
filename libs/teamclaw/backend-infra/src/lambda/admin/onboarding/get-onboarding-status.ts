@@ -1,5 +1,6 @@
 import { DynamoDBClient, ScanCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
+import { parseSecrets, hasAnyCredentials } from '../api-keys/secrets-format';
 import {
   adminLambdaHandlerDecorator,
   HandlerMethod,
@@ -27,8 +28,8 @@ const handlerFn = async (
   let hasApiKeys = false;
   try {
     const secret = await sm.send(new GetSecretValueCommand({ SecretId: API_KEYS_SECRET_ARN }));
-    const keys = JSON.parse(secret.SecretString || '{}');
-    hasApiKeys = Object.values(keys).some((arr: any) => Array.isArray(arr) && arr.length > 0);
+    const parsed = parseSecrets(secret.SecretString);
+    hasApiKeys = hasAnyCredentials(parsed);
   } catch {
     hasApiKeys = false;
   }

@@ -33,8 +33,9 @@ export const TC_ADMIN_APP_SUB_DOMAIN = {
   [ENVIRONMENT.DEV]: 'admin-dev',
 };
 
-// Temporary: Amplify preview URL until custom domain is configured
+// Temporary: Amplify preview URLs until custom domains are configured
 export const TC_ADMIN_APP_AMPLIFY_DOMAIN = 'main.d2m2o9gjll7vqx.amplifyapp.com';
+export const TC_CHAT_APP_AMPLIFY_DOMAIN = 'main.d1gf9ksewdyeuo.amplifyapp.com';
 
 export const TC_ADMIN_APP_DOMAIN_NAME = {
   [ENVIRONMENT.PROD]: TC_ADMIN_APP_AMPLIFY_DOMAIN, // TODO: `${TC_ADMIN_APP_SUB_DOMAIN[ENVIRONMENT.PROD]}.${TC_DOMAIN_NAME}`

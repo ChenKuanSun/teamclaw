@@ -1,8 +1,8 @@
-import { TC_ADMIN_APP_DOMAIN_NAME, ENVIRONMENT } from './app';
+import { TC_ADMIN_APP_DOMAIN_NAME, TC_CHAT_APP_AMPLIFY_DOMAIN, ENVIRONMENT } from './app';
 
 /**
  * Get allowed CORS origins for Admin API Gateway.
- * Centralized to ensure consistency across API Gateway and Lambda handlers.
+ * Both admin panel and chat app call the same API.
  */
 export const getTCAdminApiCorsOrigins = (
   deployEnv: ENVIRONMENT,
@@ -10,10 +10,13 @@ export const getTCAdminApiCorsOrigins = (
   if (deployEnv === ENVIRONMENT.PROD) {
     return [
       `https://${TC_ADMIN_APP_DOMAIN_NAME[ENVIRONMENT.PROD]}`,
+      `https://${TC_CHAT_APP_AMPLIFY_DOMAIN}`,
     ];
   }
   return [
     `https://${TC_ADMIN_APP_DOMAIN_NAME[ENVIRONMENT.DEV]}`,
+    `https://${TC_CHAT_APP_AMPLIFY_DOMAIN}`,
     'http://localhost:4900',
+    'http://localhost:4200',
   ];
 };

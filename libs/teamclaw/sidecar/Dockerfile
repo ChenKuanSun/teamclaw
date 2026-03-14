@@ -1,10 +1,11 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
-COPY package.json ./
-RUN npm install --omit=dev
+COPY package.json package-lock.json ./
+RUN npm ci
 COPY tsconfig.json ./
 COPY src/ ./src/
 RUN npx tsc
+RUN npm prune --omit=dev
 
 FROM node:22-alpine
 WORKDIR /app

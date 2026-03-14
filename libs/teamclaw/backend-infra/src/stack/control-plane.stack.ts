@@ -186,6 +186,9 @@ export class ControlPlaneStack extends Stack {
         PRIVATE_SUBNET_IDS: aws_ssm.StringParameter.valueForStringParameter(this, ssm.VPC.PRIVATE_SUBNET_IDS),
         SECURITY_GROUP_ID: aws_ssm.StringParameter.valueForStringParameter(this, ssm.ECS.ALB_SECURITY_GROUP_ID),
         KEY_POOL_PROXY_URL: api.url,
+        API_KEYS_SECRET_ARN: apiKeysSecretArn,
+        USAGE_TABLE_NAME: usageTable.tableName,
+        SIDECAR_IMAGE: aws_ssm.StringParameter.valueForStringParameter(this, ssm.ECR.SIDECAR_REPO_URI),
       },
     });
     userTable.grantReadWriteData(lifecycleLambda);

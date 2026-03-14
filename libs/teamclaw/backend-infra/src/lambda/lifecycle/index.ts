@@ -127,14 +127,23 @@ async function startContainer(userId: string) {
       },
     },
     overrides: {
-      containerOverrides: [{
-        name: 'teamclaw',
-        environment: [
-          { name: 'USER_ID', value: userId },
-          { name: 'TEAM_ID', value: userRecord.Item['teamId']?.S || '' },
-          { name: 'KEY_POOL_PROXY_URL', value: process.env['KEY_POOL_PROXY_URL']! },
-        ],
-      }],
+      containerOverrides: [
+        {
+          name: 'teamclaw',
+          environment: [
+            { name: 'USER_ID', value: userId },
+            { name: 'TEAM_ID', value: userRecord.Item['teamId']?.S || '' },
+          ],
+        },
+        {
+          name: 'proxy-sidecar',
+          environment: [
+            { name: 'API_KEYS_SECRET_ARN', value: process.env['API_KEYS_SECRET_ARN']! },
+            { name: 'USAGE_TABLE_NAME', value: process.env['USAGE_TABLE_NAME'] || '' },
+            { name: 'USER_ID', value: userId },
+          ],
+        },
+      ],
     },
   }));
 

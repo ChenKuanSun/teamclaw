@@ -8,6 +8,7 @@ import {
   provideHttpClient,
   withInterceptors,
 } from '@angular/common/http';
+import { of, throwError as rxThrowError } from 'rxjs';
 import { authInterceptor } from './auth.interceptor';
 import { AdminAuthService } from '../services/admin-auth.service';
 import { environment } from '../../environments/environment';
@@ -17,9 +18,7 @@ describe('authInterceptor', () => {
   let httpMock: HttpTestingController;
   let authService: {
     idToken: jest.Mock;
-    isRefreshing: jest.Mock;
-    setRefreshing: jest.Mock;
-    refreshAccessToken: jest.Mock;
+    refreshAccessTokenOnce: jest.Mock;
     signOut: jest.Mock;
   };
 
@@ -28,9 +27,7 @@ describe('authInterceptor', () => {
   beforeEach(() => {
     authService = {
       idToken: jest.fn().mockReturnValue('mock-id-token'),
-      isRefreshing: jest.fn().mockReturnValue(false),
-      setRefreshing: jest.fn(),
-      refreshAccessToken: jest.fn().mockResolvedValue(true),
+      refreshAccessTokenOnce: jest.fn().mockReturnValue(of(true)),
       signOut: jest.fn(),
     };
 
@@ -80,7 +77,7 @@ describe('authInterceptor', () => {
 
   it('should attempt refresh on 401 and retry request', fakeAsync(() => {
     const newToken = 'refreshed-id-token';
-    authService.refreshAccessToken.mockResolvedValue(true);
+    authService.refreshAccessTokenOnce.mockReturnValue(of(true));
     // After refresh, idToken returns new token
     let callCount = 0;
     authService.idToken.mockImplementation(() => {
@@ -111,13 +108,11 @@ describe('authInterceptor', () => {
     tick();
 
     expect(responseData).toEqual({ users: [] });
-    expect(authService.refreshAccessToken).toHaveBeenCalled();
-    expect(authService.setRefreshing).toHaveBeenCalledWith(true);
-    expect(authService.setRefreshing).toHaveBeenCalledWith(false);
+    expect(authService.refreshAccessTokenOnce).toHaveBeenCalled();
   }));
 
   it('should sign out when refresh fails on 401', fakeAsync(() => {
-    authService.refreshAccessToken.mockResolvedValue(false);
+    authService.refreshAccessTokenOnce.mockReturnValue(of(false));
 
     let receivedError: unknown;
     httpClient.get(`${adminUrl}/admin/users`).subscribe({
@@ -136,7 +131,9 @@ describe('authInterceptor', () => {
   }));
 
   it('should sign out when refresh throws error on 401', fakeAsync(() => {
-    authService.refreshAccessToken.mockRejectedValue(new Error('refresh error'));
+    authService.refreshAccessTokenOnce.mockReturnValue(
+      rxThrowError(() => new Error('refresh error')),
+    );
 
     httpClient.get(`${adminUrl}/admin/users`).subscribe({
       error: () => {
@@ -152,25 +149,6 @@ describe('authInterceptor', () => {
     expect(authService.signOut).toHaveBeenCalled();
   }));
 
-  it('should not attempt refresh when already refreshing', fakeAsync(() => {
-    authService.isRefreshing.mockReturnValue(true);
-
-    let receivedError: unknown;
-    httpClient.get(`${adminUrl}/admin/users`).subscribe({
-      error: (err) => {
-        receivedError = err;
-      },
-    });
-
-    const req = httpMock.expectOne(`${adminUrl}/admin/users`);
-    req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
-
-    tick();
-
-    expect(authService.refreshAccessToken).not.toHaveBeenCalled();
-    expect(receivedError).toBeDefined();
-  }));
-
   it('should not attempt refresh for non-admin API 401', () => {
     httpClient.get('https://other-api.com/data').subscribe({
       error: (err) => {
@@ -181,7 +159,7 @@ describe('authInterceptor', () => {
     const req = httpMock.expectOne('https://other-api.com/data');
     req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
 
-    expect(authService.refreshAccessToken).not.toHaveBeenCalled();
+    expect(authService.refreshAccessTokenOnce).not.toHaveBeenCalled();
   });
 
   it('should pass through non-401 errors', () => {
@@ -194,6 +172,6 @@ describe('authInterceptor', () => {
     const req = httpMock.expectOne(`${adminUrl}/admin/users`);
     req.flush('Server Error', { status: 500, statusText: 'Internal Server Error' });
 
-    expect(authService.refreshAccessToken).not.toHaveBeenCalled();
+    expect(authService.refreshAccessTokenOnce).not.toHaveBeenCalled();
   });
 });

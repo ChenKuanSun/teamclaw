@@ -3,7 +3,17 @@ const path = require('path');
 
 const userId = process.env.USER_ID || 'default';
 const teamId = process.env.TEAM_ID || '';
-const keyPoolProxyUrl = process.env.KEY_POOL_PROXY_URL || '';
+const SIDECAR_URL = 'http://localhost:3000';
+
+const PROXY_PROVIDERS = [
+  'anthropic', 'anthropic-token', 'openai', 'openai-codex', 'google',
+  'openrouter', 'mistral', 'together', 'groq', 'xai', 'deepseek', 'fireworks',
+];
+
+const providers = {};
+for (const id of PROXY_PROVIDERS) {
+  providers[id] = { baseUrl: `${SIDECAR_URL}/${id}`, apiKey: 'proxy-managed' };
+}
 
 // Load and merge configs: Global → Team → User (each level can only be more restrictive)
 function loadJson(filePath) {
@@ -36,11 +46,7 @@ const baseConfig = {
     host: '0.0.0.0',
   },
   models: {
-    providers: {
-      anthropic: { baseUrl: `${keyPoolProxyUrl}anthropic` },
-      openai: { baseUrl: `${keyPoolProxyUrl}openai` },
-      google: { baseUrl: `${keyPoolProxyUrl}google` },
-    },
+    providers,
   },
   session: {
     dmScope: 'per-channel-peer',

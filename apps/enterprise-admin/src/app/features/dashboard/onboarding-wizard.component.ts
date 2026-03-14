@@ -278,11 +278,11 @@ export class OnboardingWizardComponent {
     this.stepError.set('');
     const domain = this.emailDomain.trim().toLowerCase();
 
-    this.adminApi.updateGlobalConfig({ configKey: 'allowedDomains', value: JSON.stringify([domain]) }).subscribe({
+    this.adminApi.updateGlobalConfig({ configKey: 'allowedDomains', value: [domain] }).subscribe({
       next: () => {
         this.steps.update(s => ({ ...s, allowedDomains: true }));
         if (this.createdTeamId) {
-          this.adminApi.updateGlobalConfig({ configKey: 'defaultTeamId', value: JSON.stringify(this.createdTeamId) }).subscribe({
+          this.adminApi.updateGlobalConfig({ configKey: 'defaultTeamId', value: this.createdTeamId }).subscribe({
             next: () => {
               this.steps.update(s => ({ ...s, defaultTeamId: true }));
               this.saving.set(false);

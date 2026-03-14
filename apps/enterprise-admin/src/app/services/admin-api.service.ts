@@ -99,7 +99,7 @@ export interface ProvisionContainerRequest {
 
 export interface ConfigEntry {
   configKey: string;
-  value: string;
+  value: unknown;
 }
 
 export interface ApiKey {

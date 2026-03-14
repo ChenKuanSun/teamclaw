@@ -323,6 +323,41 @@
 /* System dark mode detection */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    /* Inherits dark theme variables */
+    /* Backgrounds */
+    --bg-base: #0a1929;
+    --bg-surface: #0d2137;
+    --bg-elevated: #132f4c;
+    --bg-overlay: #1e3a5f;
+
+    /* Text */
+    --text-primary: #ffffff;
+    --text-secondary: #e2e8f0;
+    --text-tertiary: #94a3b8;
+    --text-muted: #64748b;
+
+    /* Borders */
+    --border-default: rgba(255, 255, 255, 0.06);
+    --border-strong: rgba(255, 255, 255, 0.12);
+
+    /* Accent */
+    --accent: #42a5f5;
+    --accent-soft: #90caf9;
+    --accent-bg: rgba(66, 165, 245, 0.12);
+    --accent-hover: rgba(66, 165, 245, 0.18);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);
+
+    /* Semantic (Dark variants) */
+    --semantic-critical: #ef4444;
+    --semantic-critical-bg: rgba(239, 68, 68, 0.15);
+    --semantic-high: #fbbf24;
+    --semantic-high-bg: rgba(251, 191, 36, 0.15);
+    --semantic-success: #34d399;
+    --semantic-success-bg: rgba(52, 211, 153, 0.15);
+    --semantic-info: #60a5fa;
+    --semantic-info-bg: rgba(96, 165, 250, 0.15);
   }
 }

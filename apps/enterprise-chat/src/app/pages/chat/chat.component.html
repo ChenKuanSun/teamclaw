@@ -1,32 +1,81 @@
 <div class="chat-container">
-  <div class="chat-status-bar">
-    <span class="status" [class.connected]="connected">
-      {{ connected ? ('Connected' | translate) : ('Disconnected' | translate) }}
-    </span>
-  </div>
+  <!-- Empty state -->
+  @if (messages.length === 0 && !typing) {
+    <div class="chat-empty">
+      <div class="empty-icon-wrap">
+        <mat-icon class="empty-icon">chat_bubble_outline</mat-icon>
+      </div>
+      <h2>Start a conversation</h2>
+      <p>Ask anything — your AI assistant is ready.</p>
+    </div>
+  }
 
+  <!-- Messages -->
   <div class="chat-messages" #messageList>
-    @for (msg of messages; track msg.timestamp) {
-      <div class="message" [class.user]="msg.role === 'user'" [class.assistant]="msg.role === 'assistant'">
-        <div class="message-sender">{{ msg.role === 'user' ? ('You' | translate) : 'AI' }}</div>
-        <div class="message-content">{{ msg.content }}</div>
-        <div class="message-time">{{ msg.timestamp | date:'short' }}</div>
+    @for (msg of messages; track msg.timestamp; let i = $index) {
+      <div class="msg-row" [class.msg-user]="msg.role === 'user'" [class.msg-assistant]="msg.role === 'assistant'">
+        @if (msg.role === 'assistant') {
+          <div class="msg-avatar ai">
+            <mat-icon>smart_toy</mat-icon>
+          </div>
+        }
+        <div class="msg-bubble-wrap">
+          @if (msg.role === 'assistant' && (i === 0 || messages[i - 1].role !== 'assistant')) {
+            <span class="msg-label">AI</span>
+          }
+          @if (msg.role === 'user' && (i === 0 || messages[i - 1].role !== 'user')) {
+            <span class="msg-label">{{ 'You' | translate }}</span>
+          }
+          <div class="msg-bubble" [class.user-bubble]="msg.role === 'user'" [class.ai-bubble]="msg.role === 'assistant'">
+            <div class="msg-text" [innerHTML]="msg.content"></div>
+          </div>
+          <time class="msg-time">{{ msg.timestamp | date:'shortTime' }}</time>
+        </div>
+        @if (msg.role === 'user') {
+          <div class="msg-avatar user">
+            <mat-icon>person</mat-icon>
+          </div>
+        }
       </div>
     }
+
+    <!-- Typing indicator -->
     @if (typing) {
-      <div class="message assistant">
-        <div class="message-sender">AI</div>
-        <div class="message-content typing">...</div>
+      <div class="msg-row msg-assistant">
+        <div class="msg-avatar ai">
+          <mat-icon>smart_toy</mat-icon>
+        </div>
+        <div class="msg-bubble-wrap">
+          <div class="msg-bubble ai-bubble typing-bubble">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+        </div>
       </div>
     }
   </div>
 
-  <div class="chat-input">
-    <mat-form-field appearance="outline" class="input-field">
-      <input matInput [placeholder]="'Type a message...' | translate" [(ngModel)]="inputText" (keyup.enter)="send()" />
-    </mat-form-field>
-    <button mat-fab color="primary" (click)="send()" [disabled]="!inputText.trim()">
-      <mat-icon>send</mat-icon>
-    </button>
+  <!-- Input -->
+  <div class="chat-input-bar">
+    <div class="input-wrap">
+      <textarea
+        #inputField
+        class="chat-textarea"
+        [placeholder]="'Message your AI assistant...' | translate"
+        [(ngModel)]="inputText"
+        (keydown.enter)="onEnter($event)"
+        rows="1"
+        cdkTextareaAutosize
+        cdkAutosizeMinRows="1"
+        cdkAutosizeMaxRows="6"></textarea>
+      <button class="send-btn" (click)="send()" [disabled]="!inputText.trim()" [class.active]="inputText.trim()">
+        <mat-icon>arrow_upward</mat-icon>
+      </button>
+    </div>
+    <div class="input-footer">
+      <span class="connection-dot" [class.online]="connected"></span>
+      <span class="connection-label">{{ connected ? ('Connected' | translate) : ('Reconnecting...' | translate) }}</span>
+    </div>
   </div>
 </div>

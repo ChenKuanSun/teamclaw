@@ -261,6 +261,7 @@ export class ControlPlaneStack extends Stack {
         'elasticfilesystem:CreateAccessPoint',
         'elasticfilesystem:DeleteAccessPoint',
         'elasticfilesystem:DescribeAccessPoints',
+        'elasticfilesystem:TagResource',
       ],
       resources: [
         efsFileSystemArn,

@@ -1,8 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
+import { CdkTextareaAutosize, TextFieldModule } from '@angular/cdk/text-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
@@ -17,8 +16,7 @@ import { environment } from '../../../environments/environment';
   imports: [
     CommonModule,
     FormsModule,
-    MatFormFieldModule,
-    MatInputModule,
+    TextFieldModule,
     MatButtonModule,
     MatIconModule,
     TranslateModule,
@@ -53,6 +51,13 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   ngAfterViewChecked(): void {
     this.scrollToBottom();
+  }
+
+  onEnter(event: Event): void {
+    const ke = event as KeyboardEvent;
+    if (ke.shiftKey) return; // allow Shift+Enter for newline
+    event.preventDefault();
+    this.send();
   }
 
   send(): void {

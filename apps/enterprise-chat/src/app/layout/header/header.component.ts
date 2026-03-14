@@ -1,19 +1,19 @@
 import { Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'tc-header',
   standalone: true,
   imports: [
-    MatToolbarModule,
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
+    TranslateModule,
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',

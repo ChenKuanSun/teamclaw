@@ -21,17 +21,33 @@ import { HttpErrorResponse } from '@angular/common/http';
   template: `
     <div class="session-init-container">
       @if (error()) {
-        <div class="error-state">
-          <mat-icon class="error-icon">error_outline</mat-icon>
+        <div class="state-card">
+          <div class="icon-wrap error-wrap">
+            <mat-icon class="state-icon">error_outline</mat-icon>
+          </div>
           <h2>Access Denied</h2>
           <p>{{ error() }}</p>
-          <button mat-raised-button color="primary" (click)="retry()">Retry</button>
+          <button mat-raised-button color="primary" (click)="retry()">
+            <mat-icon>refresh</mat-icon>
+            Retry
+          </button>
         </div>
       } @else {
-        <div class="loading-state">
-          <mat-progress-spinner mode="indeterminate" diameter="64" />
+        <div class="state-card">
+          <mat-progress-spinner mode="indeterminate" [diameter]="48" />
           <h2>{{ statusMessage() }}</h2>
-          <p class="hint">This may take a moment...</p>
+          <p class="hint">This may take a moment while we prepare your workspace.</p>
+          <div class="progress-steps">
+            <span class="step" [class.active]="statusMessage().includes('Connecting')">Connecting</span>
+            <span class="step-arrow">
+              <mat-icon>chevron_right</mat-icon>
+            </span>
+            <span class="step" [class.active]="statusMessage().includes('Setting up') || statusMessage().includes('provisioning')">Setting up</span>
+            <span class="step-arrow">
+              <mat-icon>chevron_right</mat-icon>
+            </span>
+            <span class="step" [class.active]="statusMessage().includes('Starting')">Starting</span>
+          </div>
         </div>
       }
     </div>
@@ -41,24 +57,78 @@ import { HttpErrorResponse } from '@angular/common/http';
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      background: var(--mat-sys-surface);
+      height: 100%;
+      background: var(--bg-base);
+      padding: var(--space-6);
     }
-    .loading-state, .error-state {
+    .state-card {
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
+      gap: var(--space-4);
+      max-width: 400px;
     }
-    .error-icon {
-      font-size: 48px;
-      width: 48px;
-      height: 48px;
-      color: var(--mat-sys-error);
+    .icon-wrap {
+      width: 72px;
+      height: 72px;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    h2 { margin: 0; color: var(--mat-sys-on-surface); }
-    .hint { color: var(--mat-sys-on-surface-variant); margin: 0; }
+    .error-wrap {
+      background: var(--semantic-critical-bg);
+    }
+    .state-icon {
+      font-size: 36px;
+      width: 36px;
+      height: 36px;
+      color: var(--semantic-critical);
+    }
+    h2 {
+      margin: 0;
+      color: var(--text-primary);
+      font-size: var(--text-h2);
+      font-weight: var(--weight-semibold);
+    }
+    p {
+      color: var(--text-secondary);
+      margin: 0;
+      font-size: var(--text-body-sm);
+      line-height: var(--leading-relaxed);
+    }
+    .hint {
+      color: var(--text-tertiary);
+    }
+    .progress-steps {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      margin-top: var(--space-2);
+    }
+    .step {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: var(--weight-medium);
+      padding: var(--space-1) var(--space-2);
+      border-radius: var(--radius-full);
+      transition: all var(--transition-base);
+    }
+    .step.active {
+      color: var(--accent);
+      background: var(--accent-bg);
+    }
+    .step-arrow {
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+      }
+    }
   `],
 })
 export class SessionInitComponent implements OnInit, OnDestroy {

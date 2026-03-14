@@ -10,7 +10,7 @@ import {
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
   let fixture: ComponentFixture<DashboardComponent>;
-  let apiSpy: jest.Mocked<Pick<AdminApiService, 'getDashboardStats'>>;
+  let apiSpy: jest.Mocked<Pick<AdminApiService, 'getDashboardStats' | 'getOnboardingStatus'>>;
 
   const mockStats: DashboardStats = {
     totalUsers: 42,
@@ -23,6 +23,7 @@ describe('DashboardComponent', () => {
   beforeEach(async () => {
     apiSpy = {
       getDashboardStats: jest.fn().mockReturnValue(of(mockStats)),
+      getOnboardingStatus: jest.fn().mockReturnValue(of({ complete: true, steps: { apiKey: true, team: true, allowedDomains: true, defaultTeamId: true } })),
     };
 
     await TestBed.configureTestingModule({

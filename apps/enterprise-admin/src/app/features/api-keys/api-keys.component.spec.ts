@@ -103,14 +103,24 @@ describe('ApiKeysComponent', () => {
   });
 
   it('should remove key after confirmation', () => {
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const afterClosedSubject = new Subject<any>();
+    const dialog = getComponentDialog();
+    jest.spyOn(dialog, 'open').mockReturnValue({ afterClosed: () => afterClosedSubject.asObservable() } as any);
+
     component.removeKey(mockKeys[0]);
+    afterClosedSubject.next(true);
+
     expect(apiSpy.removeApiKey).toHaveBeenCalledWith('k1');
   });
 
   it('should not remove key when confirmation is declined', () => {
-    jest.spyOn(window, 'confirm').mockReturnValue(false);
+    const afterClosedSubject = new Subject<any>();
+    const dialog = getComponentDialog();
+    jest.spyOn(dialog, 'open').mockReturnValue({ afterClosed: () => afterClosedSubject.asObservable() } as any);
+
     component.removeKey(mockKeys[0]);
+    afterClosedSubject.next(false);
+
     expect(apiSpy.removeApiKey).not.toHaveBeenCalled();
   });
 

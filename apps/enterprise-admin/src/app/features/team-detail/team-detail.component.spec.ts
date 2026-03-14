@@ -2,7 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router';
 import { Component } from '@angular/core';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
 import { TeamDetailComponent } from './team-detail.component';
 import {
   AdminApiService,
@@ -13,7 +14,7 @@ import {
 describe('TeamDetailComponent', () => {
   let component: TeamDetailComponent;
   let fixture: ComponentFixture<TestHostComponent>;
-  let apiSpy: jest.Mocked<Pick<AdminApiService, 'getTeam' | 'getUser' | 'updateTeam'>>;
+  let apiSpy: jest.Mocked<Pick<AdminApiService, 'getTeam' | 'getUser' | 'updateTeam' | 'queryUsers'>>;
   let routerSpy: jest.Mocked<Pick<Router, 'navigate'>>;
 
   const mockTeam: Team = {
@@ -46,6 +47,7 @@ describe('TeamDetailComponent', () => {
         return of(user!);
       }),
       updateTeam: jest.fn().mockReturnValue(of(mockTeam)),
+      queryUsers: jest.fn().mockReturnValue(of({ users: mockMembers, total: 2 })),
     };
 
     routerSpy = { navigate: jest.fn() };
@@ -111,8 +113,15 @@ describe('TeamDetailComponent', () => {
   });
 
   it('should remove member after confirmation', () => {
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const afterClosedSubject = new Subject<any>();
+    const dialog: MatDialog = (component as any).dialog;
+    jest.spyOn(dialog, 'open').mockReturnValue({ afterClosed: () => afterClosedSubject.asObservable() } as any);
+
+    // Clear any prior updateTeam calls from setup
+    apiSpy.updateTeam.mockClear();
+
     component.removeMember(mockMembers[0]);
+    afterClosedSubject.next(true);
 
     expect(apiSpy.updateTeam).toHaveBeenCalledWith('t1', {
       memberIds: ['u2'],
@@ -120,8 +129,16 @@ describe('TeamDetailComponent', () => {
   });
 
   it('should not remove member when confirmation is declined', () => {
-    jest.spyOn(window, 'confirm').mockReturnValue(false);
+    const afterClosedSubject = new Subject<any>();
+    const dialog: MatDialog = (component as any).dialog;
+    jest.spyOn(dialog, 'open').mockReturnValue({ afterClosed: () => afterClosedSubject.asObservable() } as any);
+
+    // Clear any prior updateTeam calls from setup
+    apiSpy.updateTeam.mockClear();
+
     component.removeMember(mockMembers[0]);
+    afterClosedSubject.next(false);
+
     expect(apiSpy.updateTeam).not.toHaveBeenCalled();
   });
 

@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { LoginComponent } from './login.component';
 import { AuthService } from '../../services/auth.service';
-import { Router } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateModule } from '@ngx-translate/core';
 import { CognitoUserSession } from 'amazon-cognito-identity-js';
@@ -16,7 +16,7 @@ describe('LoginComponent', () => {
     isLoading: ReturnType<typeof signal>;
     errorMessage: ReturnType<typeof signal>;
   };
-  let router: { navigate: jest.Mock };
+  let router: Router;
 
   beforeEach(async () => {
     authService = {
@@ -25,17 +25,17 @@ describe('LoginComponent', () => {
       isLoading: signal(false),
       errorMessage: signal(''),
     };
-    router = {
-      navigate: jest.fn(),
-    };
 
     await TestBed.configureTestingModule({
       imports: [LoginComponent, NoopAnimationsModule, TranslateModule.forRoot()],
       providers: [
         { provide: AuthService, useValue: authService },
-        { provide: Router, useValue: router },
+        provideRouter([]),
       ],
     }).compileComponents();
+
+    router = TestBed.inject(Router);
+    jest.spyOn(router, 'navigate').mockResolvedValue(true);
 
     fixture = TestBed.createComponent(LoginComponent);
     component = fixture.componentInstance;
@@ -76,7 +76,7 @@ describe('LoginComponent', () => {
       tick();
 
       expect(authService.login).toHaveBeenCalledWith('user@test.com', 'pass123');
-      expect(router.navigate).toHaveBeenCalledWith(['/chat']);
+      expect(router.navigate).toHaveBeenCalledWith(['/session']);
     }));
 
     it('should show error message on login failure', fakeAsync(() => {

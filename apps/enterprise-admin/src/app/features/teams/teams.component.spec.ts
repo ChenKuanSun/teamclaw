@@ -108,14 +108,24 @@ describe('TeamsComponent', () => {
   });
 
   it('should delete team after confirmation', () => {
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const afterClosedSubject = new Subject<any>();
+    const dialog = getComponentDialog();
+    jest.spyOn(dialog, 'open').mockReturnValue({ afterClosed: () => afterClosedSubject.asObservable() } as any);
+
     component.deleteTeam(mockTeams[0]);
+    afterClosedSubject.next(true);
+
     expect(apiSpy.deleteTeam).toHaveBeenCalledWith('t1');
   });
 
   it('should not delete team when confirmation is declined', () => {
-    jest.spyOn(window, 'confirm').mockReturnValue(false);
+    const afterClosedSubject = new Subject<any>();
+    const dialog = getComponentDialog();
+    jest.spyOn(dialog, 'open').mockReturnValue({ afterClosed: () => afterClosedSubject.asObservable() } as any);
+
     component.deleteTeam(mockTeams[0]);
+    afterClosedSubject.next(false);
+
     expect(apiSpy.deleteTeam).not.toHaveBeenCalled();
   });
 });

@@ -96,7 +96,7 @@ export class TeamClawWsService implements OnDestroy {
     switch (frame.event) {
       case 'connect.challenge':
         // Server sent challenge — send connect request
-        this.sendConnect(frame.payload?.nonce);
+        this.sendConnect();
         break;
 
       case 'chat.message':
@@ -155,25 +155,17 @@ export class TeamClawWsService implements OnDestroy {
     }
   }
 
-  private sendConnect(nonce?: string): void {
+  private sendConnect(): void {
     const id = this.nextId();
     const params: any = {
       minProtocol: 3,
       maxProtocol: 3,
-      client: { id: 'enterprise-chat', version: '1.0.0', platform: 'web' },
-      role: 'user',
-      scopes: ['chat'],
+      client: { id: 'webchat-ui', mode: 'webchat', version: '1.0.0', platform: 'web' },
       caps: [],
     };
 
-    // For trusted-proxy mode, no token/device needed
-    // The proxy (ALB) handles auth
     if (this.token) {
       params.auth = { token: this.token };
-    }
-
-    if (nonce) {
-      params.nonce = nonce;
     }
 
     this.ws?.send(JSON.stringify({ type: 'req', id, method: 'connect', params }));

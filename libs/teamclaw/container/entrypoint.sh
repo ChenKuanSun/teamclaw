@@ -5,8 +5,6 @@ set -e
 # Strip all provider API keys from environment
 unset ANTHROPIC_API_KEY OPENAI_API_KEY GOOGLE_API_KEY GEMINI_API_KEY
 
-# Force safe defaults (OPENCLAW_* env vars are read by upstream OpenClaw)
-export OPENCLAW_GATEWAY_TOKEN="${OPENCLAW_GATEWAY_TOKEN:-$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 64)}"
 export OPENCLAW_TUNNEL=false
 
 # Audit log to persistent EFS
@@ -18,4 +16,5 @@ mkdir -p "$OPENCLAW_AUDIT_DIR" "$OPENCLAW_TRANSCRIPT_DIR" 2>/dev/null || true
 node /scripts/generate-config.js
 
 # ─── Start OpenClaw Gateway (upstream binary) ───
-exec openclaw gateway --config /workspace/openclaw.json
+# Auth is handled by ALB/CloudFront upstream; container is in private subnet.
+exec openclaw gateway run --port 18789 --bind lan --auth trusted-proxy --allow-unconfigured

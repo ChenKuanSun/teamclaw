@@ -1,15 +1,24 @@
 #!/bin/bash
 # Register ECS task definition with sidecar proxy container
-# Usage: ./register-task-definition.sh <env> <account-id> <region>
+# Usage: ./register-task-definition.sh <env> <account-id> <region> [efs-filesystem-id]
 
 set -euo pipefail
 
-ENV="${1:?Usage: $0 <env> <account-id> <region>}"
-ACCOUNT_ID="${2:?Usage: $0 <env> <account-id> <region>}"
+ENV="${1:?Usage: $0 <env> <account-id> <region> [efs-filesystem-id]}"
+ACCOUNT_ID="${2:?Usage: $0 <env> <account-id> <region> [efs-filesystem-id]}"
 REGION="${3:-us-west-1}"
+EFS_FS_ID="${4:-}"
 
 TEAMCLAW_REPO="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/teamclaw-enterprise-${ENV}"
 SIDECAR_REPO="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/teamclaw-sidecar-${ENV}"
+
+# Build volumes JSON (EFS optional)
+VOLUMES="[]"
+TEAMCLAW_MOUNTS="[]"
+if [ -n "${EFS_FS_ID}" ]; then
+  VOLUMES="[{\"name\": \"efs-data\", \"efsVolumeConfiguration\": {\"fileSystemId\": \"${EFS_FS_ID}\", \"rootDirectory\": \"/\"}}]"
+  TEAMCLAW_MOUNTS="[{\"sourceVolume\": \"efs-data\", \"containerPath\": \"/efs\", \"readOnly\": false}]"
+fi
 
 aws ecs register-task-definition \
   --region "${REGION}" \
@@ -19,19 +28,22 @@ aws ecs register-task-definition \
   --cpu 1024 --memory 2048 \
   --task-role-arn "arn:aws:iam::${ACCOUNT_ID}:role/teamclaw-task-role-${ENV}" \
   --execution-role-arn "arn:aws:iam::${ACCOUNT_ID}:role/teamclaw-execution-role-${ENV}" \
+  --volumes "${VOLUMES}" \
   --container-definitions "[
     {
       \"name\": \"teamclaw\",
       \"image\": \"${TEAMCLAW_REPO}:latest\",
       \"essential\": true,
       \"portMappings\": [{\"containerPort\": 18789}],
+      \"mountPoints\": ${TEAMCLAW_MOUNTS},
       \"dependsOn\": [{\"containerName\": \"proxy-sidecar\", \"condition\": \"HEALTHY\"}],
       \"logConfiguration\": {
         \"logDriver\": \"awslogs\",
         \"options\": {
           \"awslogs-group\": \"/ecs/teamclaw-${ENV}\",
           \"awslogs-region\": \"${REGION}\",
-          \"awslogs-stream-prefix\": \"teamclaw\"
+          \"awslogs-stream-prefix\": \"teamclaw\",
+          \"awslogs-create-group\": \"true\"
         }
       }
     },
@@ -51,7 +63,8 @@ aws ecs register-task-definition \
         \"options\": {
           \"awslogs-group\": \"/ecs/teamclaw-${ENV}\",
           \"awslogs-region\": \"${REGION}\",
-          \"awslogs-stream-prefix\": \"sidecar\"
+          \"awslogs-stream-prefix\": \"sidecar\",
+          \"awslogs-create-group\": \"true\"
         }
       }
     }

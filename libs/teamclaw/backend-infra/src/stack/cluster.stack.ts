@@ -47,6 +47,13 @@ export class ClusterStack extends Stack {
     });
     albSecurityGroup.addIngressRule(aws_ec2.Peer.anyIpv4(), aws_ec2.Port.tcp(443), 'HTTPS');
     albSecurityGroup.addIngressRule(aws_ec2.Peer.anyIpv4(), aws_ec2.Port.tcp(80), 'HTTP');
+    // Containers share this SG — allow ALB → container health check + traffic on container port
+    albSecurityGroup.addIngressRule(albSecurityGroup, aws_ec2.Port.tcp(TC_FARGATE_DEFAULTS.port), 'ALB to containers');
+
+    // Allow containers (using ALB SG) to mount EFS via NFS
+    const efsSgId = aws_ssm.StringParameter.valueForStringParameter(this, ssm.EFS.SECURITY_GROUP_ID);
+    const efsSecurityGroup = aws_ec2.SecurityGroup.fromSecurityGroupId(this, 'ImportedEfsSg', efsSgId);
+    efsSecurityGroup.addIngressRule(albSecurityGroup, aws_ec2.Port.tcp(2049), 'NFS from ECS containers');
 
     const alb = new elbv2.ApplicationLoadBalancer(this, 'Alb', {
       vpc,

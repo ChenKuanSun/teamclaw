@@ -12,7 +12,7 @@ const PROXY_PROVIDERS = [
 
 const providers = {};
 for (const id of PROXY_PROVIDERS) {
-  providers[id] = { baseUrl: `${SIDECAR_URL}/${id}`, apiKey: 'proxy-managed' };
+  providers[id] = { baseUrl: `${SIDECAR_URL}/${id}`, apiKey: 'proxy-managed', models: [] };
 }
 
 // Load and merge configs: Global → Team → User (each level can only be more restrictive)
@@ -43,7 +43,16 @@ const userConfig = loadJson(`/efs/users/${userId}/user-config.json`);
 const baseConfig = {
   gateway: {
     port: 18789,
-    host: '0.0.0.0',
+    trustedProxies: ['0.0.0.0/0'],
+    auth: {
+      mode: 'trusted-proxy',
+      trustedProxy: {
+        userHeader: 'x-forwarded-for',
+      },
+    },
+    controlUi: {
+      dangerouslyAllowHostHeaderOriginFallback: true,
+    },
   },
   models: {
     providers,
@@ -56,8 +65,10 @@ const baseConfig = {
 // Merge: base → global → team → user
 const merged = deepMerge(deepMerge(deepMerge(baseConfig, globalConfig), teamConfig), userConfig);
 
-// Write final config
-fs.writeFileSync('/workspace/openclaw.json', JSON.stringify(merged, null, 2));
+// Write final config to OpenClaw's expected location
+const configDir = path.join(process.env.HOME || '/home/node', '.openclaw');
+fs.mkdirSync(configDir, { recursive: true });
+fs.writeFileSync(path.join(configDir, 'openclaw.json'), JSON.stringify(merged, null, 2));
 
 // Copy SOUL.md files if they exist
 const soulSources = [

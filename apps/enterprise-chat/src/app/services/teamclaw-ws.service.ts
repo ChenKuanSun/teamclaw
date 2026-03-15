@@ -104,8 +104,8 @@ export class TeamClawWsService implements OnDestroy {
 
       case 'agent': {
         const p = frame.payload;
-        if (p?.stream === 'delta' && p?.data?.textDelta) {
-          this.appendAssistantDelta(p.data.textDelta);
+        if (p?.stream === 'assistant' && p?.data?.delta) {
+          this.appendAssistantDelta(p.data.delta);
         } else if (p?.stream === 'lifecycle') {
           if (p.data?.phase === 'start') {
             this.activeRunId = p.runId;
@@ -120,7 +120,23 @@ export class TeamClawWsService implements OnDestroy {
 
       case 'chat': {
         const p = frame.payload;
-        if (p?.state === 'error' && p?.errorMessage) {
+        if (p?.state === 'final' && p?.message?.content) {
+          const text = p.message.content
+            .filter((c: any) => c.type === 'text')
+            .map((c: any) => c.text)
+            .join('');
+          if (text) {
+            const msgs = [...this.messages$.value];
+            const lastMsg = msgs[msgs.length - 1];
+            if (lastMsg?.role === 'assistant') {
+              msgs[msgs.length - 1] = { ...lastMsg, content: text };
+            } else {
+              msgs.push({ role: 'assistant', content: text, timestamp: new Date() });
+            }
+            this.messages$.next(msgs);
+          }
+          this.typing$.next(false);
+        } else if (p?.state === 'error' && p?.errorMessage) {
           const errMsg: ChatMessage = {
             role: 'system',
             content: `Error: ${p.errorMessage}`,

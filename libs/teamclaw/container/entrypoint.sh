@@ -2,7 +2,7 @@
 set -e
 
 # ─── Security Controls (zero source code modification) ───
-# Strip all provider API keys from environment
+# Strip regular API keys — OAuth token is set separately by generate-config
 unset ANTHROPIC_API_KEY OPENAI_API_KEY GOOGLE_API_KEY GEMINI_API_KEY
 
 export OPENCLAW_TUNNEL=false
@@ -14,6 +14,11 @@ mkdir -p "$OPENCLAW_AUDIT_DIR" "$OPENCLAW_TRANSCRIPT_DIR" 2>/dev/null || true
 
 # ─── Generate merged config (Global → Team → User) ───
 node /scripts/generate-config.js
+
+# ─── Load provider tokens from generated env file ───
+if [ -f /tmp/provider-env.sh ]; then
+  . /tmp/provider-env.sh
+fi
 
 # ─── Start OpenClaw Gateway (upstream binary) ───
 # Auth is handled by ALB/CloudFront upstream; container is in private subnet.

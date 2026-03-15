@@ -15,6 +15,10 @@ RUN ln -sf /usr/local/lib/node_modules/openclaw/openclaw.mjs /usr/local/bin/open
 # Copy entrypoint and config scripts
 COPY entrypoint.sh /entrypoint.sh
 COPY scripts/ /scripts/
+
+# Install AWS SDK for Secrets Manager (used by generate-config.js to load provider tokens)
+RUN cd /scripts && npm init -y 2>/dev/null && npm install @aws-sdk/client-secrets-manager
+
 RUN chmod +x /entrypoint.sh
 
 # Create directories owned by node user

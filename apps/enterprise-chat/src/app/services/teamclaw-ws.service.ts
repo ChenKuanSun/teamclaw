@@ -178,10 +178,54 @@ export class TeamClawWsService implements OnDestroy {
       this.sessionKey = frame.payload?.snapshot?.sessionDefaults?.mainSessionKey || 'agent:main:main';
       const tickMs = frame.payload?.policy?.tickIntervalMs || 15000;
       this.startTick(tickMs);
+      this.loadHistory();
+    }
+
+    if (frame.id === this.historyReqId && frame.ok) {
+      this.parseHistory(frame.payload);
     }
 
     if (!frame.ok && frame.error) {
       console.error('[ws] error:', frame.error.message);
+    }
+  }
+
+  private historyReqId = '';
+
+  private loadHistory(): void {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+    this.historyReqId = this.nextId();
+    this.ws.send(JSON.stringify({
+      type: 'req', id: this.historyReqId, method: 'sessions.preview',
+      params: { keys: [this.sessionKey], limit: 50 },
+    }));
+  }
+
+  private parseHistory(payload: any): void {
+    const preview = Array.isArray(payload) ? payload[0] : payload;
+    const items = preview?.items;
+    if (!Array.isArray(items) || items.length === 0) return;
+
+    const history: ChatMessage[] = [];
+    for (const item of items) {
+      if (item.role === 'user') {
+        // Extract actual user message (strip sender metadata prefix)
+        const match = item.text?.match(/\] (.+)$/s);
+        history.push({
+          role: 'user',
+          content: match ? match[1] : item.text || '',
+          timestamp: new Date(),
+        });
+      } else if (item.role === 'assistant') {
+        history.push({
+          role: 'assistant',
+          content: item.text || '',
+          timestamp: new Date(),
+        });
+      }
+    }
+    if (history.length > 0) {
+      this.messages$.next(history);
     }
   }
 

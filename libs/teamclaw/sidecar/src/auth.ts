@@ -95,7 +95,10 @@ export interface AuthResult {
 export async function resolveAuth(providerId: string, path: string): Promise<AuthResult | null> {
   const secret = await loadSecrets();
   const entry = secret.providers[providerId];
-  const meta = PROVIDER_META[providerId];
+  // For OAuth tokens on anthropic provider, use anthropic-token meta (has OAuth beta headers)
+  const meta = (providerId === 'anthropic' && entry?.authType === 'oauthToken')
+    ? PROVIDER_META['anthropic-token']
+    : PROVIDER_META[providerId];
 
   if (!entry || !meta) return null;
 

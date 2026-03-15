@@ -5,26 +5,9 @@ const userId = process.env.USER_ID || 'default';
 const teamId = process.env.TEAM_ID || '';
 const SIDECAR_URL = 'http://localhost:3000';
 
-// Load provider tokens from Secrets Manager (shared with sidecar)
-async function loadProviderTokens() {
-  const secretArn = process.env.API_KEYS_SECRET_ARN;
-  if (!secretArn) return {};
-  try {
-    const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
-    const client = new SecretsManagerClient({});
-    const result = await client.send(new GetSecretValueCommand({ SecretId: secretArn }));
-    const secret = JSON.parse(result.SecretString || '{}');
-    return secret.providers || {};
-  } catch (err) {
-    console.warn('[generate-config] Could not load secrets:', err.message);
-    return {};
-  }
-}
-
-// Providers routed through sidecar proxy (for key pool management)
-// anthropic/anthropic-token are handled natively via ANTHROPIC_OAUTH_TOKEN env var
+// ALL providers routed through sidecar proxy (centralized key pool + usage tracking)
 const PROXY_PROVIDERS = [
-  'openai', 'openai-codex', 'google',
+  'anthropic', 'anthropic-token', 'openai', 'openai-codex', 'google',
   'openrouter', 'mistral', 'together', 'groq', 'xai', 'deepseek', 'fireworks',
 ];
 
@@ -76,6 +59,11 @@ const baseConfig = {
   models: {
     providers,
   },
+  agents: {
+    defaults: {
+      model: 'anthropic/claude-sonnet-4-6',
+    },
+  },
   session: {
     dmScope: 'per-channel-peer',
   },
@@ -115,21 +103,4 @@ try {
   }
 } catch { /* skip */ }
 
-// Load provider tokens and write env file for OpenClaw native provider support
-loadProviderTokens().then((providerTokens) => {
-  const envLines = [];
-  // Anthropic OAuth token → OpenClaw reads ANTHROPIC_OAUTH_TOKEN natively
-  const anthropicEntry = providerTokens['anthropic-token'] || providerTokens['anthropic'];
-  if (anthropicEntry) {
-    const token = anthropicEntry.token || anthropicEntry.accessToken;
-    if (token) envLines.push(`export ANTHROPIC_OAUTH_TOKEN="${token}"`);
-  }
-  if (envLines.length > 0) {
-    fs.writeFileSync('/tmp/provider-env.sh', envLines.join('\n') + '\n');
-    console.log(`[generate-config] Wrote ${envLines.length} provider token(s) to env`);
-  }
-  console.log(`[generate-config] Config generated for user=${userId} team=${teamId}`);
-}).catch((err) => {
-  console.warn('[generate-config] Token load failed:', err.message);
-  console.log(`[generate-config] Config generated for user=${userId} team=${teamId}`);
-});
+console.log(`[generate-config] Config generated for user=${userId} team=${teamId}`);

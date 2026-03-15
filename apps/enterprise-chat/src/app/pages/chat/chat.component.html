@@ -59,6 +59,7 @@
   <!-- Input -->
   <div class="chat-input-bar">
     <div class="input-wrap">
+      <tc-command-menu (command)="onCommand($event)"></tc-command-menu>
       <textarea
         #inputField
         class="chat-textarea"

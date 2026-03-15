@@ -247,6 +247,37 @@ export class TeamClawWsService implements OnDestroy {
     this.ws.send(JSON.stringify({ type: 'req', id: this.nextId(), method, params }));
   }
 
+  executeCommand(method: string, params: any): Promise<any> {
+    return new Promise((resolve, reject) => {
+      if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+        reject(new Error('Not connected'));
+        return;
+      }
+      const id = this.nextId();
+      const handler = (event: MessageEvent) => {
+        const frame = JSON.parse(event.data);
+        if (frame.type === 'res' && frame.id === id) {
+          this.ws?.removeEventListener('message', handler);
+          if (frame.ok) resolve(frame.payload);
+          else reject(new Error(frame.error?.message || 'Command failed'));
+        }
+      };
+      this.ws.addEventListener('message', handler);
+      this.ws.send(JSON.stringify({ type: 'req', id, method, params }));
+      // Timeout after 10s
+      setTimeout(() => {
+        this.ws?.removeEventListener('message', handler);
+        reject(new Error('Command timeout'));
+      }, 10000);
+    });
+  }
+
+  resetSession(): void {
+    this.executeCommand('sessions.reset', { key: this.sessionKey, reason: 'new' }).then(() => {
+      this.messages$.next([]);
+    }).catch(err => console.error('[ws] reset failed:', err.message));
+  }
+
   private nextId(): string {
     return `ec-${++this.idCounter}`;
   }

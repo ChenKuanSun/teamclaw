@@ -67,6 +67,10 @@ const baseConfig = {
   session: {
     dmScope: 'per-channel-peer',
   },
+  transcripts: {
+    directory: `/efs/users/${userId}/transcripts`,
+    enabled: true,
+  },
 };
 
 // Merge: base → global → team → user

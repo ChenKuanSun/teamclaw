@@ -15,6 +15,8 @@ export class TeamClawWsService implements OnDestroy {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private gatewayUrl = '';
   private token = '';
+  private sessionKey = 'agent:main:main';
+  private activeRunId: string | null = null;
 
   readonly messages$ = new BehaviorSubject<ChatMessage[]>([]);
   readonly connected$ = new BehaviorSubject<boolean>(false);
@@ -35,7 +37,7 @@ export class TeamClawWsService implements OnDestroy {
     this.ws = new WebSocket(this.gatewayUrl);
 
     this.ws.onopen = () => {
-      // Wait for connect.challenge from server before sending connect
+      // Wait for connect.challenge from server
     };
 
     this.ws.onmessage = (event) => {
@@ -46,13 +48,10 @@ export class TeamClawWsService implements OnDestroy {
     this.ws.onclose = () => {
       this.connected$.next(false);
       this.stopTick();
-      // Auto-reconnect after 3s
       this.reconnectTimer = setTimeout(() => this.doConnect(), 3000);
     };
 
-    this.ws.onerror = () => {
-      // onclose will fire after onerror
-    };
+    this.ws.onerror = () => {};
   }
 
   sendMessage(text: string): void {
@@ -60,8 +59,13 @@ export class TeamClawWsService implements OnDestroy {
 
     const userMsg: ChatMessage = { role: 'user', content: text, timestamp: new Date() };
     this.messages$.next([...this.messages$.value, userMsg]);
+    this.typing$.next(true);
 
-    this.sendReq('chat.send', { text });
+    this.sendReq('chat.send', {
+      sessionKey: this.sessionKey,
+      message: text,
+      idempotencyKey: crypto.randomUUID(),
+    });
   }
 
   disconnect(): void {
@@ -95,27 +99,34 @@ export class TeamClawWsService implements OnDestroy {
   private handleEvent(frame: any): void {
     switch (frame.event) {
       case 'connect.challenge':
-        // Server sent challenge — send connect request
         this.sendConnect();
         break;
 
-      case 'chat.message':
-      case 'chat.chunk': {
-        const msg: ChatMessage = {
-          role: frame.payload?.role || 'assistant',
-          content: frame.payload?.text || frame.payload?.content || '',
-          timestamp: new Date(frame.payload?.ts || Date.now()),
-        };
-        if (msg.content) {
-          // For streaming chunks, append to the last assistant message
-          const msgs = [...this.messages$.value];
-          const lastMsg = msgs[msgs.length - 1];
-          if (frame.event === 'chat.chunk' && lastMsg?.role === 'assistant') {
-            msgs[msgs.length - 1] = { ...lastMsg, content: lastMsg.content + msg.content };
-            this.messages$.next(msgs);
-          } else {
-            this.messages$.next([...msgs, msg]);
+      case 'agent': {
+        const p = frame.payload;
+        if (p?.stream === 'delta' && p?.data?.textDelta) {
+          this.appendAssistantDelta(p.data.textDelta);
+        } else if (p?.stream === 'lifecycle') {
+          if (p.data?.phase === 'start') {
+            this.activeRunId = p.runId;
+            this.typing$.next(true);
+          } else if (p.data?.phase === 'end' || p.data?.phase === 'error') {
+            this.activeRunId = null;
+            this.typing$.next(false);
           }
+        }
+        break;
+      }
+
+      case 'chat': {
+        const p = frame.payload;
+        if (p?.state === 'error' && p?.errorMessage) {
+          const errMsg: ChatMessage = {
+            role: 'system',
+            content: `Error: ${p.errorMessage}`,
+            timestamp: new Date(),
+          };
+          this.messages$.next([...this.messages$.value, errMsg]);
           this.typing$.next(false);
         }
         break;
@@ -133,25 +144,28 @@ export class TeamClawWsService implements OnDestroy {
     }
   }
 
-  private handleResponse(frame: any): void {
-    if (!frame.ok) return;
+  private appendAssistantDelta(text: string): void {
+    const msgs = [...this.messages$.value];
+    const lastMsg = msgs[msgs.length - 1];
+    if (lastMsg?.role === 'assistant') {
+      msgs[msgs.length - 1] = { ...lastMsg, content: lastMsg.content + text };
+    } else {
+      msgs.push({ role: 'assistant', content: text, timestamp: new Date() });
+    }
+    this.messages$.next(msgs);
+    this.typing$.next(false);
+  }
 
+  private handleResponse(frame: any): void {
     if (frame.payload?.type === 'hello-ok') {
       this.connected$.next(true);
-      // Start tick keepalive
+      this.sessionKey = frame.payload?.snapshot?.sessionDefaults?.mainSessionKey || 'agent:main:main';
       const tickMs = frame.payload?.policy?.tickIntervalMs || 15000;
       this.startTick(tickMs);
-      // Load chat history
-      this.sendReq('chat.history', {});
     }
 
-    if (frame.method === 'chat.history' && frame.payload?.messages) {
-      const history = (frame.payload.messages as any[]).map((m: any) => ({
-        role: m.role as 'user' | 'assistant' | 'system',
-        content: m.text || m.content || '',
-        timestamp: new Date(m.ts || m.timestamp || Date.now()),
-      }));
-      this.messages$.next(history);
+    if (!frame.ok && frame.error) {
+      console.error('[ws] error:', frame.error.message);
     }
   }
 
@@ -160,13 +174,10 @@ export class TeamClawWsService implements OnDestroy {
     const params: any = {
       minProtocol: 3,
       maxProtocol: 3,
-      client: { id: 'webchat-ui', mode: 'webchat', version: '1.0.0', platform: 'web' },
+      client: { id: 'openclaw-control-ui', mode: 'ui', version: '1.0.0', platform: 'web' },
+      scopes: ['operator.admin', 'operator.read', 'operator.write'],
       caps: [],
     };
-
-    if (this.token) {
-      params.auth = { token: this.token };
-    }
 
     this.ws?.send(JSON.stringify({ type: 'req', id, method: 'connect', params }));
   }

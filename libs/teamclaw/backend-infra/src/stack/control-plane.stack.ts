@@ -190,7 +190,9 @@ export class ControlPlaneStack extends Stack {
         USAGE_TABLE_NAME: usageTable.tableName,
         SIDECAR_IMAGE: aws_ssm.StringParameter.valueForStringParameter(this, ssm.ECR.SIDECAR_REPO_URI),
         ALB_TARGET_GROUP_ARN: aws_ssm.StringParameter.valueForStringParameter(this, ssm.ECS.ALB_TARGET_GROUP_ARN),
+        ALB_LISTENER_ARN: aws_ssm.StringParameter.valueForStringParameter(this, ssm.ECS.ALB_LISTENER_ARN),
         ALB_DNS_NAME: aws_ssm.StringParameter.valueForStringParameter(this, ssm.ECS.ALB_DNS_NAME),
+        VPC_ID: aws_ssm.StringParameter.valueForStringParameter(this, ssm.VPC.VPC_ID),
       },
     });
     userTable.grantReadWriteData(lifecycleLambda);
@@ -254,17 +256,54 @@ export class ControlPlaneStack extends Stack {
         StringEquals: { 'iam:PassedToService': 'ecs-tasks.amazonaws.com' },
       },
     }));
-    // ELBV2 target group registration (lifecycle registers container IPs with ALB)
+    // ELBV2 permissions: per-user target groups + listener rules for WebSocket routing
     lifecycleLambda.addToRolePolicy(new aws_iam.PolicyStatement({
       actions: [
         'elasticloadbalancing:RegisterTargets',
         'elasticloadbalancing:DeregisterTargets',
+        'elasticloadbalancing:CreateTargetGroup',
+        'elasticloadbalancing:DeleteTargetGroup',
+        'elasticloadbalancing:DescribeTargetGroups',
+        'elasticloadbalancing:AddTags',
       ],
       resources: [
+        // Shared target group (legacy fallback)
         Stack.of(this).formatArn({
           service: 'elasticloadbalancing',
           resource: 'targetgroup',
           resourceName: `tc-containers-${deployEnv}/*`,
+        }),
+        // Per-user target groups: tc-u-*
+        Stack.of(this).formatArn({
+          service: 'elasticloadbalancing',
+          resource: 'targetgroup',
+          resourceName: 'tc-u-*',
+        }),
+      ],
+    }));
+    // CreateTargetGroup requires '*' resource for the initial call
+    lifecycleLambda.addToRolePolicy(new aws_iam.PolicyStatement({
+      actions: [
+        'elasticloadbalancing:CreateTargetGroup',
+        'elasticloadbalancing:DescribeTargetGroups',
+      ],
+      resources: ['*'],
+    }));
+    // ALB listener rule management (create/delete/describe rules on the ALB listener)
+    lifecycleLambda.addToRolePolicy(new aws_iam.PolicyStatement({
+      actions: [
+        'elasticloadbalancing:CreateRule',
+        'elasticloadbalancing:DeleteRule',
+        'elasticloadbalancing:DescribeRules',
+      ],
+      resources: [
+        // Listener ARN
+        aws_ssm.StringParameter.valueForStringParameter(this, ssm.ECS.ALB_LISTENER_ARN),
+        // Rule ARNs under any listener
+        Stack.of(this).formatArn({
+          service: 'elasticloadbalancing',
+          resource: 'listener-rule',
+          resourceName: '*',
         }),
       ],
     }));

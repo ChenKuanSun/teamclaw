@@ -5,6 +5,12 @@ import {
   ElasticLoadBalancingV2Client,
   RegisterTargetsCommand,
   DeregisterTargetsCommand,
+  CreateTargetGroupCommand,
+  DeleteTargetGroupCommand,
+  CreateRuleCommand,
+  DeleteRuleCommand,
+  DescribeTargetGroupsCommand,
+  DescribeRulesCommand,
 } from '@aws-sdk/client-elastic-load-balancing-v2';
 import {
   SchedulerClient,
@@ -107,6 +113,107 @@ async function provisionUser(userId: string, teamId?: string) {
   };
 }
 
+/**
+ * Derive a short, ALB-safe target group name from a userId.
+ * TG names: max 32 chars, alphanumeric + hyphens only, no leading/trailing hyphen.
+ */
+function userTgName(userId: string): string {
+  const safe = userId.replace(/[^a-zA-Z0-9-]/g, '').substring(0, 20);
+  return `tc-u-${safe}`;
+}
+
+/** Derive the ALB path pattern for a user: /u/{shortId}* */
+function userPathPattern(userId: string): string {
+  const safe = userId.replace(/[^a-zA-Z0-9-]/g, '').substring(0, 40);
+  return `/u/${safe}*`;
+}
+
+/** Ensure a per-user target group exists, creating it if needed. Returns the TG ARN. */
+async function ensureUserTargetGroup(userId: string): Promise<string> {
+  const tgName = userTgName(userId);
+
+  // Check if it already exists
+  try {
+    const desc = await elbv2Client.send(new DescribeTargetGroupsCommand({ Names: [tgName] }));
+    if (desc.TargetGroups?.[0]?.TargetGroupArn) {
+      return desc.TargetGroups[0].TargetGroupArn;
+    }
+  } catch (err: any) {
+    // TargetGroupNotFound is expected for first-time creation
+    if (err.name !== 'TargetGroupNotFoundException') throw err;
+  }
+
+  const tg = await elbv2Client.send(new CreateTargetGroupCommand({
+    Name: tgName,
+    Protocol: 'HTTP',
+    Port: 18789,
+    VpcId: process.env['VPC_ID']!,
+    TargetType: 'ip',
+    HealthCheckEnabled: true,
+    HealthCheckPath: '/health',
+    HealthCheckPort: '18789',
+    HealthyThresholdCount: 2,
+    UnhealthyThresholdCount: 3,
+    HealthCheckIntervalSeconds: 15,
+    HealthCheckTimeoutSeconds: 5,
+    Tags: [
+      { Key: 'UserId', Value: userId },
+      { Key: 'ManagedBy', Value: 'teamclaw-lifecycle' },
+    ],
+  }));
+
+  return tg.TargetGroups![0].TargetGroupArn!;
+}
+
+/**
+ * Ensure an ALB listener rule routes /u/{userId}* to the user's target group.
+ * Returns the rule ARN (existing or newly created).
+ */
+async function ensureListenerRule(userId: string, targetGroupArn: string): Promise<string> {
+  const listenerArn = process.env['ALB_LISTENER_ARN']!;
+  const pathPattern = userPathPattern(userId);
+
+  // Check for existing rule by listing all rules and matching our path pattern
+  const existingRules = await elbv2Client.send(new DescribeRulesCommand({ ListenerArn: listenerArn }));
+  for (const rule of existingRules.Rules || []) {
+    if (rule.IsDefault) continue;
+    const pathCond = rule.Conditions?.find(c => c.Field === 'path-pattern');
+    if (pathCond?.Values?.includes(pathPattern)) {
+      return rule.RuleArn!;
+    }
+  }
+
+  // Determine next available priority (non-default rules)
+  const usedPriorities = (existingRules.Rules || [])
+    .filter(r => !r.IsDefault && r.Priority)
+    .map(r => parseInt(r.Priority!, 10))
+    .filter(n => !isNaN(n));
+  const nextPriority = usedPriorities.length > 0 ? Math.max(...usedPriorities) + 1 : 1;
+
+  const rule = await elbv2Client.send(new CreateRuleCommand({
+    ListenerArn: listenerArn,
+    Priority: nextPriority,
+    Conditions: [
+      {
+        Field: 'path-pattern',
+        Values: [pathPattern],
+      },
+    ],
+    Actions: [
+      {
+        Type: 'forward',
+        TargetGroupArn: targetGroupArn,
+      },
+    ],
+    Tags: [
+      { Key: 'UserId', Value: userId },
+      { Key: 'ManagedBy', Value: 'teamclaw-lifecycle' },
+    ],
+  }));
+
+  return rule.Rules![0].RuleArn!;
+}
+
 async function startContainer(userId: string) {
   const userRecord = await ddbClient.send(new GetItemCommand({
     TableName: process.env['USERS_TABLE_NAME']!,
@@ -169,17 +276,26 @@ async function startContainer(userId: string) {
     return { statusCode: 503, body: JSON.stringify({ error: `ECS launch failed: ${reason}` }) };
   }
 
-  // Wait for task to get a private IP and register with ALB target group
+  // Wait for task to get a private IP
   let privateIp: string | undefined;
-  const targetGroupArn = process.env['ALB_TARGET_GROUP_ARN'];
-  if (targetGroupArn) {
-    privateIp = await waitForTaskIp(taskArn);
-    if (privateIp) {
-      await elbv2Client.send(new RegisterTargetsCommand({
-        TargetGroupArn: targetGroupArn,
-        Targets: [{ Id: privateIp, Port: 18789 }],
-      }));
-    }
+  let userTargetGroupArn: string | undefined;
+  let listenerRuleArn: string | undefined;
+
+  privateIp = await waitForTaskIp(taskArn);
+  if (privateIp && process.env['ALB_LISTENER_ARN'] && process.env['VPC_ID']) {
+    // Create per-user target group + ALB listener rule for path-based routing
+    userTargetGroupArn = await ensureUserTargetGroup(userId);
+    await elbv2Client.send(new RegisterTargetsCommand({
+      TargetGroupArn: userTargetGroupArn,
+      Targets: [{ Id: privateIp, Port: 18789 }],
+    }));
+    listenerRuleArn = await ensureListenerRule(userId, userTargetGroupArn);
+  } else if (privateIp && process.env['ALB_TARGET_GROUP_ARN']) {
+    // Fallback: register to shared target group (legacy behavior)
+    await elbv2Client.send(new RegisterTargetsCommand({
+      TargetGroupArn: process.env['ALB_TARGET_GROUP_ARN'],
+      Targets: [{ Id: privateIp, Port: 18789 }],
+    }));
   }
 
   await ddbClient.send(new PutItemCommand({
@@ -188,6 +304,8 @@ async function startContainer(userId: string) {
       ...userRecord.Item,
       taskArn: { S: taskArn },
       ...(privateIp ? { privateIp: { S: privateIp } } : {}),
+      ...(userTargetGroupArn ? { targetGroupArn: { S: userTargetGroupArn } } : {}),
+      ...(listenerRuleArn ? { listenerRuleArn: { S: listenerRuleArn } } : {}),
       status: { S: 'running' },
     },
   }));
@@ -228,13 +346,41 @@ async function stopContainer(userId: string) {
     return { statusCode: 404, body: 'No running container' };
   }
 
-  // Deregister from ALB target group
-  const targetGroupArn = process.env['ALB_TARGET_GROUP_ARN'];
   const privateIp = userRecord.Item['privateIp']?.S;
-  if (targetGroupArn && privateIp) {
+  const userTgArn = userRecord.Item['targetGroupArn']?.S;
+  const ruleArn = userRecord.Item['listenerRuleArn']?.S;
+
+  // Deregister from per-user target group and clean up ALB resources
+  if (userTgArn && privateIp) {
     try {
       await elbv2Client.send(new DeregisterTargetsCommand({
-        TargetGroupArn: targetGroupArn,
+        TargetGroupArn: userTgArn,
+        Targets: [{ Id: privateIp, Port: 18789 }],
+      }));
+    } catch {
+      // Best-effort deregistration
+    }
+
+    // Delete listener rule first (must be removed before target group)
+    if (ruleArn) {
+      try {
+        await elbv2Client.send(new DeleteRuleCommand({ RuleArn: ruleArn }));
+      } catch {
+        // Best-effort cleanup
+      }
+    }
+
+    // Delete per-user target group
+    try {
+      await elbv2Client.send(new DeleteTargetGroupCommand({ TargetGroupArn: userTgArn }));
+    } catch {
+      // Best-effort cleanup — TG may still have draining targets
+    }
+  } else if (process.env['ALB_TARGET_GROUP_ARN'] && privateIp) {
+    // Fallback: deregister from shared target group (legacy behavior)
+    try {
+      await elbv2Client.send(new DeregisterTargetsCommand({
+        TargetGroupArn: process.env['ALB_TARGET_GROUP_ARN'],
         Targets: [{ Id: privateIp, Port: 18789 }],
       }));
     } catch {
@@ -254,6 +400,8 @@ async function stopContainer(userId: string) {
       ...userRecord.Item,
       taskArn: { S: '' },
       privateIp: { S: '' },
+      targetGroupArn: { S: '' },
+      listenerRuleArn: { S: '' },
       status: { S: 'stopped' },
     },
   }));

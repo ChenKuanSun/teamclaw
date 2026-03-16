@@ -67,9 +67,11 @@ const handlerFn = async (
     const userStatus = userResult.Item['status']?.S || 'unknown';
 
     if (userStatus === 'running') {
+      // Per-user path-based routing: /u/{shortId} ensures ALB routes to the correct container
+      const shortId = sub.replace(/[^a-zA-Z0-9-]/g, '').substring(0, 40);
       return {
         status: HttpStatusCode.SUCCESS,
-        body: { status: 'ready', userId: sub, gatewayUrl: `wss://${ALB_DNS_NAME}` },
+        body: { status: 'ready', userId: sub, gatewayUrl: `wss://${ALB_DNS_NAME}/u/${shortId}` },
       };
     }
 

@@ -209,7 +209,8 @@ export class TeamClawWsService implements OnDestroy {
   }
 
   private parseHistory(payload: any): void {
-    const preview = Array.isArray(payload) ? payload[0] : payload;
+    const previews = payload?.previews || (Array.isArray(payload) ? payload : []);
+    const preview = previews[0];
     const items = preview?.items;
     if (!Array.isArray(items) || items.length === 0) return;
 

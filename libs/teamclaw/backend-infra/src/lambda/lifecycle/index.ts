@@ -148,6 +148,7 @@ async function startContainer(userId: string) {
             { name: 'USER_ID', value: userId },
             { name: 'TEAM_ID', value: userRecord.Item['teamId']?.S || '' },
             { name: 'API_KEYS_SECRET_ARN', value: process.env['API_KEYS_SECRET_ARN']! },
+            { name: 'ALLOWED_ORIGINS', value: process.env['ALLOWED_ORIGINS'] || '' },
           ],
         },
         {

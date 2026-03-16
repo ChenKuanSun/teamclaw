@@ -1,24 +1,20 @@
 #!/bin/bash
 # Register ECS task definition with sidecar proxy container
-# Usage: ./register-task-definition.sh <env> <account-id> <region> [efs-filesystem-id]
+# Usage: ./register-task-definition.sh <env> <account-id> <region> <efs-filesystem-id>
 
 set -euo pipefail
 
-ENV="${1:?Usage: $0 <env> <account-id> <region> [efs-filesystem-id]}"
-ACCOUNT_ID="${2:?Usage: $0 <env> <account-id> <region> [efs-filesystem-id]}"
-REGION="${3:-us-west-1}"
-EFS_FS_ID="${4:-}"
+ENV="${1:?Usage: $0 <env> <account-id> <region> <efs-filesystem-id>}"
+ACCOUNT_ID="${2:?Usage: $0 <env> <account-id> <region> <efs-filesystem-id>}"
+REGION="${3:?Usage: $0 <env> <account-id> <region> <efs-filesystem-id>}"
+EFS_FS_ID="${4:?Usage: $0 <env> <account-id> <region> <efs-filesystem-id>}"
 
 TEAMCLAW_REPO="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/teamclaw-enterprise-${ENV}"
 SIDECAR_REPO="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/teamclaw-sidecar-${ENV}"
 
-# Build volumes JSON (EFS optional)
-VOLUMES="[]"
-TEAMCLAW_MOUNTS="[]"
-if [ -n "${EFS_FS_ID}" ]; then
-  VOLUMES="[{\"name\": \"efs-data\", \"efsVolumeConfiguration\": {\"fileSystemId\": \"${EFS_FS_ID}\", \"rootDirectory\": \"/\"}}]"
-  TEAMCLAW_MOUNTS="[{\"sourceVolume\": \"efs-data\", \"containerPath\": \"/efs\", \"readOnly\": false}]"
-fi
+# EFS volume (required)
+VOLUMES="[{\"name\": \"efs-data\", \"efsVolumeConfiguration\": {\"fileSystemId\": \"${EFS_FS_ID}\", \"rootDirectory\": \"/\", \"transitEncryptionEnabled\": true, \"authorizationConfig\": {\"iam\": \"ENABLED\"}}}]"
+TEAMCLAW_MOUNTS="[{\"sourceVolume\": \"efs-data\", \"containerPath\": \"/efs\", \"readOnly\": false}]"
 
 aws ecs register-task-definition \
   --region "${REGION}" \

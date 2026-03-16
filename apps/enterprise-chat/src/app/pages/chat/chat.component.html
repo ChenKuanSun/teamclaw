@@ -32,6 +32,16 @@
             } @else {
               <div class="msg-text">{{ msg.content }}</div>
             }
+            @if (msg.options?.length) {
+              <div class="msg-options">
+                @for (opt of msg.options; track opt.value) {
+                  <button class="option-btn" (click)="onOptionClick(opt)">
+                    @if (opt.icon) { <mat-icon>{{ opt.icon }}</mat-icon> }
+                    {{ opt.label }}
+                  </button>
+                }
+              </div>
+            }
           </div>
           <time class="msg-time">{{ msg.timestamp | date:'shortTime' }}</time>
         </div>

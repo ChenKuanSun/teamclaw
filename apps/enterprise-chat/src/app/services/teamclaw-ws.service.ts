@@ -1,10 +1,18 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
+export interface ChatOption {
+  label: string;
+  value: string;
+  icon?: string;
+  action: string;  // e.g. 'set-model', 'switch-session'
+}
+
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: Date;
+  options?: ChatOption[];  // Interactive clickable options
 }
 
 @Injectable({ providedIn: 'root' })
@@ -269,6 +277,16 @@ export class TeamClawWsService implements OnDestroy {
         reject(new Error('Command timeout'));
       }, 10000);
     });
+  }
+
+  getSessionKey(): string {
+    return this.sessionKey;
+  }
+
+  switchSession(key: string): void {
+    this.sessionKey = key;
+    this.messages$.next([]);
+    this.loadHistory();
   }
 
   resetSession(): void {

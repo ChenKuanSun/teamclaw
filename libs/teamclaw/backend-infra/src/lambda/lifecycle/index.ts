@@ -96,7 +96,15 @@ async function provisionUser(userId: string, teamId?: string) {
     throw err;
   }
 
-  return { statusCode: 200, body: JSON.stringify({ accessPointId: accessPoint.AccessPointId }) };
+  // After provisioning, immediately start the container
+  const startResult = await startContainer(userId);
+  return {
+    statusCode: 200,
+    body: JSON.stringify({
+      accessPointId: accessPoint.AccessPointId,
+      startResult: JSON.parse(startResult.body as string),
+    }),
+  };
 }
 
 async function startContainer(userId: string) {

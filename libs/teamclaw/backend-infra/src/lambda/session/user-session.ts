@@ -73,8 +73,35 @@ const handlerFn = async (
       };
     }
 
-    // stopped or provisioned → start
-    await invokeLifecycle('start', sub);
+    // Already starting — don't re-invoke
+    if (userStatus === 'starting') {
+      return {
+        status: HttpStatusCode.SUCCESS,
+        body: { status: 'starting', userId: sub, estimatedWaitSeconds: 30 },
+      };
+    }
+
+    // stopped or provisioned → start (only once)
+    // Update status to 'starting' first to prevent duplicate invocations
+    try {
+      await ddb.send(new PutItemCommand({
+        TableName: USERS_TABLE,
+        Item: { ...userResult.Item, status: { S: 'starting' } },
+        ConditionExpression: 'attribute_exists(userId) AND #s IN (:stopped, :provisioned)',
+        ExpressionAttributeNames: { '#s': 'status' },
+        ExpressionAttributeValues: {
+          ':stopped': { S: 'stopped' },
+          ':provisioned': { S: 'provisioned' },
+        },
+      }));
+      await invokeLifecycle('start', sub);
+    } catch (err) {
+      if (err instanceof ConditionalCheckFailedException) {
+        // Another request already changed status — just return current state
+      } else {
+        throw err;
+      }
+    }
     return {
       status: HttpStatusCode.SUCCESS,
       body: { status: 'starting', userId: sub, estimatedWaitSeconds: 30 },

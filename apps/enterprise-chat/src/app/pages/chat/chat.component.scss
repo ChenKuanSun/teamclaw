@@ -197,6 +197,69 @@
       padding: 0;
     }
   }
+
+  // Images in markdown
+  img {
+    max-width: 100%;
+    border-radius: var(--radius-md);
+    margin: var(--space-2) 0;
+  }
+
+  // Videos (via HTML in markdown)
+  video {
+    max-width: 100%;
+    border-radius: var(--radius-md);
+    margin: var(--space-2) 0;
+  }
+
+  // Audio
+  audio {
+    width: 100%;
+    margin: var(--space-2) 0;
+  }
+
+  // Links
+  a {
+    color: var(--accent);
+    text-decoration: none;
+    &:hover { text-decoration: underline; }
+  }
+
+  // Blockquotes
+  blockquote {
+    border-left: 3px solid var(--accent);
+    margin: var(--space-2) 0;
+    padding: var(--space-2) var(--space-3);
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+
+  // Tables
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: var(--space-2) 0;
+    font-size: var(--text-mono);
+  }
+  th, td {
+    border: 1px solid var(--border-default);
+    padding: var(--space-1) var(--space-2);
+    text-align: left;
+  }
+  th {
+    background: var(--bg-elevated);
+    font-weight: var(--weight-semibold);
+  }
+
+  // Lists
+  ul, ol {
+    padding-left: var(--space-5);
+    margin: var(--space-1) 0;
+  }
+  li {
+    margin: var(--space-1) 0;
+  }
 }
 
 // ===== Interactive Options =====
@@ -308,6 +371,12 @@
   padding: 6px 0;
   max-height: 160px;
   min-height: 24px;
+  overflow-y: hidden;
+
+  // Only show scrollbar when content exceeds max-height
+  &:not(:placeholder-shown) {
+    overflow-y: auto;
+  }
 
   &::placeholder {
     color: var(--text-muted);

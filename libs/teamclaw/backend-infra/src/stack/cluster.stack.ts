@@ -98,7 +98,7 @@ export class ClusterStack extends Stack {
         cachePolicy: aws_cloudfront.CachePolicy.CACHING_DISABLED,
         originRequestPolicy: aws_cloudfront.OriginRequestPolicy.ALL_VIEWER,
       },
-      httpVersion: aws_cloudfront.HttpVersion.HTTP2_AND_3,
+      httpVersion: aws_cloudfront.HttpVersion.HTTP2,
     });
 
     new aws_ssm.StringParameter(this, 'AlbListenerArnParam', {

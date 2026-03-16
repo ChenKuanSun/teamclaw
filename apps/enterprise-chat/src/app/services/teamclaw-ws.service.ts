@@ -169,7 +169,6 @@ export class TeamClawWsService implements OnDestroy {
       msgs.push({ role: 'assistant', content: text, timestamp: new Date() });
     }
     this.messages$.next(msgs);
-    this.typing$.next(false);
   }
 
   private handleResponse(frame: any): void {

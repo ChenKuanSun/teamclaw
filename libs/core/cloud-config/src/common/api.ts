@@ -7,16 +7,9 @@ import { TC_ADMIN_APP_DOMAIN_NAME, TC_CHAT_APP_AMPLIFY_DOMAIN, ENVIRONMENT } fro
 export const getTCAdminApiCorsOrigins = (
   deployEnv: ENVIRONMENT,
 ): string[] => {
-  if (deployEnv === ENVIRONMENT.PROD) {
-    return [
-      `https://${TC_ADMIN_APP_DOMAIN_NAME[ENVIRONMENT.PROD]}`,
-      `https://${TC_CHAT_APP_AMPLIFY_DOMAIN}`,
-    ];
-  }
   return [
-    `https://${TC_ADMIN_APP_DOMAIN_NAME[ENVIRONMENT.DEV]}`,
-    `https://${TC_CHAT_APP_AMPLIFY_DOMAIN}`,
-    'http://localhost:4900',
-    'http://localhost:4200',
+    `https://${TC_ADMIN_APP_DOMAIN_NAME[deployEnv]}`,
+    `https://${TC_CHAT_APP_AMPLIFY_DOMAIN[deployEnv]}`,
+    ...(deployEnv === ENVIRONMENT.DEV ? ['http://localhost:4900', 'http://localhost:4200'] : []),
   ];
 };

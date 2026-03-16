@@ -15,7 +15,7 @@ export async function logUsage(provider: string, model: string): Promise<void> {
       TableName: TABLE_NAME,
       Item: {
         userId: { S: USER_ID },
-        timestamp: { S: now.toISOString() },
+        timestamp: { S: `${now.toISOString()}-${Math.random().toString(36).substring(2, 8)}` },
         provider: { S: provider },
         model: { S: model },
         ttl: { N: String(ttl) },

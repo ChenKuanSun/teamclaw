@@ -200,6 +200,7 @@ export class SessionInitComponent implements OnInit, OnDestroy {
   }
 
   retry(): void {
+    this.stopPolling();
     this.pollCount = 0;
     this.checkSession();
   }

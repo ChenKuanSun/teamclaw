@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -29,7 +29,7 @@ import { environment } from '../../../environments/environment';
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
 })
-export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
+export class ChatComponent implements OnInit, OnDestroy {
   @ViewChild('messageList') messageList!: ElementRef;
   private readonly route = inject(ActivatedRoute);
   messages: ChatMessage[] = [];
@@ -52,14 +52,13 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       this.ws.connect(gatewayUrl, token);
     }
     this.subs.push(
-      this.ws.messages$.subscribe(msgs => this.messages = msgs),
+      this.ws.messages$.subscribe(msgs => {
+        this.messages = msgs;
+        setTimeout(() => this.scrollToBottom());
+      }),
       this.ws.typing$.subscribe(t => this.typing = t),
       this.ws.connected$.subscribe(c => this.connected = c),
     );
-  }
-
-  ngAfterViewChecked(): void {
-    this.scrollToBottom();
   }
 
   onCompositionEnd(): void {

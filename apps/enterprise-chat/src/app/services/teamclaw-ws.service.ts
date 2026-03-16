@@ -53,9 +53,14 @@ export class TeamClawWsService implements OnDestroy {
       this.handleFrame(frame);
     };
 
-    this.ws.onclose = () => {
+    this.ws.onclose = (event) => {
       this.connected$.next(false);
       this.stopTick();
+      // Don't reconnect on auth failures
+      if (event.code === 1008 || event.code >= 4400) {
+        console.error('[ws] Auth failure, not reconnecting:', event.code, event.reason);
+        return;
+      }
       this.reconnectTimer = setTimeout(() => this.doConnect(), 3000);
     };
 

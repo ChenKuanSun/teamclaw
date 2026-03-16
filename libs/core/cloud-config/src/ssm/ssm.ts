@@ -44,6 +44,8 @@ export const TC_SSM_PARAMETER = {
       TEAMS_TABLE_NAME: `/tc/${ENVIRONMENT.PROD}/dynamodb/teamsTableName`,
       CONFIG_TABLE_ARN: `/tc/${ENVIRONMENT.PROD}/dynamodb/configTableArn`,
       CONFIG_TABLE_NAME: `/tc/${ENVIRONMENT.PROD}/dynamodb/configTableName`,
+      SKILLS_TABLE_ARN: `/tc/${ENVIRONMENT.PROD}/dynamodb/skillsTableArn`,
+      SKILLS_TABLE_NAME: `/tc/${ENVIRONMENT.PROD}/dynamodb/skillsTableName`,
     },
     ADMIN_COGNITO: {
       USER_POOL_ID: `/tc/${ENVIRONMENT.PROD}/admin-cognito/userPoolId`,
@@ -93,6 +95,10 @@ export const TC_SSM_PARAMETER = {
         USER_SESSION_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/userSessionLambdaName`,
         // Onboarding
         GET_ONBOARDING_STATUS_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/getOnboardingStatusLambdaName`,
+        // Skills Approval
+        REQUEST_SKILL_INSTALL_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/requestSkillInstallLambdaName`,
+        REVIEW_SKILL_REQUEST_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/reviewSkillRequestLambdaName`,
+        LIST_PENDING_SKILLS_LAMBDA_NAME: `/tc/${ENVIRONMENT.PROD}/admin-api/lambda/listPendingSkillsLambdaName`,
       },
     },
   },
@@ -139,6 +145,8 @@ export const TC_SSM_PARAMETER = {
       TEAMS_TABLE_NAME: `/tc/${ENVIRONMENT.DEV}/dynamodb/teamsTableName`,
       CONFIG_TABLE_ARN: `/tc/${ENVIRONMENT.DEV}/dynamodb/configTableArn`,
       CONFIG_TABLE_NAME: `/tc/${ENVIRONMENT.DEV}/dynamodb/configTableName`,
+      SKILLS_TABLE_ARN: `/tc/${ENVIRONMENT.DEV}/dynamodb/skillsTableArn`,
+      SKILLS_TABLE_NAME: `/tc/${ENVIRONMENT.DEV}/dynamodb/skillsTableName`,
     },
     ADMIN_COGNITO: {
       USER_POOL_ID: `/tc/${ENVIRONMENT.DEV}/admin-cognito/userPoolId`,
@@ -188,6 +196,10 @@ export const TC_SSM_PARAMETER = {
         USER_SESSION_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/userSessionLambdaName`,
         // Onboarding
         GET_ONBOARDING_STATUS_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/getOnboardingStatusLambdaName`,
+        // Skills Approval
+        REQUEST_SKILL_INSTALL_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/requestSkillInstallLambdaName`,
+        REVIEW_SKILL_REQUEST_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/reviewSkillRequestLambdaName`,
+        LIST_PENDING_SKILLS_LAMBDA_NAME: `/tc/${ENVIRONMENT.DEV}/admin-api/lambda/listPendingSkillsLambdaName`,
       },
     },
   },

@@ -100,6 +100,23 @@ export class ControlPlaneStack extends Stack {
       billing: aws_dynamodb.Billing.onDemand(),
     });
 
+    // ─── DynamoDB: Skills Approval ───
+    // Tracks hub skill install requests and their approval status
+    const skillsTable = new aws_dynamodb.Table(this, 'SkillsApprovalTable', {
+      tableName: `teamclaw-skills-${deployEnv}`,
+      partitionKey: { name: 'skillId', type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'requestedBy', type: aws_dynamodb.AttributeType.STRING },
+      billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: RemovalPolicy.RETAIN,
+    });
+
+    // GSI for querying by status (pending/approved/rejected)
+    skillsTable.addGlobalSecondaryIndex({
+      indexName: 'by-status',
+      partitionKey: { name: 'status', type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'requestedAt', type: aws_dynamodb.AttributeType.STRING },
+    });
+
     // ─── DynamoDB SSM Parameters ───
     new aws_ssm.StringParameter(this, 'UsersTableArnParam', {
       parameterName: ssm.DYNAMODB.USERS_TABLE_ARN,
@@ -132,6 +149,14 @@ export class ControlPlaneStack extends Stack {
     new aws_ssm.StringParameter(this, 'ConfigTableNameParam', {
       parameterName: ssm.DYNAMODB.CONFIG_TABLE_NAME,
       stringValue: configTable.tableName,
+    });
+    new aws_ssm.StringParameter(this, 'SkillsTableArnParam', {
+      parameterName: ssm.DYNAMODB.SKILLS_TABLE_ARN,
+      stringValue: skillsTable.tableArn,
+    });
+    new aws_ssm.StringParameter(this, 'SkillsTableNameParam', {
+      parameterName: ssm.DYNAMODB.SKILLS_TABLE_NAME,
+      stringValue: skillsTable.tableName,
     });
 
     // ─── Key Pool Proxy Lambda ───

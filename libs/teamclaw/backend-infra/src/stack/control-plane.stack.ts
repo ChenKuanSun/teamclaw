@@ -1,12 +1,12 @@
 import {
   Stack,
   aws_cognito,
+  aws_events,
+  aws_events_targets,
   aws_lambda_nodejs,
-  aws_apigateway,
   aws_dynamodb,
   aws_iam,
   aws_ssm,
-  aws_secretsmanager,
   Duration,
   RemovalPolicy,
 } from 'aws-cdk-lib';
@@ -159,44 +159,10 @@ export class ControlPlaneStack extends Stack {
       stringValue: skillsTable.tableName,
     });
 
-    // ─── Key Pool Proxy Lambda ───
+    // ─── API Keys Secret (used by sidecar proxy, referenced by lifecycle Lambda) ───
     const apiKeysSecretArn = aws_ssm.StringParameter.valueForStringParameter(
       this, ssm.SECRETS.API_KEYS_SECRET_ARN,
     );
-    const apiKeysSecret = aws_secretsmanager.Secret.fromSecretCompleteArn(
-      this, 'ApiKeysSecret', apiKeysSecretArn,
-    );
-
-    const keyPoolLambda = new aws_lambda_nodejs.NodejsFunction(this, 'KeyPoolProxyLambda', {
-      ...TC_LAMBDA_DEFAULT_PROPS,
-      functionName: `teamclaw-key-pool-proxy-${deployEnv}`,
-      entry: `${LAMBDA_ENTRY_PATH}/key-pool-proxy/index.ts`,
-      environment: {
-        API_KEYS_SECRET_ARN: apiKeysSecretArn,
-        USAGE_TABLE_NAME: usageTable.tableName,
-      },
-    });
-    apiKeysSecret.grantRead(keyPoolLambda);
-    usageTable.grantWriteData(keyPoolLambda);
-
-    // API Gateway fronting the Key Pool Proxy
-    const api = new aws_apigateway.RestApi(this, 'KeyPoolApi', {
-      restApiName: `teamclaw-key-pool-${deployEnv}`,
-      description: 'Proxies AI provider API calls, injects keys server-side',
-    });
-
-    api.root.addProxy({
-      defaultIntegration: new aws_apigateway.LambdaIntegration(keyPoolLambda),
-      anyMethod: true,
-      defaultMethodOptions: {
-        authorizationType: aws_apigateway.AuthorizationType.IAM,
-      },
-    });
-
-    new aws_ssm.StringParameter(this, 'KeyPoolProxyUrlParam', {
-      parameterName: ssm.API_GATEWAY.KEY_POOL_PROXY_URL,
-      stringValue: api.url,
-    });
 
     // ─── Lifecycle Lambda (start/stop/provision/cron-sync) ───
     const lifecycleLambda = new aws_lambda_nodejs.NodejsFunction(this, 'LifecycleLambda', {
@@ -210,7 +176,6 @@ export class ControlPlaneStack extends Stack {
         EFS_FILE_SYSTEM_ID: aws_ssm.StringParameter.valueForStringParameter(this, ssm.EFS.FILE_SYSTEM_ID),
         PRIVATE_SUBNET_IDS: aws_ssm.StringParameter.valueForStringParameter(this, ssm.VPC.PRIVATE_SUBNET_IDS),
         SECURITY_GROUP_ID: aws_ssm.StringParameter.valueForStringParameter(this, ssm.ECS.ALB_SECURITY_GROUP_ID),
-        KEY_POOL_PROXY_URL: api.url,
         API_KEYS_SECRET_ARN: apiKeysSecretArn,
         USAGE_TABLE_NAME: usageTable.tableName,
         SIDECAR_IMAGE: aws_ssm.StringParameter.valueForStringParameter(this, ssm.ECR.SIDECAR_REPO_URI),

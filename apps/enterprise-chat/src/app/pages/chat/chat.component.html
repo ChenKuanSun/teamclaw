@@ -66,6 +66,8 @@
         [placeholder]="'Message your AI assistant...' | translate"
         [(ngModel)]="inputText"
         (keydown.enter)="onEnter($event)"
+        (compositionstart)="isComposing = true"
+        (compositionend)="isComposing = false"
         rows="1"
         cdkTextareaAutosize
         cdkAutosizeMinRows="1"

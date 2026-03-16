@@ -34,6 +34,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   typing = false;
   connected = false;
   inputText = '';
+  isComposing = false;
   private subs: Subscription[] = [];
 
   constructor(
@@ -60,6 +61,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   onEnter(event: Event): void {
+    if (this.isComposing) return; // Don't submit during IME composition
     const ke = event as KeyboardEvent;
     if (ke.shiftKey) return; // allow Shift+Enter for newline
     event.preventDefault();

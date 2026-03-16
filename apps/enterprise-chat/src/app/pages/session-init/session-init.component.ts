@@ -135,6 +135,8 @@ export class SessionInitComponent implements OnInit, OnDestroy {
   private readonly sessionService = inject(SessionService);
   private readonly router = inject(Router);
   private pollTimer: ReturnType<typeof setInterval> | null = null;
+  private pollCount = 0;
+  private readonly MAX_POLLS = 60; // 60 × 3s = 3 minutes max
 
   readonly statusMessage = signal('Connecting...');
   readonly error = signal('');
@@ -149,6 +151,12 @@ export class SessionInitComponent implements OnInit, OnDestroy {
 
   private checkSession(): void {
     this.error.set('');
+    this.pollCount++;
+    if (this.pollCount > this.MAX_POLLS) {
+      this.stopPolling();
+      this.error.set('Timed out waiting for your workspace. Please try again.');
+      return;
+    }
     this.sessionService.initSession().subscribe({
       next: (res) => this.handleResponse(res),
       error: (err: HttpErrorResponse) => {
@@ -192,6 +200,7 @@ export class SessionInitComponent implements OnInit, OnDestroy {
   }
 
   retry(): void {
+    this.pollCount = 0;
     this.checkSession();
   }
 }

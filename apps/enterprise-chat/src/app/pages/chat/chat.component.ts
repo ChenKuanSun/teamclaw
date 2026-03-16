@@ -6,6 +6,7 @@ import { TextFieldModule } from '@angular/cdk/text-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
+import { MarkdownComponent } from 'ngx-markdown';
 import { TeamClawWsService, ChatMessage } from '../../services/teamclaw-ws.service';
 import { CommandMenuComponent, CommandAction } from '../../components/command-menu/command-menu.component';
 import { AuthService } from '../../services/auth.service';
@@ -22,6 +23,7 @@ import { environment } from '../../../environments/environment';
     MatButtonModule,
     MatIconModule,
     TranslateModule,
+    MarkdownComponent,
     CommandMenuComponent,
   ],
   templateUrl: './chat.component.html',
@@ -58,6 +60,11 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   ngAfterViewChecked(): void {
     this.scrollToBottom();
+  }
+
+  onCompositionEnd(): void {
+    // Delay to prevent race with keydown.enter firing in the same event loop tick
+    setTimeout(() => this.isComposing = false);
   }
 
   onEnter(event: Event): void {

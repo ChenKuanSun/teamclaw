@@ -27,7 +27,11 @@
             <span class="msg-label">{{ 'You' | translate }}</span>
           }
           <div class="msg-bubble" [class.user-bubble]="msg.role === 'user'" [class.ai-bubble]="msg.role === 'assistant'">
-            <div class="msg-text" [innerHTML]="msg.content"></div>
+            @if (msg.role === 'assistant') {
+              <markdown class="msg-text" [data]="msg.content"></markdown>
+            } @else {
+              <div class="msg-text">{{ msg.content }}</div>
+            }
           </div>
           <time class="msg-time">{{ msg.timestamp | date:'shortTime' }}</time>
         </div>
@@ -67,7 +71,7 @@
         [(ngModel)]="inputText"
         (keydown.enter)="onEnter($event)"
         (compositionstart)="isComposing = true"
-        (compositionend)="isComposing = false"
+        (compositionend)="onCompositionEnd()"
         rows="1"
         cdkTextareaAutosize
         cdkAutosizeMinRows="1"

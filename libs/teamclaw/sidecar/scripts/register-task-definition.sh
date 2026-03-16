@@ -13,7 +13,7 @@ TEAMCLAW_REPO="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/teamclaw-enterprise
 SIDECAR_REPO="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/teamclaw-sidecar-${ENV}"
 
 # EFS volume (required)
-VOLUMES="[{\"name\": \"efs-data\", \"efsVolumeConfiguration\": {\"fileSystemId\": \"${EFS_FS_ID}\", \"rootDirectory\": \"/\", \"transitEncryptionEnabled\": true, \"authorizationConfig\": {\"iam\": \"ENABLED\"}}}]"
+VOLUMES="[{\"name\": \"efs-data\", \"efsVolumeConfiguration\": {\"fileSystemId\": \"${EFS_FS_ID}\", \"rootDirectory\": \"/\", \"transitEncryption\": \"ENABLED\", \"authorizationConfig\": {\"iam\": \"ENABLED\"}}}]"
 TEAMCLAW_MOUNTS="[{\"sourceVolume\": \"efs-data\", \"containerPath\": \"/efs\", \"readOnly\": false}]"
 
 aws ecs register-task-definition \

@@ -117,6 +117,50 @@ export async function resolveAuth(providerId: string, path: string): Promise<Aut
       headers['authorization'] = `Bearer ${key}`;
     }
   } else if (entry.authType === 'oauthToken') {
+    // Check if the OAuth token is expired or about to expire
+    if (entry.expiresAt) {
+      const now = Date.now();
+      const TEN_MINUTES = 10 * 60 * 1000;
+      const FIVE_MINUTES = 5 * 60 * 1000;
+
+      if (now > entry.expiresAt - TEN_MINUTES && now <= entry.expiresAt - FIVE_MINUTES) {
+        console.warn(
+          `[sidecar/auth] OAuth token for provider "${providerId}" expires in less than 10 minutes`
+        );
+      }
+
+      if (now > entry.expiresAt - FIVE_MINUTES) {
+        console.warn(
+          `[sidecar/auth] OAuth token for provider "${providerId}" expired or expiring soon — invalidating cache and reloading`
+        );
+        invalidateCache();
+        const refreshed = await loadSecrets();
+        const refreshedEntry = refreshed.providers[providerId];
+
+        if (
+          !refreshedEntry ||
+          refreshedEntry.authType !== 'oauthToken' ||
+          (refreshedEntry.expiresAt && now > refreshedEntry.expiresAt - FIVE_MINUTES)
+        ) {
+          console.error(
+            `[sidecar/auth] OAuth token for provider "${providerId}" is still expired after reload from Secrets Manager. ` +
+            `An external process must refresh the token in the secret.`
+          );
+          return null;
+        }
+
+        // Use the refreshed entry going forward
+        const refreshedToken = refreshedEntry.token || refreshedEntry.accessToken;
+        if (!refreshedToken) return null;
+        headers['authorization'] = `Bearer ${refreshedToken}`;
+        if (meta.extraHeaders) {
+          Object.assign(headers, meta.extraHeaders);
+        }
+        const targetUrl = `${meta.baseUrl}${path}`;
+        return { targetUrl, headers };
+      }
+    }
+
     const token = entry.token || entry.accessToken;
     if (!token) return null;
     headers['authorization'] = `Bearer ${token}`;

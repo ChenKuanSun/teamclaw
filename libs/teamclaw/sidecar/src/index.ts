@@ -37,6 +37,7 @@ const server = http.createServer(async (req, res) => {
   for (const [key, value] of Object.entries(req.headers)) {
     if (key === 'host' || key === 'connection') continue;
     if (key === 'authorization' || key === 'x-api-key' || key === 'x-goog-api-key') continue;
+    if (key === 'accept-encoding') continue; // Prevent gzip — sidecar doesn't decompress
     if (value) upstreamHeaders[key] = Array.isArray(value) ? value[0] : value;
   }
 

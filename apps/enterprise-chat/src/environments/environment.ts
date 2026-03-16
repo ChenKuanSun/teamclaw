@@ -1,9 +1,9 @@
 export const environment = {
   isProduction: true,
   cognito: {
-    userPoolId: 'us-west-1_lxON3IDgv',
-    clientId: '3jkm59nrob2el204otm7qlv8qu',
+    userPoolId: 'ap-southeast-1_Uc1Jk70g3',
+    clientId: '591b9pepkdf8jbgo99bh5mplmh',
   },
-  teamclawGatewayUrl: '',
-  adminApiUrl: 'https://9qt1dgv5d5.execute-api.us-west-1.amazonaws.com',
+  teamclawGatewayUrl: 'wss://d3uux8ceov3m3d.cloudfront.net',
+  adminApiUrl: 'https://sxlapmufkf.execute-api.ap-southeast-1.amazonaws.com',
 };

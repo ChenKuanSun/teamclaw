@@ -12,7 +12,7 @@ import {
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { StackPropsWithEnv, TC_SSM_PARAMETER } from '@TeamClaw/core/cloud-config';
-import { TC_LAMBDA_DEFAULT_PROPS, TC_LIFECYCLE_LAMBDA_PROPS } from '@TeamClaw/teamclaw/cloud-config';
+import { TC_LIFECYCLE_LAMBDA_PROPS } from '@TeamClaw/teamclaw/cloud-config';
 import { LAMBDA_ENTRY_PATH } from '../lambda';
 
 export class ControlPlaneStack extends Stack {

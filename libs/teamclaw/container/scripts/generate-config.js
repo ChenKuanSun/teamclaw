@@ -53,7 +53,7 @@ const baseConfig = {
     },
     controlUi: {
       dangerouslyAllowHostHeaderOriginFallback: true,
-      allowedOrigins: (process.env.ALLOWED_ORIGINS || 'https://main.d1gf9ksewdyeuo.amplifyapp.com,https://dev.d1gf9ksewdyeuo.amplifyapp.com').split(','),
+      allowedOrigins: (process.env.ALLOWED_ORIGINS || 'https://main.d1qn1f00108uy9.amplifyapp.com').split(','),
     },
   },
   models: {

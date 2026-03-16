@@ -1,4 +1,4 @@
-import { ConditionalCheckFailedException, DynamoDBClient, GetItemCommand, PutItemCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
+import { ConditionalCheckFailedException, DynamoDBClient, GetItemCommand, PutItemCommand, QueryCommand, UpdateItemCommand } from '@aws-sdk/client-dynamodb';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import {
   adminLambdaHandlerDecorator,
@@ -67,6 +67,14 @@ const handlerFn = async (
     const userStatus = userResult.Item['status']?.S || 'unknown';
 
     if (userStatus === 'running') {
+      // Update lastActiveAt to track user activity for idle auto-stop
+      await ddb.send(new UpdateItemCommand({
+        TableName: USERS_TABLE,
+        Key: { userId: { S: sub } },
+        UpdateExpression: 'SET lastActiveAt = :now',
+        ExpressionAttributeValues: { ':now': { S: new Date().toISOString() } },
+      }));
+
       // Per-user path-based routing: /u/{shortId} ensures ALB routes to the correct container
       const shortId = sub.replace(/[^a-zA-Z0-9-]/g, '').substring(0, 40);
       return {

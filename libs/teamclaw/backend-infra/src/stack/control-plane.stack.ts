@@ -343,5 +343,17 @@ export class ControlPlaneStack extends Stack {
         StringEquals: { 'iam:PassedToService': 'scheduler.amazonaws.com' },
       },
     }));
+
+    // ─── Auto-stop idle containers every 15 minutes ───
+    const idleCheckRule = new aws_events.Rule(this, 'IdleCheckRule', {
+      schedule: aws_events.Schedule.rate(Duration.minutes(15)),
+      description: 'Check for idle TeamClaw containers and stop them',
+    });
+    idleCheckRule.addTarget(new aws_events_targets.LambdaFunction(lifecycleLambda, {
+      event: aws_events.RuleTargetInput.fromObject({
+        action: 'check-idle',
+        userId: 'system',
+      }),
+    }));
   }
 }

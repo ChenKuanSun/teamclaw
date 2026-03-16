@@ -1,6 +1,6 @@
 import { ECSClient, RunTaskCommand, StopTaskCommand, DescribeTasksCommand } from '@aws-sdk/client-ecs';
 import { EFSClient, CreateAccessPointCommand, DeleteAccessPointCommand } from '@aws-sdk/client-efs';
-import { DynamoDBClient, GetItemCommand, PutItemCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, GetItemCommand, PutItemCommand, ScanCommand } from '@aws-sdk/client-dynamodb';
 import {
   ElasticLoadBalancingV2Client,
   RegisterTargetsCommand,
@@ -29,7 +29,7 @@ const schedulerClient = new SchedulerClient({});
 const SCHEDULE_GROUP = `teamclaw-cron-${process.env['DEPLOY_ENV']}`;
 
 interface LifecycleEvent {
-  action: 'start' | 'stop' | 'provision' | 'status' | 'sync-cron-schedules';
+  action: 'start' | 'stop' | 'provision' | 'status' | 'sync-cron-schedules' | 'check-idle';
   userId: string;
   teamId?: string;
   cronSchedules?: string[];
@@ -49,6 +49,8 @@ export const handler = async (event: LifecycleEvent) => {
       return await getStatus(userId);
     case 'sync-cron-schedules':
       return await syncCronSchedules(userId, event.cronSchedules || []);
+    case 'check-idle':
+      return await checkIdleContainers();
     default:
       return { statusCode: 400, body: 'Unknown action' };
   }
@@ -481,5 +483,37 @@ async function syncCronSchedules(userId: string, cronSchedules: string[]) {
       schedulesCreated: created.length,
     }),
   };
+}
+
+/**
+ * Scan for running containers that have been idle for longer than the timeout
+ * and stop them to save costs.
+ */
+async function checkIdleContainers() {
+  const IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+  const now = Date.now();
+
+  const result = await ddbClient.send(new ScanCommand({
+    TableName: process.env['USERS_TABLE_NAME']!,
+    FilterExpression: '#s = :running',
+    ExpressionAttributeNames: { '#s': 'status' },
+    ExpressionAttributeValues: { ':running': { S: 'running' } },
+  }));
+
+  let stopped = 0;
+  for (const item of result.Items || []) {
+    const lastActive = item['lastActiveAt']?.S;
+    const lastActiveMs = lastActive ? new Date(lastActive).getTime() : 0;
+
+    if (now - lastActiveMs > IDLE_TIMEOUT_MS) {
+      const userId = item['userId']?.S;
+      if (userId) {
+        await stopContainer(userId);
+        stopped++;
+      }
+    }
+  }
+
+  return { statusCode: 200, body: JSON.stringify({ checked: result.Items?.length || 0, stopped }) };
 }
 

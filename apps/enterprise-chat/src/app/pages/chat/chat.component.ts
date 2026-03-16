@@ -88,8 +88,21 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     }
     if (cmd.id === 'abort') {
       try {
-        await this.ws.executeCommand('chat.abort', { sessionKey: (this.ws as any).sessionKey });
+        await this.ws.executeCommand('chat.abort', { sessionKey: this.ws.getSessionKey() });
+        const msgs = this.ws.messages$.value;
+        this.ws.messages$.next([...msgs, { role: 'system' as const, content: 'Generation stopped.', timestamp: new Date() }]);
       } catch { /* ignore */ }
+      return;
+    }
+    if (cmd.id === 'restart') {
+      const msgs = this.ws.messages$.value;
+      this.ws.messages$.next([...msgs, { role: 'system' as const, content: 'Restarting gateway...', timestamp: new Date() }]);
+      this.ws.disconnect();
+      setTimeout(() => {
+        const token = this.auth.getIdToken();
+        const gatewayUrl = this.route.snapshot.queryParamMap.get('gw') || environment.teamclawGatewayUrl;
+        if (token && gatewayUrl) this.ws.connect(gatewayUrl, token);
+      }, 2000);
       return;
     }
     // For info commands, show result as system message (with optional interactive options)
@@ -131,19 +144,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   private formatCommandResult(cmd: CommandAction, result: any): { content: string; options?: ChatOption[] } {
-    if (cmd.id === 'list-models') {
-      const models = result?.models || result?.entries || [];
-      if (Array.isArray(models) && models.length > 0) {
-        const options: ChatOption[] = models.map((m: any) => ({
-          label: m.displayName || m.id || m.name,
-          value: m.provider ? `${m.provider}/${m.id}` : m.id || m.name,
-          icon: 'psychology',
-          action: 'set-model',
-        }));
-        return { content: 'Select a model:', options };
-      }
-      return { content: 'No models available' };
-    }
     if (cmd.id === 'list-sessions') {
       const sessions = result?.sessions || [];
       if (Array.isArray(sessions) && sessions.length > 0) {
@@ -156,13 +156,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
         return { content: 'Switch to a session:', options };
       }
       return { content: 'No sessions found' };
-    }
-    if (cmd.id === 'list-agents') {
-      const agents = result?.agents || [];
-      if (Array.isArray(agents) && agents.length > 0) {
-        return { content: 'Agents:\n' + agents.map((a: any) => `\u2022 ${a.name || a.agentId}`).join('\n') };
-      }
-      return { content: 'No agents found' };
     }
     if (cmd.id === 'usage') {
       const sessions = result?.sessions || [];

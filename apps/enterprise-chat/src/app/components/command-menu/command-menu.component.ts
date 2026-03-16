@@ -20,37 +20,30 @@ export interface CommandAction {
     <button mat-icon-button [matMenuTriggerFor]="commandMenu" class="menu-trigger">
       <mat-icon>add_circle_outline</mat-icon>
     </button>
-    <mat-menu #commandMenu="matMenu" class="command-menu">
-      <div class="menu-header">Commands</div>
-
+    <mat-menu #commandMenu="matMenu" yPosition="above">
       <button mat-menu-item (click)="exec('new-session')">
         <mat-icon>add_comment</mat-icon>
-        <span>New Session</span>
+        <span>New Conversation</span>
       </button>
 
       <button mat-menu-item (click)="exec('list-sessions')">
         <mat-icon>forum</mat-icon>
-        <span>Session List</span>
-      </button>
-
-      <mat-divider></mat-divider>
-
-      <button mat-menu-item (click)="exec('list-models')">
-        <mat-icon>psychology</mat-icon>
-        <span>Change Model</span>
-      </button>
-
-      <button mat-menu-item (click)="exec('list-agents')">
-        <mat-icon>smart_toy</mat-icon>
-        <span>Agents</span>
+        <span>Conversations</span>
       </button>
 
       <mat-divider></mat-divider>
 
       <button mat-menu-item (click)="exec('abort')">
         <mat-icon>stop_circle</mat-icon>
-        <span>Stop Response</span>
+        <span>Stop Generating</span>
       </button>
+
+      <button mat-menu-item (click)="exec('restart')">
+        <mat-icon>restart_alt</mat-icon>
+        <span>Restart Gateway</span>
+      </button>
+
+      <mat-divider></mat-divider>
 
       <button mat-menu-item (click)="exec('usage')">
         <mat-icon>data_usage</mat-icon>
@@ -62,14 +55,6 @@ export interface CommandAction {
     .menu-trigger {
       color: var(--text-muted);
     }
-    .menu-header {
-      padding: 8px 16px 4px;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-    }
   `],
 })
 export class CommandMenuComponent {
@@ -77,11 +62,10 @@ export class CommandMenuComponent {
 
   exec(id: string): void {
     const commands: Record<string, CommandAction> = {
-      'new-session': { id: 'new-session', method: 'sessions.reset', params: { reason: 'new' }, label: 'New Session' },
-      'list-sessions': { id: 'list-sessions', method: 'sessions.list', params: {}, label: 'Sessions' },
-      'list-models': { id: 'list-models', method: 'models.list', params: {}, label: 'Models' },
-      'list-agents': { id: 'list-agents', method: 'agents.list', params: {}, label: 'Agents' },
-      'abort': { id: 'abort', method: 'chat.abort', params: {}, label: 'Stop' },
+      'new-session': { id: 'new-session', method: 'sessions.reset', params: { reason: 'new' }, label: 'New Conversation' },
+      'list-sessions': { id: 'list-sessions', method: 'sessions.list', params: {}, label: 'Conversations' },
+      'abort': { id: 'abort', method: 'chat.abort', params: {}, label: 'Stop Generating' },
+      'restart': { id: 'restart', method: 'system-event', params: { event: 'restart' }, label: 'Restart Gateway' },
       'usage': { id: 'usage', method: 'sessions.list', params: {}, label: 'Usage' },
     };
     const cmd = commands[id];

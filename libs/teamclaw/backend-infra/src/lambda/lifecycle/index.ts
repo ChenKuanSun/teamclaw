@@ -64,7 +64,7 @@ async function provisionUser(userId: string, teamId?: string) {
 
   try {
     await ddbClient.send(new PutItemCommand({
-      TableName: process.env['USER_TABLE_NAME']!,
+      TableName: process.env['USERS_TABLE_NAME']!,
       Item: {
         userId: { S: userId },
         teamId: { S: teamId || '' },
@@ -82,7 +82,7 @@ async function provisionUser(userId: string, teamId?: string) {
       }));
       // Return existing access point ID
       const existing = await ddbClient.send(new GetItemCommand({
-        TableName: process.env['USER_TABLE_NAME']!,
+        TableName: process.env['USERS_TABLE_NAME']!,
         Key: { userId: { S: userId } },
       }));
       return {
@@ -109,7 +109,7 @@ async function provisionUser(userId: string, teamId?: string) {
 
 async function startContainer(userId: string) {
   const userRecord = await ddbClient.send(new GetItemCommand({
-    TableName: process.env['USER_TABLE_NAME']!,
+    TableName: process.env['USERS_TABLE_NAME']!,
     Key: { userId: { S: userId } },
   }));
 
@@ -181,7 +181,7 @@ async function startContainer(userId: string) {
   }
 
   await ddbClient.send(new PutItemCommand({
-    TableName: process.env['USER_TABLE_NAME']!,
+    TableName: process.env['USERS_TABLE_NAME']!,
     Item: {
       ...userRecord.Item,
       taskArn: { S: taskArn },
@@ -218,7 +218,7 @@ async function waitForTaskIp(taskArn: string, maxAttempts = 20): Promise<string 
 
 async function stopContainer(userId: string) {
   const userRecord = await ddbClient.send(new GetItemCommand({
-    TableName: process.env['USER_TABLE_NAME']!,
+    TableName: process.env['USERS_TABLE_NAME']!,
     Key: { userId: { S: userId } },
   }));
 
@@ -247,7 +247,7 @@ async function stopContainer(userId: string) {
   }));
 
   await ddbClient.send(new PutItemCommand({
-    TableName: process.env['USER_TABLE_NAME']!,
+    TableName: process.env['USERS_TABLE_NAME']!,
     Item: {
       ...userRecord.Item,
       taskArn: { S: '' },
@@ -261,7 +261,7 @@ async function stopContainer(userId: string) {
 
 async function getStatus(userId: string) {
   const userRecord = await ddbClient.send(new GetItemCommand({
-    TableName: process.env['USER_TABLE_NAME']!,
+    TableName: process.env['USERS_TABLE_NAME']!,
     Key: { userId: { S: userId } },
   }));
 

@@ -180,7 +180,7 @@ export class ControlPlaneStack extends Stack {
       entry: `${LAMBDA_ENTRY_PATH}/lifecycle/index.ts`,
       environment: {
         DEPLOY_ENV: deployEnv,
-        USER_TABLE_NAME: userTable.tableName,
+        USERS_TABLE_NAME: userTable.tableName,
         ECS_CLUSTER_NAME: aws_ssm.StringParameter.valueForStringParameter(this, ssm.ECS.CLUSTER_NAME),
         EFS_FILE_SYSTEM_ID: aws_ssm.StringParameter.valueForStringParameter(this, ssm.EFS.FILE_SYSTEM_ID),
         PRIVATE_SUBNET_IDS: aws_ssm.StringParameter.valueForStringParameter(this, ssm.VPC.PRIVATE_SUBNET_IDS),

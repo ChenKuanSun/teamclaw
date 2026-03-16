@@ -67,6 +67,15 @@ const baseConfig = {
   session: {
     dmScope: 'per-channel-peer',
   },
+  skills: {
+    load: {
+      extraDirs: [
+        '/efs/system/approved-skills',
+        ...(teamId ? [`/efs/teams/${teamId}/team-skills`] : []),
+        `/efs/users/${userId}/user-skills`,
+      ],
+    },
+  },
 };
 
 // Merge: base → global → team → user

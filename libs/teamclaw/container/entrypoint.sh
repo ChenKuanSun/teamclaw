@@ -12,6 +12,9 @@ export OPENCLAW_AUDIT_DIR="/efs/users/${USER_ID}/audit"
 export OPENCLAW_TRANSCRIPT_DIR="/efs/users/${USER_ID}/transcripts"
 mkdir -p "$OPENCLAW_AUDIT_DIR" "$OPENCLAW_TRANSCRIPT_DIR" 2>/dev/null || true
 
+# User skills directory (users can create custom SKILL.md files here)
+mkdir -p "/efs/users/${USER_ID}/user-skills" 2>/dev/null || true
+
 # ─── Generate merged config (Global → Team → User) ───
 node /scripts/generate-config.js
 

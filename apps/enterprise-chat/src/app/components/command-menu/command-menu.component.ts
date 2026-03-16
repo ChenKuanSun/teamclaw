@@ -42,13 +42,6 @@ export interface CommandAction {
         <mat-icon>restart_alt</mat-icon>
         <span>Restart Gateway</span>
       </button>
-
-      <mat-divider></mat-divider>
-
-      <button mat-menu-item (click)="exec('usage')">
-        <mat-icon>data_usage</mat-icon>
-        <span>Token Usage</span>
-      </button>
     </mat-menu>
   `,
   styles: [`
@@ -66,7 +59,6 @@ export class CommandMenuComponent {
       'list-sessions': { id: 'list-sessions', method: 'sessions.list', params: {}, label: 'Conversations' },
       'abort': { id: 'abort', method: 'chat.abort', params: {}, label: 'Stop Generating' },
       'restart': { id: 'restart', method: 'system-event', params: { event: 'restart' }, label: 'Restart Gateway' },
-      'usage': { id: 'usage', method: 'sessions.list', params: {}, label: 'Usage' },
     };
     const cmd = commands[id];
     if (cmd) this.command.emit(cmd);

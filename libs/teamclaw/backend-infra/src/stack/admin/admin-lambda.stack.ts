@@ -936,5 +936,120 @@ export class AdminLambdaStack extends Stack {
       parameterName: ADMIN_LAMBDA_SSM.GET_ONBOARDING_STATUS_LAMBDA_NAME,
       stringValue: getOnboardingStatusLambda.functionName,
     });
+
+    // ==========================================================
+    // Skills Approval Lambdas (4)
+    // ==========================================================
+
+    // Import skills table
+    const skillsTable = aws_dynamodb.TableV2.fromTableArn(
+      this,
+      id + 'SkillsTable',
+      aws_ssm.StringParameter.valueForStringParameter(
+        this,
+        SSM.DYNAMODB.SKILLS_TABLE_ARN,
+      ),
+    );
+
+    const skillsTableName = aws_ssm.StringParameter.valueForStringParameter(
+      this,
+      SSM.DYNAMODB.SKILLS_TABLE_NAME,
+    );
+
+    const requestSkillInstallLambda = new aws_lambda_nodejs.NodejsFunction(
+      this,
+      id + 'RequestSkillInstallLambda',
+      {
+        ...TC_LAMBDA_DEFAULT_PROPS,
+        entry: path.join(
+          LAMBDA_ENTRY_PATH,
+          'admin',
+          'skills',
+          'request-skill-install.ts',
+        ),
+        environment: {
+          ...baseEnv,
+          SKILLS_TABLE_NAME: skillsTableName,
+        },
+      },
+    );
+    skillsTable.grantReadWriteData(requestSkillInstallLambda);
+
+    new aws_ssm.StringParameter(this, id + 'RequestSkillInstallLambdaNameParam', {
+      parameterName: ADMIN_LAMBDA_SSM.REQUEST_SKILL_INSTALL_LAMBDA_NAME,
+      stringValue: requestSkillInstallLambda.functionName,
+    });
+
+    const reviewSkillRequestLambda = new aws_lambda_nodejs.NodejsFunction(
+      this,
+      id + 'ReviewSkillRequestLambda',
+      {
+        ...TC_LAMBDA_DEFAULT_PROPS,
+        entry: path.join(
+          LAMBDA_ENTRY_PATH,
+          'admin',
+          'skills',
+          'review-skill-request.ts',
+        ),
+        environment: {
+          ...baseEnv,
+          SKILLS_TABLE_NAME: skillsTableName,
+        },
+      },
+    );
+    skillsTable.grantReadWriteData(reviewSkillRequestLambda);
+
+    new aws_ssm.StringParameter(this, id + 'ReviewSkillRequestLambdaNameParam', {
+      parameterName: ADMIN_LAMBDA_SSM.REVIEW_SKILL_REQUEST_LAMBDA_NAME,
+      stringValue: reviewSkillRequestLambda.functionName,
+    });
+
+    const listPendingSkillsLambda = new aws_lambda_nodejs.NodejsFunction(
+      this,
+      id + 'ListPendingSkillsLambda',
+      {
+        ...TC_LAMBDA_DEFAULT_PROPS,
+        entry: path.join(
+          LAMBDA_ENTRY_PATH,
+          'admin',
+          'skills',
+          'list-pending-skills.ts',
+        ),
+        environment: {
+          ...baseEnv,
+          SKILLS_TABLE_NAME: skillsTableName,
+        },
+      },
+    );
+    skillsTable.grantReadData(listPendingSkillsLambda);
+
+    new aws_ssm.StringParameter(this, id + 'ListPendingSkillsLambdaNameParam', {
+      parameterName: ADMIN_LAMBDA_SSM.LIST_PENDING_SKILLS_LAMBDA_NAME,
+      stringValue: listPendingSkillsLambda.functionName,
+    });
+
+    const listApprovedSkillsLambda = new aws_lambda_nodejs.NodejsFunction(
+      this,
+      id + 'ListApprovedSkillsLambda',
+      {
+        ...TC_LAMBDA_DEFAULT_PROPS,
+        entry: path.join(
+          LAMBDA_ENTRY_PATH,
+          'admin',
+          'skills',
+          'list-approved-skills.ts',
+        ),
+        environment: {
+          ...baseEnv,
+          SKILLS_TABLE_NAME: skillsTableName,
+        },
+      },
+    );
+    skillsTable.grantReadData(listApprovedSkillsLambda);
+
+    new aws_ssm.StringParameter(this, id + 'ListApprovedSkillsLambdaNameParam', {
+      parameterName: ADMIN_LAMBDA_SSM.LIST_APPROVED_SKILLS_LAMBDA_NAME,
+      stringValue: listApprovedSkillsLambda.functionName,
+    });
   }
 }

@@ -375,5 +375,50 @@ export class AdminApiGatewayRouteStack extends Stack {
       '/admin/onboarding/status',
       getLambda('GetOnboardingStatusLambda', ADMIN_LAMBDA_SSM.GET_ONBOARDING_STATUS_LAMBDA_NAME),
     );
+
+    // ==========================================================
+    // SKILLS APPROVAL ROUTES: /admin/skills/request (user-facing),
+    //   /admin/skills/review, /admin/skills/pending, /admin/skills/approved
+    // ==========================================================
+
+    // POST /admin/skills/request — user-facing, uses Chat Cognito authorizer
+    const requestSkillInstallLambda = getLambda(
+      'RequestSkillInstallLambda',
+      ADMIN_LAMBDA_SSM.REQUEST_SKILL_INSTALL_LAMBDA_NAME,
+    );
+
+    new HttpRoute(this, id + 'RequestSkillInstall', {
+      httpApi: adminHttpApi as aws_apigatewayv2.IHttpApi,
+      integration: new HttpLambdaIntegration(
+        id + 'RequestSkillInstallIntegration',
+        requestSkillInstallLambda,
+      ),
+      routeKey: HttpRouteKey.with('/admin/skills/request', HttpMethod.POST),
+      authorizer: chatAuthorizer,
+    });
+
+    // POST /admin/skills/review — admin-facing
+    addRoute(
+      'ReviewSkillRequest',
+      HttpMethod.POST,
+      '/admin/skills/review',
+      getLambda('ReviewSkillRequestLambda', ADMIN_LAMBDA_SSM.REVIEW_SKILL_REQUEST_LAMBDA_NAME),
+    );
+
+    // GET /admin/skills/pending — admin-facing
+    addRoute(
+      'ListPendingSkills',
+      HttpMethod.GET,
+      '/admin/skills/pending',
+      getLambda('ListPendingSkillsLambda', ADMIN_LAMBDA_SSM.LIST_PENDING_SKILLS_LAMBDA_NAME),
+    );
+
+    // GET /admin/skills/approved — admin-facing
+    addRoute(
+      'ListApprovedSkills',
+      HttpMethod.GET,
+      '/admin/skills/approved',
+      getLambda('ListApprovedSkillsLambda', ADMIN_LAMBDA_SSM.LIST_APPROVED_SKILLS_LAMBDA_NAME),
+    );
   }
 }

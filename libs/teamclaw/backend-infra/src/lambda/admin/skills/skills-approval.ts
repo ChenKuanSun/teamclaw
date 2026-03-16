@@ -1,4 +1,4 @@
-import { DynamoDBClient, PutItemCommand, QueryCommand, UpdateItemCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, PutItemCommand, QueryCommand, UpdateItemCommand, type AttributeValue } from '@aws-sdk/client-dynamodb';
 
 const ddb = new DynamoDBClient({});
 const SKILLS_TABLE = process.env['SKILLS_TABLE_NAME']!;
@@ -69,6 +69,26 @@ export async function listPendingRequests() {
       requestedBy: item['requestedBy']?.S,
       teamId: item['teamId']?.S,
       requestedAt: item['requestedAt']?.S,
+    })),
+  };
+}
+
+// List approved skills
+export async function listApprovedSkills(scope?: string) {
+  const result = await ddb.send(new QueryCommand({
+    TableName: SKILLS_TABLE,
+    IndexName: 'by-status',
+    KeyConditionExpression: '#s = :approved',
+    ExpressionAttributeNames: { '#s': 'status' },
+    ExpressionAttributeValues: { ':approved': { S: 'approved' } },
+  }));
+  return {
+    skills: (result.Items || []).map(item => ({
+      skillId: item['skillId']?.S,
+      skillName: item['skillName']?.S,
+      source: item['source']?.S,
+      scope: item['scope']?.S,
+      approvedAt: item['reviewedAt']?.S,
     })),
   };
 }

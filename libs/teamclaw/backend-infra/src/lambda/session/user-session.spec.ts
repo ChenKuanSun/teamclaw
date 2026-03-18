@@ -6,6 +6,7 @@ jest.mock('@aws-sdk/client-dynamodb', () => ({
   GetItemCommand: jest.fn((input: any) => ({ input })),
   PutItemCommand: jest.fn((input: any) => ({ input })),
   QueryCommand: jest.fn((input: any) => ({ input })),
+  UpdateItemCommand: jest.fn((input: any) => ({ input })),
   ConditionalCheckFailedException: class ConditionalCheckFailedException extends Error {
     override name = 'ConditionalCheckFailedException';
   },
@@ -51,6 +52,7 @@ jest.mock('@TeamClaw/teamclaw/cloud-function', () => {
 process.env['USERS_TABLE_NAME'] = 'UsersTable';
 process.env['CONFIG_TABLE_NAME'] = 'ConfigTable';
 process.env['LIFECYCLE_LAMBDA_NAME'] = 'LifecycleLambda';
+process.env['ALB_DNS_NAME'] = 'test-alb.example.com';
 
 import { handler } from './user-session';
 import type { APIGatewayProxyEventV2WithJWTAuthorizer, Context } from 'aws-lambda';
@@ -85,14 +87,16 @@ describe('user-session handler', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('should return ready with wsEndpoint when user exists and is running', async () => {
-    mockDdbSend.mockResolvedValueOnce({
-      Item: {
-        userId: { S: 'user-123' },
-        email: { S: 'alice@company.com' },
-        status: { S: 'running' },
-        taskArn: { S: 'arn:aws:ecs:...' },
-      },
-    });
+    mockDdbSend
+      .mockResolvedValueOnce({
+        Item: {
+          userId: { S: 'user-123' },
+          email: { S: 'alice@company.com' },
+          status: { S: 'running' },
+          taskArn: { S: 'arn:aws:ecs:...' },
+        },
+      })
+      .mockResolvedValueOnce({}); // UpdateItemCommand for lastActiveAt
     const res = await invoke();
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(res.body);

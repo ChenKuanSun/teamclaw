@@ -120,6 +120,26 @@ export class AuthService {
     });
   }
 
+  async forgotPassword(email: string): Promise<void> {
+    const user = new CognitoUser({ Username: email, Pool: this.userPool });
+    return new Promise((resolve, reject) => {
+      user.forgotPassword({
+        onSuccess: () => resolve(),
+        onFailure: (err) => reject(err),
+      });
+    });
+  }
+
+  async confirmNewPassword(email: string, code: string, newPassword: string): Promise<void> {
+    const user = new CognitoUser({ Username: email, Pool: this.userPool });
+    return new Promise((resolve, reject) => {
+      user.confirmPassword(code, newPassword, {
+        onSuccess: () => resolve(),
+        onFailure: (err) => reject(err),
+      });
+    });
+  }
+
   async confirmRegistration(email: string, code: string): Promise<void> {
     const user = new CognitoUser({ Username: email, Pool: this.userPool });
     return new Promise((resolve, reject) => {

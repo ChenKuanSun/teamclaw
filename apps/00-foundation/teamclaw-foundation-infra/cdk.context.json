@@ -7,5 +7,10 @@
   "availability-zones:account=023371593417:region=us-west-1": [
     "us-west-1a",
     "us-west-1c"
+  ],
+  "availability-zones:account=023371593417:region=ap-southeast-1": [
+    "ap-southeast-1a",
+    "ap-southeast-1b",
+    "ap-southeast-1c"
   ]
 }

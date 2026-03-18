@@ -236,8 +236,15 @@ export class OnboardingWizardComponent {
   saveApiKey(): void {
     this.saving.set(true);
     this.stepError.set('');
+    // Map variant provider IDs to their base provider for sidecar lookup
+    // e.g. 'anthropic-token' → 'anthropic', 'openai-codex' → 'openai'
+    const providerIdMap: Record<string, string> = {
+      'anthropic-token': 'anthropic',
+      'openai-codex': 'openai',
+    };
+    const effectiveProvider = providerIdMap[this.apiKeyProvider] || this.apiKeyProvider;
     const payload: Record<string, unknown> = {
-      provider: this.apiKeyProvider,
+      provider: effectiveProvider,
       authType: this.selectedAuthType,
     };
     if (this.selectedAuthType === 'apiKey') {

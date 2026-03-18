@@ -84,15 +84,66 @@ async function provisionUser(userId: string, teamId?: string) {
     }));
   } catch (err: any) {
     if (err.name === 'ConditionalCheckFailedException') {
-      // User already provisioned — delete the orphaned access point
+      // User record already exists (created by user-session with status 'provisioning')
+      // Delete the orphaned access point we just created
       await efsClient.send(new DeleteAccessPointCommand({
         AccessPointId: accessPoint.AccessPointId!,
       }));
-      // Return existing access point ID
+
       const existing = await ddbClient.send(new GetItemCommand({
         TableName: process.env['USERS_TABLE_NAME']!,
         Key: { userId: { S: userId } },
       }));
+
+      const existingStatus = existing.Item?.['status']?.S;
+      if (existingStatus === 'provisioning') {
+        // user-session created the record but provisioning wasn't completed.
+        // Update status and store the access point ID, then start the container.
+        const newAccessPoint = await efsClient.send(new CreateAccessPointCommand({
+          FileSystemId: process.env['EFS_FILE_SYSTEM_ID']!,
+          PosixUser: { Uid: 1000, Gid: 1000 },
+          RootDirectory: {
+            Path: `/users/${userId}`,
+            CreationInfo: { OwnerUid: 1000, OwnerGid: 1000, Permissions: '0750' },
+          },
+          Tags: [
+            { Key: 'UserId', Value: userId },
+            { Key: 'TeamId', Value: teamId || '' },
+          ],
+        }));
+
+        await ddbClient.send(new PutItemCommand({
+          TableName: process.env['USERS_TABLE_NAME']!,
+          Item: {
+            ...existing.Item!,
+            efsAccessPointId: { S: newAccessPoint.AccessPointId! },
+            status: { S: 'provisioned' },
+          },
+        }));
+
+        const startResult = await startContainer(userId);
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            accessPointId: newAccessPoint.AccessPointId,
+            startResult: JSON.parse(startResult.body as string),
+          }),
+        };
+      }
+
+      // Already fully provisioned — just return existing info
+      if (existingStatus === 'stopped' || existingStatus === 'provisioned') {
+        const startResult = await startContainer(userId);
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            accessPointId: existing.Item?.['efsAccessPointId']?.S,
+            alreadyProvisioned: true,
+            startResult: JSON.parse(startResult.body as string),
+          }),
+        };
+      }
+
       return {
         statusCode: 200,
         body: JSON.stringify({

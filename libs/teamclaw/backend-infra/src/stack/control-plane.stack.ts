@@ -254,7 +254,6 @@ export class ControlPlaneStack extends Stack {
         'elasticloadbalancing:CreateTargetGroup',
         'elasticloadbalancing:DeleteTargetGroup',
         'elasticloadbalancing:DescribeTargetGroups',
-        'elasticloadbalancing:AddTags',
       ],
       resources: [
         // Shared target group (legacy fallback)
@@ -279,12 +278,11 @@ export class ControlPlaneStack extends Stack {
       ],
       resources: ['*'],
     }));
-    // ALB listener rule management (create/delete/describe rules on the ALB listener)
+    // ALB listener rule management (create/delete rules scoped to listener + rules)
     lifecycleLambda.addToRolePolicy(new aws_iam.PolicyStatement({
       actions: [
         'elasticloadbalancing:CreateRule',
         'elasticloadbalancing:DeleteRule',
-        'elasticloadbalancing:DescribeRules',
       ],
       resources: [
         // Listener ARN
@@ -296,6 +294,15 @@ export class ControlPlaneStack extends Stack {
           resourceName: '*',
         }),
       ],
+    }));
+    // DescribeRules requires '*' resource (ELBv2 API limitation)
+    // AddTags on listener-rules also requires '*' (called by CreateRule with Tags)
+    lifecycleLambda.addToRolePolicy(new aws_iam.PolicyStatement({
+      actions: [
+        'elasticloadbalancing:DescribeRules',
+        'elasticloadbalancing:AddTags',
+      ],
+      resources: ['*'],
     }));
     // EFS Access Point creation — scoped to the provisioned file system
     const efsFileSystemArn = Stack.of(this).formatArn({

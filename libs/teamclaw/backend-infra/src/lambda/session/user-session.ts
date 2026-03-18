@@ -83,11 +83,11 @@ const handlerFn = async (
       };
     }
 
-    // Already starting — don't re-invoke
-    if (userStatus === 'starting') {
+    // Already starting or provisioning — don't re-invoke
+    if (userStatus === 'starting' || userStatus === 'provisioning') {
       return {
         status: HttpStatusCode.SUCCESS,
-        body: { status: 'starting', userId: sub, estimatedWaitSeconds: 30 },
+        body: { status: userStatus, userId: sub, estimatedWaitSeconds: userStatus === 'provisioning' ? 60 : 30 },
       };
     }
 

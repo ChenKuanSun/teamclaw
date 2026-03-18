@@ -102,6 +102,20 @@ export interface ConfigEntry {
   value: unknown;
 }
 
+export interface ProviderKeyEntry {
+  authType: 'apiKey' | 'oauthToken';
+  keys?: { index: number; masked: string }[];
+  hasToken?: boolean;
+  hasAccessToken?: boolean;
+  hasRefreshToken?: boolean;
+  expiresAt?: number;
+}
+
+export interface ProvidersResponse {
+  providers: Record<string, ProviderKeyEntry>;
+}
+
+// Legacy — kept for backwards compat
 export interface ApiKey {
   keyId: string;
   provider: string;
@@ -362,7 +376,7 @@ export class AdminApiService {
   // ============================================
 
   getApiKeys() {
-    return this.http.get<{ keys: ApiKey[] }>(
+    return this.http.get<ProvidersResponse>(
       `${this.baseUrl}/admin/api-keys`,
     );
   }
@@ -374,9 +388,12 @@ export class AdminApiService {
     );
   }
 
-  removeApiKey(keyId: string) {
+  removeApiKey(provider: string, keyIndex?: number) {
+    const params: Record<string, string> = { provider };
+    if (keyIndex !== undefined) params['keyIndex'] = String(keyIndex);
     return this.http.delete<{ success: boolean }>(
-      `${this.baseUrl}/admin/api-keys/${keyId}`,
+      `${this.baseUrl}/admin/api-keys`,
+      { params },
     );
   }
 

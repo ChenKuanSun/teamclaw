@@ -1,34 +1,40 @@
 import { Component, DestroyRef, inject, signal, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule, DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import {
   AdminApiService,
-  ApiKey,
+  ProviderKeyEntry,
   KeyUsageStats,
 } from '../../services/admin-api.service';
 import { AddApiKeyDialogComponent } from './add-api-key-dialog.component';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog.component';
+
+interface ProviderRow {
+  provider: string;
+  authType: 'apiKey' | 'oauthToken';
+  display: string;
+  keyIndex?: number;
+}
 
 @Component({
   selector: 'tc-api-keys',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
     MatTableModule,
     MatButtonModule,
     MatIconModule,
     MatCardModule,
+    MatChipsModule,
     MatDialogModule,
     MatProgressSpinnerModule,
-    DatePipe,
   ],
   template: `
     <div class="api-keys-container">
@@ -43,28 +49,38 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog.component';
         <div class="spinner-wrapper">
           <mat-progress-spinner mode="indeterminate" diameter="48" />
         </div>
+      } @else if (rows().length === 0) {
+        <mat-card>
+          <mat-card-content>
+            <p class="empty-state">No API keys configured. Add one to get started.</p>
+          </mat-card-content>
+        </mat-card>
       } @else {
         <mat-card>
-          <table mat-table [dataSource]="keys()" class="full-width">
+          <table mat-table [dataSource]="rows()" class="full-width">
             <ng-container matColumnDef="provider">
               <th mat-header-cell *matHeaderCellDef>Provider</th>
-              <td mat-cell *matCellDef="let key">{{ key.provider }}</td>
+              <td mat-cell *matCellDef="let row">{{ row.provider }}</td>
             </ng-container>
 
-            <ng-container matColumnDef="maskedKey">
-              <th mat-header-cell *matHeaderCellDef>Key</th>
-              <td mat-cell *matCellDef="let key" class="monospace">{{ key.maskedKey }}</td>
+            <ng-container matColumnDef="authType">
+              <th mat-header-cell *matHeaderCellDef>Type</th>
+              <td mat-cell *matCellDef="let row">
+                <mat-chip [highlighted]="row.authType === 'oauthToken'">
+                  {{ row.authType === 'oauthToken' ? 'OAuth Token' : 'API Key' }}
+                </mat-chip>
+              </td>
             </ng-container>
 
-            <ng-container matColumnDef="createdAt">
-              <th mat-header-cell *matHeaderCellDef>Created</th>
-              <td mat-cell *matCellDef="let key">{{ key.createdAt | date: 'medium' }}</td>
+            <ng-container matColumnDef="credential">
+              <th mat-header-cell *matHeaderCellDef>Credential</th>
+              <td mat-cell *matCellDef="let row" class="monospace">{{ row.display }}</td>
             </ng-container>
 
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef>Actions</th>
-              <td mat-cell *matCellDef="let key">
-                <button mat-icon-button color="warn" (click)="removeKey(key)">
+              <td mat-cell *matCellDef="let row">
+                <button mat-icon-button color="warn" (click)="removeKey(row)">
                   <mat-icon>delete</mat-icon>
                 </button>
               </td>
@@ -74,39 +90,39 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog.component';
             <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
           </table>
         </mat-card>
+      }
 
-        <!-- Usage Stats -->
-        @if (usageStats()) {
-          <h3>Usage Statistics</h3>
-          <div class="stats-grid">
-            <mat-card class="stat-card">
-              <mat-card-content>
-                <div class="stat-value">{{ usageStats()!.totalRequests | number }}</div>
-                <div class="stat-label">Total Requests</div>
-              </mat-card-content>
-            </mat-card>
-          </div>
+      <!-- Usage Stats -->
+      @if (usageStats()) {
+        <h3>Usage Statistics</h3>
+        <div class="stats-grid">
+          <mat-card class="stat-card">
+            <mat-card-content>
+              <div class="stat-value">{{ usageStats()!.totalRequests | number }}</div>
+              <div class="stat-label">Total Requests</div>
+            </mat-card-content>
+          </mat-card>
+        </div>
 
-          @if (usageStats()!.byProvider.length) {
-            <mat-card class="usage-table-card">
-              <table mat-table [dataSource]="usageStats()!.byProvider" class="full-width">
-                <ng-container matColumnDef="provider">
-                  <th mat-header-cell *matHeaderCellDef>Provider</th>
-                  <td mat-cell *matCellDef="let row">{{ row.provider }}</td>
-                </ng-container>
-                <ng-container matColumnDef="requests">
-                  <th mat-header-cell *matHeaderCellDef>Requests</th>
-                  <td mat-cell *matCellDef="let row">{{ row.requests | number }}</td>
-                </ng-container>
-                <ng-container matColumnDef="cost">
-                  <th mat-header-cell *matHeaderCellDef>Cost</th>
-                  <td mat-cell *matCellDef="let row">{{ row.cost ? ('$' + (row.cost | number: '1.2-2')) : 'N/A' }}</td>
-                </ng-container>
-                <tr mat-header-row *matHeaderRowDef="usageColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: usageColumns"></tr>
-              </table>
-            </mat-card>
-          }
+        @if (usageStats()!.byProvider.length) {
+          <mat-card class="usage-table-card">
+            <table mat-table [dataSource]="usageStats()!.byProvider" class="full-width">
+              <ng-container matColumnDef="provider">
+                <th mat-header-cell *matHeaderCellDef>Provider</th>
+                <td mat-cell *matCellDef="let row">{{ row.provider }}</td>
+              </ng-container>
+              <ng-container matColumnDef="requests">
+                <th mat-header-cell *matHeaderCellDef>Requests</th>
+                <td mat-cell *matCellDef="let row">{{ row.requests | number }}</td>
+              </ng-container>
+              <ng-container matColumnDef="cost">
+                <th mat-header-cell *matHeaderCellDef>Cost</th>
+                <td mat-cell *matCellDef="let row">{{ row.cost ? ('$' + (row.cost | number: '1.2-2')) : 'N/A' }}</td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="usageColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: usageColumns"></tr>
+            </table>
+          </mat-card>
         }
       }
     </div>
@@ -117,6 +133,7 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog.component';
     .full-width { width: 100%; }
     .monospace { font-family: monospace; }
     .spinner-wrapper { display: flex; justify-content: center; padding: 48px; }
+    .empty-state { text-align: center; color: var(--mat-sys-on-surface-variant); padding: 24px; }
     h3 { margin-top: 24px; }
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px; }
     .stat-card { text-align: center; }
@@ -130,10 +147,10 @@ export class ApiKeysComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly keys = signal<ApiKey[]>([]);
+  readonly rows = signal<ProviderRow[]>([]);
   readonly usageStats = signal<KeyUsageStats | null>(null);
   readonly loading = signal(false);
-  readonly displayedColumns = ['provider', 'maskedKey', 'createdAt', 'actions'];
+  readonly displayedColumns = ['provider', 'authType', 'credential', 'actions'];
   readonly usageColumns = ['provider', 'requests', 'cost'];
 
   ngOnInit(): void {
@@ -145,7 +162,26 @@ export class ApiKeysComponent implements OnInit {
     this.loading.set(true);
     this.adminApi.getApiKeys().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
-        this.keys.set(res.keys);
+        const rows: ProviderRow[] = [];
+        for (const [provider, entry] of Object.entries(res.providers)) {
+          if (entry.authType === 'oauthToken') {
+            rows.push({
+              provider,
+              authType: 'oauthToken',
+              display: entry.hasToken ? 'Token configured' : 'Access token configured',
+            });
+          } else if (entry.keys) {
+            for (const key of entry.keys) {
+              rows.push({
+                provider,
+                authType: 'apiKey',
+                display: key.masked,
+                keyIndex: key.index,
+              });
+            }
+          }
+        }
+        this.rows.set(rows);
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
@@ -166,20 +202,19 @@ export class ApiKeysComponent implements OnInit {
     dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
       if (result) {
         this.adminApi.addApiKey(result).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-          next: () => {
-            this.loadKeys();
-            this.loadUsageStats();
-          },
+          next: () => this.loadKeys(),
         });
       }
     });
   }
 
-  removeKey(key: ApiKey): void {
+  removeKey(row: ProviderRow): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
-        title: 'Remove API Key',
-        message: `Remove API key for ${key.provider}?`,
+        title: 'Remove Credential',
+        message: row.authType === 'oauthToken'
+          ? `Remove OAuth token for ${row.provider}?`
+          : `Remove API key ${row.display} for ${row.provider}?`,
         confirmText: 'Remove',
         confirmColor: 'warn',
         icon: 'vpn_key_off',
@@ -187,12 +222,9 @@ export class ApiKeysComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe((confirmed) => {
       if (!confirmed) return;
-      this.adminApi.removeApiKey(key.keyId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-        next: () => {
-          this.loadKeys();
-          this.loadUsageStats();
-        },
-      });
+      this.adminApi.removeApiKey(row.provider, row.keyIndex)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({ next: () => this.loadKeys() });
     });
   }
 }

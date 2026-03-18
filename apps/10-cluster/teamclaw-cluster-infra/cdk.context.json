@@ -94,5 +94,49 @@
         ]
       }
     ]
+  },
+  "vpc-provider:account=023371593417:filter.tag:Name=teamclaw-prod:region=ap-southeast-1:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-0ea0edd8902aaa0c0",
+    "vpcCidrBlock": "10.0.0.0/16",
+    "ownerAccountId": "023371593417",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "Private",
+        "type": "Private",
+        "subnets": [
+          {
+            "subnetId": "subnet-0f97ad909d13641ef",
+            "cidr": "10.0.2.0/24",
+            "availabilityZone": "ap-southeast-1a",
+            "routeTableId": "rtb-0a262c62ce4e86c4d"
+          },
+          {
+            "subnetId": "subnet-0ab756fb9c53e927d",
+            "cidr": "10.0.3.0/24",
+            "availabilityZone": "ap-southeast-1b",
+            "routeTableId": "rtb-0e5032ce9cd507d29"
+          }
+        ]
+      },
+      {
+        "name": "Public",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-096be21c45f778dc4",
+            "cidr": "10.0.0.0/24",
+            "availabilityZone": "ap-southeast-1a",
+            "routeTableId": "rtb-0d4411380a5774f79"
+          },
+          {
+            "subnetId": "subnet-08211d85ddd4a00e9",
+            "cidr": "10.0.1.0/24",
+            "availabilityZone": "ap-southeast-1b",
+            "routeTableId": "rtb-098559782712c016b"
+          }
+        ]
+      }
+    ]
   }
 }

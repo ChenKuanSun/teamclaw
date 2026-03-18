@@ -23,6 +23,9 @@ export const TC_SSM_PARAMETER = {
       ALB_SECURITY_GROUP_ID: `/tc/${ENVIRONMENT.PROD}/ecs/albSecurityGroupId`,
       ALB_DNS_NAME: `/tc/${ENVIRONMENT.PROD}/ecs/albDnsName`,
       ALB_TARGET_GROUP_ARN: `/tc/${ENVIRONMENT.PROD}/ecs/albTargetGroupArn`,
+      TASK_DEFINITION_ARN: `/tc/${ENVIRONMENT.PROD}/ecs/taskDefinitionArn`,
+      TASK_ROLE_ARN: `/tc/${ENVIRONMENT.PROD}/ecs/taskRoleArn`,
+      EXECUTION_ROLE_ARN: `/tc/${ENVIRONMENT.PROD}/ecs/executionRoleArn`,
     },
     COGNITO: {
       USER_POOL_ID: `/tc/${ENVIRONMENT.PROD}/cognito/userPoolId`,
@@ -125,6 +128,9 @@ export const TC_SSM_PARAMETER = {
       ALB_SECURITY_GROUP_ID: `/tc/${ENVIRONMENT.DEV}/ecs/albSecurityGroupId`,
       ALB_DNS_NAME: `/tc/${ENVIRONMENT.DEV}/ecs/albDnsName`,
       ALB_TARGET_GROUP_ARN: `/tc/${ENVIRONMENT.DEV}/ecs/albTargetGroupArn`,
+      TASK_DEFINITION_ARN: `/tc/${ENVIRONMENT.DEV}/ecs/taskDefinitionArn`,
+      TASK_ROLE_ARN: `/tc/${ENVIRONMENT.DEV}/ecs/taskRoleArn`,
+      EXECUTION_ROLE_ARN: `/tc/${ENVIRONMENT.DEV}/ecs/executionRoleArn`,
     },
     COGNITO: {
       USER_POOL_ID: `/tc/${ENVIRONMENT.DEV}/cognito/userPoolId`,

@@ -1,15 +1,18 @@
 import {
   Stack,
   Duration,
+  RemovalPolicy,
   aws_ec2,
   aws_ecs,
+  aws_iam,
+  aws_logs,
   aws_elasticloadbalancingv2 as elbv2,
   aws_cloudfront,
   aws_cloudfront_origins,
   aws_ssm,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { StackPropsWithEnv, TC_SSM_PARAMETER } from '@TeamClaw/core/cloud-config';
+import { StackPropsWithEnv, TC_SSM_PARAMETER, getTCApiKeysReadPolicy } from '@TeamClaw/core/cloud-config';
 import { TC_FARGATE_DEFAULTS } from '@TeamClaw/teamclaw/cloud-config';
 
 export class ClusterStack extends Stack {
@@ -116,6 +119,143 @@ export class ClusterStack extends Stack {
     new aws_ssm.StringParameter(this, 'AlbTargetGroupArnParam', {
       parameterName: ssm.ECS.ALB_TARGET_GROUP_ARN,
       stringValue: targetGroup.targetGroupArn,
+    });
+
+    // ─── IAM: Task Execution Role ───
+    const executionRole = new aws_iam.Role(this, 'TaskExecutionRole', {
+      roleName: `teamclaw-execution-role-${deployEnv}`,
+      assumedBy: new aws_iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
+      managedPolicies: [
+        aws_iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonECSTaskExecutionRolePolicy'),
+      ],
+    });
+
+    // ─── IAM: Task Role ───
+    const taskRole = new aws_iam.Role(this, 'TaskRole', {
+      roleName: `teamclaw-task-role-${deployEnv}`,
+      assumedBy: new aws_iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
+    });
+
+    // Secrets Manager: read API keys (used by both containers at runtime)
+    taskRole.addToPolicy(getTCApiKeysReadPolicy(deployEnv, this.region, this.account));
+
+    // DynamoDB: sidecar writes usage records
+    const usageTableArn = `arn:aws:dynamodb:${this.region}:${this.account}:table/teamclaw-usage-${deployEnv}`;
+    taskRole.addToPolicy(new aws_iam.PolicyStatement({
+      actions: ['dynamodb:PutItem'],
+      resources: [usageTableArn],
+    }));
+
+    // EFS: allow container to mount and write to the file system
+    // Use wildcard — efsFileSystemId is an SSM Token that cannot be interpolated into formatArn
+    const efsFileSystemId = aws_ssm.StringParameter.valueForStringParameter(this, ssm.EFS.FILE_SYSTEM_ID);
+    taskRole.addToPolicy(new aws_iam.PolicyStatement({
+      actions: [
+        'elasticfilesystem:ClientMount',
+        'elasticfilesystem:ClientWrite',
+        'elasticfilesystem:ClientRootAccess',
+      ],
+      resources: [`arn:aws:elasticfilesystem:${this.region}:${this.account}:file-system/*`],
+    }));
+
+    // ─── CloudWatch Log Groups ───
+    const mainLogGroup = new aws_logs.LogGroup(this, 'TeamClawLogGroup', {
+      logGroupName: `/ecs/teamclaw-user-${deployEnv}`,
+      retention: aws_logs.RetentionDays.ONE_MONTH,
+      removalPolicy: RemovalPolicy.RETAIN,
+    });
+
+    const sidecarLogGroup = new aws_logs.LogGroup(this, 'SidecarLogGroup', {
+      logGroupName: `/ecs/teamclaw-sidecar-${deployEnv}`,
+      retention: aws_logs.RetentionDays.ONE_MONTH,
+      removalPolicy: RemovalPolicy.RETAIN,
+    });
+
+    // ─── ECS Task Definition ───
+    const teamclawImageUri = aws_ssm.StringParameter.valueForStringParameter(this, ssm.ECR.TEAMCLAW_REPO_URI);
+    const sidecarImageUri = aws_ssm.StringParameter.valueForStringParameter(this, ssm.ECR.SIDECAR_REPO_URI);
+
+    const taskDefinition = new aws_ecs.FargateTaskDefinition(this, 'UserTaskDefinition', {
+      family: `teamclaw-user-${deployEnv}`,
+      cpu: TC_FARGATE_DEFAULTS.cpu,
+      memoryLimitMiB: TC_FARGATE_DEFAULTS.memoryMiB,
+      taskRole,
+      executionRole,
+    });
+
+    // EFS volume (mounts root with IAM auth — lifecycle Lambda creates per-user access points at runtime)
+    taskDefinition.addVolume({
+      name: 'efs-user-data',
+      efsVolumeConfiguration: {
+        fileSystemId: efsFileSystemId,
+        transitEncryption: 'ENABLED',
+        authorizationConfig: {
+          iam: 'ENABLED',
+        },
+      },
+    });
+
+    // Main container
+    const mainContainer = taskDefinition.addContainer('teamclaw', {
+      containerName: 'teamclaw',
+      image: aws_ecs.ContainerImage.fromRegistry(`${teamclawImageUri}:latest`),
+      essential: true,
+      portMappings: [{ containerPort: TC_FARGATE_DEFAULTS.port, protocol: aws_ecs.Protocol.TCP }],
+      logging: aws_ecs.LogDrivers.awsLogs({
+        streamPrefix: 'teamclaw',
+        logGroup: mainLogGroup,
+      }),
+      healthCheck: {
+        command: ['CMD-SHELL', `wget -qO- http://localhost:${TC_FARGATE_DEFAULTS.port}${TC_FARGATE_DEFAULTS.healthCheckPath} || exit 1`],
+        interval: Duration.seconds(30),
+        timeout: Duration.seconds(5),
+        retries: 3,
+        startPeriod: Duration.seconds(60),
+      },
+    });
+    mainContainer.addMountPoints({
+      containerPath: '/efs',
+      sourceVolume: 'efs-user-data',
+      readOnly: false,
+    });
+
+    // Sidecar proxy container
+    const sidecarContainer = taskDefinition.addContainer('proxy-sidecar', {
+      containerName: 'proxy-sidecar',
+      image: aws_ecs.ContainerImage.fromRegistry(`${sidecarImageUri}:latest`),
+      essential: true,
+      portMappings: [{ containerPort: 3000, protocol: aws_ecs.Protocol.TCP }],
+      logging: aws_ecs.LogDrivers.awsLogs({
+        streamPrefix: 'sidecar',
+        logGroup: sidecarLogGroup,
+      }),
+      healthCheck: {
+        command: ['CMD-SHELL', 'wget -qO- http://localhost:3000/health || exit 1'],
+        interval: Duration.seconds(30),
+        timeout: Duration.seconds(5),
+        retries: 3,
+        startPeriod: Duration.seconds(30),
+      },
+    });
+
+    // Sidecar must be healthy before main container starts
+    mainContainer.addContainerDependencies({
+      container: sidecarContainer,
+      condition: aws_ecs.ContainerDependencyCondition.HEALTHY,
+    });
+
+    // ─── SSM: Publish task definition and role ARNs ───
+    new aws_ssm.StringParameter(this, 'TaskDefinitionArnParam', {
+      parameterName: ssm.ECS.TASK_DEFINITION_ARN,
+      stringValue: taskDefinition.taskDefinitionArn,
+    });
+    new aws_ssm.StringParameter(this, 'TaskRoleArnParam', {
+      parameterName: ssm.ECS.TASK_ROLE_ARN,
+      stringValue: taskRole.roleArn,
+    });
+    new aws_ssm.StringParameter(this, 'ExecutionRoleArnParam', {
+      parameterName: ssm.ECS.EXECUTION_ROLE_ARN,
+      stringValue: executionRole.roleArn,
     });
   }
 }

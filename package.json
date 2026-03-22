@@ -57,7 +57,7 @@
     "@aws-sdk/client-efs": "^3.1005.0",
     "@aws-sdk/client-lambda": "^3.1005.0",
     "@aws-sdk/client-secrets-manager": "^3.1005.0",
-    "@eslint/js": "^9.8.0",
+    "@eslint/js": "^10.0.1",
     "@nx/angular": "^22.5.4",
     "@nx/eslint": "^22.5.4",
     "@nx/eslint-plugin": "22.5.4",

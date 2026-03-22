@@ -1,0 +1,29 @@
+h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+
+  .icon-warn {
+    color: var(--mat-sys-error);
+  }
+
+  .icon-primary {
+    color: var(--mat-sys-primary);
+  }
+}
+
+p {
+  color: var(--mat-sys-on-surface-variant);
+  white-space: pre-wrap;
+}
+
+.confirmation-field {
+  width: 100%;
+  margin-top: 16px;
+}

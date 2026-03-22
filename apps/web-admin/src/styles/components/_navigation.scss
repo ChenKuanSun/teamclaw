@@ -1,0 +1,82 @@
+// =============================================
+// Navigation Component Overrides
+// =============================================
+
+// Sidenav
+.mat-sidenav {
+  background-color: var(--bg-surface);
+  border-right: var(--border-thin) solid var(--border-default);
+}
+
+.mat-sidenav-content {
+  background-color: var(--bg-base);
+}
+
+// Toolbar
+.mat-toolbar {
+  --mat-toolbar-container-background-color: var(--bg-surface);
+  --mat-toolbar-container-text-color: var(--text-primary);
+  border-bottom: var(--border-thin) solid var(--border-default);
+}
+
+// Tabs
+.mat-mdc-tab-group {
+  --mat-tab-header-label-text-color: var(--text-secondary);
+  --mat-tab-header-active-label-text-color: var(--accent);
+  --mat-tab-header-active-ripple-color: var(--accent-bg);
+  --mat-tab-header-inactive-ripple-color: transparent;
+  --mdc-tab-indicator-active-indicator-color: var(--accent);
+}
+
+.mat-mdc-tab-header {
+  border-bottom: var(--border-thin) solid var(--border-default);
+}
+
+.mat-mdc-tab {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-wide);
+}
+
+// Nav list
+.mat-mdc-nav-list {
+  .mat-mdc-list-item {
+    color: var(--text-secondary);
+    border-radius: var(--radius-md);
+    margin: var(--space-1) 0;
+
+    &:hover {
+      background-color: var(--accent-bg);
+      color: var(--text-primary);
+    }
+
+    &.active {
+      background-color: var(--accent-bg);
+      color: var(--accent);
+
+      .mat-icon {
+        color: var(--accent);
+      }
+    }
+  }
+}
+
+// Menu
+.mat-mdc-menu-panel {
+  background-color: var(--bg-elevated);
+  border-radius: var(--radius-lg) !important;
+  border: var(--border-thin) solid var(--border-default);
+  box-shadow: var(--shadow-lg);
+}
+
+.mat-mdc-menu-item {
+  color: var(--text-primary);
+
+  &:hover:not([disabled]) {
+    background-color: var(--accent-bg);
+  }
+
+  .mat-icon {
+    color: var(--text-secondary);
+  }
+}

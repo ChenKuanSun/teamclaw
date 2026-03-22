@@ -1,0 +1,52 @@
+<div class="integrations-page">
+  <h2>{{ 'My Integrations' | translate }}</h2>
+
+  @if (loading()) {
+    <div class="spinner-wrapper">
+      <mat-progress-spinner mode="indeterminate" diameter="48" />
+    </div>
+  } @else if (integrations().length === 0) {
+    <mat-card>
+      <mat-card-content>
+        <p class="empty-state">
+          {{ 'No integrations available.' | translate }}
+        </p>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <mat-card>
+      <mat-list>
+        @for (item of integrations(); track item.integrationId) {
+          <mat-list-item class="integration-row">
+            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+            <span matListItemTitle>{{ item.displayName }}</span>
+            <span matListItemLine class="status-line">
+              {{ getStatusText(item) }}
+            </span>
+            <div matListItemMeta class="action-buttons">
+              @if (item.credentialSource === 'personal') {
+                <button
+                  mat-stroked-button
+                  color="warn"
+                  (click)="disconnect(item)"
+                  [disabled]="actionLoading()">
+                  {{ 'Disconnect' | translate }}
+                </button>
+              } @else if (
+                item.allowUserOverride && item.credentialSchema?.length
+              ) {
+                <button
+                  mat-stroked-button
+                  color="primary"
+                  (click)="connect(item)"
+                  [disabled]="actionLoading()">
+                  {{ 'Connect' | translate }}
+                </button>
+              }
+            </div>
+          </mat-list-item>
+        }
+      </mat-list>
+    </mat-card>
+  }
+</div>

@@ -1,0 +1,51 @@
+version: 1
+applications:
+  - appRoot: apps/web-chat
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - nvm install 22.15.0
+            - nvm use 22.15.0
+            - cd ../..
+            - npm ci --legacy-peer-deps
+        build:
+          commands:
+            - if [ "${AWS_BRANCH}" = "main" ]; then npx nx run
+              web-chat:build:production --verbose; fi
+            - if [ "${AWS_BRANCH}" = "staging" ]; then npx nx run
+              web-chat:build:production --verbose; fi
+            - if [ "${AWS_BRANCH}" = "dev" ]; then npx nx run
+              web-chat:build:development --verbose; fi
+      artifacts:
+        baseDirectory: ../../dist/apps/web-chat/browser/
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+
+  - appRoot: apps/web-admin
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - nvm install 22.15.0
+            - nvm use 22.15.0
+            - cd ../..
+            - npm ci --legacy-peer-deps
+        build:
+          commands:
+            - if [ "${AWS_BRANCH}" = "main" ]; then npx nx run
+              web-admin:build:production --verbose; fi
+            - if [ "${AWS_BRANCH}" = "staging" ]; then npx nx run
+              web-admin:build:production --verbose; fi
+            - if [ "${AWS_BRANCH}" = "dev" ]; then npx nx run
+              web-admin:build:development --verbose; fi
+      artifacts:
+        baseDirectory: ../../dist/apps/web-admin/browser/
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*

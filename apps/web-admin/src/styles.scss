@@ -1,0 +1,164 @@
+// =============================================
+// TeamClaw Admin App - Main Stylesheet
+// =============================================
+
+// 1. Angular Material core
+@use '@angular/material' as mat;
+
+// 2. TeamClaw design tokens
+@use './styles/tokens' as tokens;
+
+// 3. TeamClaw themes
+@use './styles/themes/theme-dark' as dark;
+@use './styles/themes/theme-light' as light;
+
+// 4. Component overrides
+@use './styles/components' as components;
+
+// 5. Utilities
+@use './styles/utilities' as utilities;
+
+// =============================================
+// Theme Application
+// =============================================
+
+// Dark theme (default for admin app)
+html,
+html[data-theme='dark'] {
+  @include dark.apply();
+  color-scheme: dark;
+}
+
+// Light theme
+html[data-theme='light'] {
+  @include light.apply();
+  color-scheme: light;
+}
+
+// =============================================
+// Base Styles
+// =============================================
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--leading-relaxed);
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// =============================================
+// Angular Material Global Overrides
+// =============================================
+
+// Enforce 8px max border radius
+.mat-mdc-card,
+.mat-mdc-dialog-container,
+.mat-mdc-snack-bar-container,
+.mat-mdc-menu-panel,
+.mat-mdc-select-panel,
+.mat-mdc-autocomplete-panel {
+  border-radius: var(--radius-lg) !important;
+}
+
+.mat-mdc-button,
+.mat-mdc-outlined-button,
+.mat-mdc-unelevated-button,
+.mat-mdc-raised-button,
+.mat-mdc-fab,
+.mat-mdc-mini-fab,
+.mat-mdc-icon-button {
+  border-radius: var(--btn-radius) !important;
+}
+
+.mat-mdc-form-field {
+  --mdc-outlined-text-field-container-shape: var(--input-radius);
+  --mdc-filled-text-field-container-shape: var(--input-radius);
+}
+
+.mat-mdc-chip {
+  border-radius: var(--radius-sm) !important;
+}
+
+// =============================================
+// Typography System Integration
+// =============================================
+
+.mat-headline-large,
+.mat-h1 {
+  font-family: var(--font-sans) !important;
+  font-size: var(--text-h1) !important;
+  font-weight: var(--weight-bold) !important;
+  line-height: var(--leading-snug) !important;
+  letter-spacing: var(--tracking-tight) !important;
+}
+
+.mat-headline-medium,
+.mat-h2 {
+  font-family: var(--font-sans) !important;
+  font-size: var(--text-h2) !important;
+  font-weight: var(--weight-semibold) !important;
+  line-height: var(--leading-snug) !important;
+}
+
+.mat-headline-small,
+.mat-h3 {
+  font-family: var(--font-sans) !important;
+  font-size: var(--text-h3) !important;
+  font-weight: var(--weight-semibold) !important;
+  line-height: var(--leading-normal) !important;
+}
+
+.mat-body-large {
+  font-family: var(--font-sans) !important;
+  font-size: var(--text-body) !important;
+}
+
+.mat-body-medium {
+  font-family: var(--font-sans) !important;
+  font-size: var(--text-body-sm) !important;
+}
+
+.mat-label-large,
+.mat-label-medium {
+  font-family: var(--font-sans) !important;
+  font-size: var(--text-caption) !important;
+  font-weight: var(--weight-medium) !important;
+  letter-spacing: var(--tracking-wide) !important;
+}
+
+// =============================================
+// Accessibility
+// =============================================
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// =============================================
+// Snackbar Variants
+// =============================================
+
+.snackbar-error .mdc-snackbar__surface {
+  background-color: var(--mat-sys-error, #d32f2f) !important;
+  color: var(--mat-sys-on-error, #fff) !important;
+}

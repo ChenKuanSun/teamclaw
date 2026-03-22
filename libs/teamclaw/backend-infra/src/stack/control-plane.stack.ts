@@ -1,0 +1,495 @@
+import {
+  StackPropsWithEnv,
+  TC_SSM_PARAMETER,
+} from '@TeamClaw/core/cloud-config';
+import { TC_LIFECYCLE_LAMBDA_PROPS } from '@TeamClaw/teamclaw/cloud-config';
+import {
+  aws_cognito,
+  aws_dynamodb,
+  aws_events,
+  aws_events_targets,
+  aws_iam,
+  aws_lambda_nodejs,
+  aws_ssm,
+  Duration,
+  RemovalPolicy,
+  Stack,
+} from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import { LAMBDA_ENTRY_PATH } from '../lambda';
+
+export class ControlPlaneStack extends Stack {
+  constructor(scope: Construct, id: string, props: StackPropsWithEnv) {
+    super(scope, id, {
+      ...props,
+      description:
+        'TeamClaw Control Plane: Cognito, DynamoDB, Lifecycle Lambda',
+    });
+    const { deployEnv } = props;
+    const ssm = TC_SSM_PARAMETER[deployEnv];
+
+    // ─── Cognito ───
+    const userPool = new aws_cognito.UserPool(this, 'UserPool', {
+      userPoolName: `teamclaw-${deployEnv}`,
+      selfSignUpEnabled: true, // Allow employee self-registration
+      signInAliases: { email: true },
+      autoVerify: { email: true },
+      mfa: aws_cognito.Mfa.OPTIONAL,
+      mfaSecondFactor: { sms: false, otp: true },
+      passwordPolicy: {
+        minLength: 12,
+        requireLowercase: true,
+        requireUppercase: true,
+        requireDigits: true,
+        requireSymbols: true,
+      },
+      accountRecovery: aws_cognito.AccountRecovery.EMAIL_ONLY,
+      removalPolicy: RemovalPolicy.RETAIN,
+    });
+
+    const userPoolClient = userPool.addClient('WebClient', {
+      authFlows: {
+        userSrp: true,
+      },
+      generateSecret: false,
+      accessTokenValidity: Duration.hours(1),
+      idTokenValidity: Duration.hours(1),
+      refreshTokenValidity: Duration.days(30),
+    });
+
+    new aws_ssm.StringParameter(this, 'UserPoolIdParam', {
+      parameterName: ssm.COGNITO.USER_POOL_ID,
+      stringValue: userPool.userPoolId,
+    });
+    new aws_ssm.StringParameter(this, 'UserPoolArnParam', {
+      parameterName: ssm.COGNITO.USER_POOL_ARN,
+      stringValue: userPool.userPoolArn,
+    });
+    new aws_ssm.StringParameter(this, 'UserPoolClientIdParam', {
+      parameterName: ssm.COGNITO.USER_POOL_CLIENT_ID,
+      stringValue: userPoolClient.userPoolClientId,
+    });
+
+    // ─── DynamoDB: User-Container mapping & usage tracking ───
+    // TODO: [Affiora compliance] Consider migrating to TableV2 for consistency.
+    // Cannot change in-place as it changes CloudFormation resource type and destroys the table.
+    const userTable = new aws_dynamodb.Table(this, 'UserTable', {
+      tableName: `teamclaw-users-${deployEnv}`,
+      partitionKey: { name: 'userId', type: aws_dynamodb.AttributeType.STRING },
+      billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: RemovalPolicy.RETAIN,
+    });
+
+    // TODO: [Affiora compliance] Consider migrating to TableV2 for consistency.
+    // Cannot change in-place as it changes CloudFormation resource type and destroys the table.
+    const usageTable = new aws_dynamodb.Table(this, 'UsageTable', {
+      tableName: `teamclaw-usage-${deployEnv}`,
+      partitionKey: { name: 'userId', type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'timestamp', type: aws_dynamodb.AttributeType.STRING },
+      billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: RemovalPolicy.RETAIN,
+      timeToLiveAttribute: 'ttl',
+    });
+
+    // ─── DynamoDB: Teams & Config ───
+    const teamsTable = new aws_dynamodb.TableV2(this, id + 'TeamsTable', {
+      tableName: `teamclaw-teams-${deployEnv}`,
+      partitionKey: { name: 'teamId', type: aws_dynamodb.AttributeType.STRING },
+      removalPolicy: RemovalPolicy.RETAIN,
+      billing: aws_dynamodb.Billing.onDemand(),
+    });
+
+    const configTable = new aws_dynamodb.TableV2(this, id + 'ConfigTable', {
+      tableName: `teamclaw-config-${deployEnv}`,
+      partitionKey: {
+        name: 'scopeKey',
+        type: aws_dynamodb.AttributeType.STRING,
+      },
+      sortKey: { name: 'configKey', type: aws_dynamodb.AttributeType.STRING },
+      removalPolicy: RemovalPolicy.RETAIN,
+      billing: aws_dynamodb.Billing.onDemand(),
+    });
+
+    // ─── DynamoDB: Skills Approval ───
+    // Tracks hub skill install requests and their approval status
+    const skillsTable = new aws_dynamodb.Table(this, 'SkillsApprovalTable', {
+      tableName: `teamclaw-skills-${deployEnv}`,
+      partitionKey: {
+        name: 'skillId',
+        type: aws_dynamodb.AttributeType.STRING,
+      },
+      sortKey: { name: 'requestedBy', type: aws_dynamodb.AttributeType.STRING },
+      billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: RemovalPolicy.RETAIN,
+    });
+
+    // GSI for querying by status (pending/approved/rejected)
+    skillsTable.addGlobalSecondaryIndex({
+      indexName: 'by-status',
+      partitionKey: { name: 'status', type: aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: 'requestedAt', type: aws_dynamodb.AttributeType.STRING },
+    });
+
+    // ─── DynamoDB: Integrations ───
+    const integrationsTable = new aws_dynamodb.TableV2(
+      this,
+      id + 'IntegrationsTable',
+      {
+        tableName: `teamclaw-integrations-${deployEnv}`,
+        partitionKey: {
+          name: 'integrationId',
+          type: aws_dynamodb.AttributeType.STRING,
+        },
+        sortKey: { name: 'scopeKey', type: aws_dynamodb.AttributeType.STRING },
+        removalPolicy: RemovalPolicy.RETAIN,
+        billing: aws_dynamodb.Billing.onDemand(),
+      },
+    );
+    integrationsTable.addGlobalSecondaryIndex({
+      indexName: 'by-scope',
+      partitionKey: {
+        name: 'scopeKey',
+        type: aws_dynamodb.AttributeType.STRING,
+      },
+      sortKey: {
+        name: 'integrationId',
+        type: aws_dynamodb.AttributeType.STRING,
+      },
+    });
+
+    // ─── DynamoDB SSM Parameters ───
+    new aws_ssm.StringParameter(this, 'UsersTableArnParam', {
+      parameterName: ssm.DYNAMODB.USERS_TABLE_ARN,
+      stringValue: userTable.tableArn,
+    });
+    new aws_ssm.StringParameter(this, 'UsersTableNameParam', {
+      parameterName: ssm.DYNAMODB.USERS_TABLE_NAME,
+      stringValue: userTable.tableName,
+    });
+    new aws_ssm.StringParameter(this, 'UsageTableArnParam', {
+      parameterName: ssm.DYNAMODB.USAGE_TABLE_ARN,
+      stringValue: usageTable.tableArn,
+    });
+    new aws_ssm.StringParameter(this, 'UsageTableNameParam', {
+      parameterName: ssm.DYNAMODB.USAGE_TABLE_NAME,
+      stringValue: usageTable.tableName,
+    });
+    new aws_ssm.StringParameter(this, 'TeamsTableArnParam', {
+      parameterName: ssm.DYNAMODB.TEAMS_TABLE_ARN,
+      stringValue: teamsTable.tableArn,
+    });
+    new aws_ssm.StringParameter(this, 'TeamsTableNameParam', {
+      parameterName: ssm.DYNAMODB.TEAMS_TABLE_NAME,
+      stringValue: teamsTable.tableName,
+    });
+    new aws_ssm.StringParameter(this, 'ConfigTableArnParam', {
+      parameterName: ssm.DYNAMODB.CONFIG_TABLE_ARN,
+      stringValue: configTable.tableArn,
+    });
+    new aws_ssm.StringParameter(this, 'ConfigTableNameParam', {
+      parameterName: ssm.DYNAMODB.CONFIG_TABLE_NAME,
+      stringValue: configTable.tableName,
+    });
+    new aws_ssm.StringParameter(this, 'SkillsTableArnParam', {
+      parameterName: ssm.DYNAMODB.SKILLS_TABLE_ARN,
+      stringValue: skillsTable.tableArn,
+    });
+    new aws_ssm.StringParameter(this, 'SkillsTableNameParam', {
+      parameterName: ssm.DYNAMODB.SKILLS_TABLE_NAME,
+      stringValue: skillsTable.tableName,
+    });
+    new aws_ssm.StringParameter(this, 'IntegrationsTableArnParam', {
+      parameterName: ssm.DYNAMODB.INTEGRATIONS_TABLE_ARN,
+      stringValue: integrationsTable.tableArn,
+    });
+    new aws_ssm.StringParameter(this, 'IntegrationsTableNameParam', {
+      parameterName: ssm.DYNAMODB.INTEGRATIONS_TABLE_NAME,
+      stringValue: integrationsTable.tableName,
+    });
+
+    // ─── API Keys Secret (used by sidecar proxy, referenced by lifecycle Lambda) ───
+    const apiKeysSecretArn = aws_ssm.StringParameter.valueForStringParameter(
+      this,
+      ssm.SECRETS.API_KEYS_SECRET_ARN,
+    );
+
+    // ─── Lifecycle Lambda (start/stop/provision/cron-sync) ───
+    const lifecycleLambda = new aws_lambda_nodejs.NodejsFunction(
+      this,
+      'LifecycleLambda',
+      {
+        ...TC_LIFECYCLE_LAMBDA_PROPS,
+        functionName: `teamclaw-lifecycle-${deployEnv}`,
+        entry: `${LAMBDA_ENTRY_PATH}/lifecycle/index.ts`,
+        environment: {
+          DEPLOY_ENV: deployEnv,
+          USERS_TABLE_NAME: userTable.tableName,
+          ECS_CLUSTER_NAME: aws_ssm.StringParameter.valueForStringParameter(
+            this,
+            ssm.ECS.CLUSTER_NAME,
+          ),
+          EFS_FILE_SYSTEM_ID: aws_ssm.StringParameter.valueForStringParameter(
+            this,
+            ssm.EFS.FILE_SYSTEM_ID,
+          ),
+          PRIVATE_SUBNET_IDS: aws_ssm.StringParameter.valueForStringParameter(
+            this,
+            ssm.VPC.PRIVATE_SUBNET_IDS,
+          ),
+          SECURITY_GROUP_ID: aws_ssm.StringParameter.valueForStringParameter(
+            this,
+            ssm.ECS.ALB_SECURITY_GROUP_ID,
+          ),
+          API_KEYS_SECRET_ARN: apiKeysSecretArn,
+          USAGE_TABLE_NAME: usageTable.tableName,
+          INTEGRATIONS_TABLE_NAME: integrationsTable.tableName,
+          SIDECAR_IMAGE: aws_ssm.StringParameter.valueForStringParameter(
+            this,
+            ssm.ECR.SIDECAR_REPO_URI,
+          ),
+          ALB_TARGET_GROUP_ARN: aws_ssm.StringParameter.valueForStringParameter(
+            this,
+            ssm.ECS.ALB_TARGET_GROUP_ARN,
+          ),
+          ALB_LISTENER_ARN: aws_ssm.StringParameter.valueForStringParameter(
+            this,
+            ssm.ECS.ALB_LISTENER_ARN,
+          ),
+          ALB_DNS_NAME: aws_ssm.StringParameter.valueForStringParameter(
+            this,
+            ssm.ECS.ALB_DNS_NAME,
+          ),
+          VPC_ID: aws_ssm.StringParameter.valueForStringParameter(
+            this,
+            ssm.VPC.VPC_ID,
+          ),
+        },
+      },
+    );
+    userTable.grantReadWriteData(lifecycleLambda);
+    integrationsTable.grantReadData(lifecycleLambda);
+
+    // SecretsManager read for integration credentials (resolved at container start)
+    lifecycleLambda.addToRolePolicy(
+      new aws_iam.PolicyStatement({
+        actions: ['secretsmanager:GetSecretValue'],
+        resources: [
+          `arn:aws:secretsmanager:${this.region}:${this.account}:secret:tc/integrations/${deployEnv}/*`,
+        ],
+      }),
+    );
+
+    // ─── EventBridge Scheduler Role (for cron-aware wakeup) ───
+    // This role allows EventBridge Scheduler to invoke the Lifecycle Lambda
+    const schedulerRole = new aws_iam.Role(this, 'CronSchedulerRole', {
+      roleName: `teamclaw-cron-scheduler-${deployEnv}`,
+      assumedBy: new aws_iam.ServicePrincipal('scheduler.amazonaws.com'),
+    });
+    // Construct ARN manually to avoid circular dependency (Lambda referencing itself)
+    const lifecycleLambdaArn = `arn:aws:lambda:${this.region}:${this.account}:function:teamclaw-lifecycle-${deployEnv}`;
+
+    schedulerRole.addToPolicy(
+      new aws_iam.PolicyStatement({
+        actions: ['lambda:InvokeFunction'],
+        resources: [lifecycleLambdaArn],
+      }),
+    );
+
+    // TODO: Hardcoded SSM path — should be added to TC_SSM_PARAMETER in ssm.ts for consistency.
+    // Skipping refactor for now to avoid breaking deployed stacks.
+    new aws_ssm.StringParameter(this, id + 'LifecycleLambdaNameParam', {
+      parameterName: `/tc/${deployEnv}/lifecycle-lambda-name`,
+      stringValue: lifecycleLambda.functionName,
+    });
+    lifecycleLambda.addEnvironment('LIFECYCLE_LAMBDA_ARN', lifecycleLambdaArn);
+    lifecycleLambda.addEnvironment('SCHEDULER_ROLE_ARN', schedulerRole.roleArn);
+
+    // ECS permissions for lifecycle Lambda
+    const ecsClusterArn = Stack.of(this).formatArn({
+      service: 'ecs',
+      resource: 'cluster',
+      resourceName: `teamclaw-*-${deployEnv}`,
+    });
+    lifecycleLambda.addToRolePolicy(
+      new aws_iam.PolicyStatement({
+        actions: [
+          'ecs:RunTask',
+          'ecs:StopTask',
+          'ecs:DescribeTasks',
+          'ecs:ListTasks',
+        ],
+        resources: [
+          ecsClusterArn,
+          // Task ARNs in the cluster (cluster name: teamclaw-{env})
+          Stack.of(this).formatArn({
+            service: 'ecs',
+            resource: 'task',
+            resourceName: `teamclaw-${deployEnv}/*`,
+          }),
+          // Task definition ARNs (required by RunTask)
+          Stack.of(this).formatArn({
+            service: 'ecs',
+            resource: 'task-definition',
+            resourceName: `teamclaw-*-${deployEnv}:*`,
+          }),
+        ],
+      }),
+    );
+    // RegisterTaskDefinition / DeregisterTaskDefinition only support '*' as resource
+    lifecycleLambda.addToRolePolicy(
+      new aws_iam.PolicyStatement({
+        actions: ['ecs:RegisterTaskDefinition', 'ecs:DeregisterTaskDefinition'],
+        resources: ['*'],
+      }),
+    );
+    lifecycleLambda.addToRolePolicy(
+      new aws_iam.PolicyStatement({
+        actions: ['iam:PassRole'],
+        resources: [
+          `arn:aws:iam::${this.account}:role/teamclaw-*-${deployEnv}*`,
+        ],
+        conditions: {
+          StringEquals: { 'iam:PassedToService': 'ecs-tasks.amazonaws.com' },
+        },
+      }),
+    );
+    // ELBV2 permissions: per-user target groups + listener rules for WebSocket routing
+    lifecycleLambda.addToRolePolicy(
+      new aws_iam.PolicyStatement({
+        actions: [
+          'elasticloadbalancing:RegisterTargets',
+          'elasticloadbalancing:DeregisterTargets',
+          'elasticloadbalancing:CreateTargetGroup',
+          'elasticloadbalancing:DeleteTargetGroup',
+          'elasticloadbalancing:DescribeTargetGroups',
+        ],
+        resources: [
+          // Shared target group (legacy fallback)
+          Stack.of(this).formatArn({
+            service: 'elasticloadbalancing',
+            resource: 'targetgroup',
+            resourceName: `tc-containers-${deployEnv}/*`,
+          }),
+          // Per-user target groups: tc-u-*
+          Stack.of(this).formatArn({
+            service: 'elasticloadbalancing',
+            resource: 'targetgroup',
+            resourceName: 'tc-u-*',
+          }),
+        ],
+      }),
+    );
+    // CreateTargetGroup requires '*' resource for the initial call
+    lifecycleLambda.addToRolePolicy(
+      new aws_iam.PolicyStatement({
+        actions: [
+          'elasticloadbalancing:CreateTargetGroup',
+          'elasticloadbalancing:DescribeTargetGroups',
+        ],
+        resources: ['*'],
+      }),
+    );
+    // ALB listener rule management (create/delete rules scoped to listener + rules)
+    lifecycleLambda.addToRolePolicy(
+      new aws_iam.PolicyStatement({
+        actions: [
+          'elasticloadbalancing:CreateRule',
+          'elasticloadbalancing:DeleteRule',
+        ],
+        resources: [
+          // Listener ARN
+          aws_ssm.StringParameter.valueForStringParameter(
+            this,
+            ssm.ECS.ALB_LISTENER_ARN,
+          ),
+          // Rule ARNs under any listener
+          Stack.of(this).formatArn({
+            service: 'elasticloadbalancing',
+            resource: 'listener-rule',
+            resourceName: '*',
+          }),
+        ],
+      }),
+    );
+    // DescribeRules requires '*' resource (ELBv2 API limitation)
+    // AddTags on listener-rules also requires '*' (called by CreateRule with Tags)
+    lifecycleLambda.addToRolePolicy(
+      new aws_iam.PolicyStatement({
+        actions: [
+          'elasticloadbalancing:DescribeRules',
+          'elasticloadbalancing:AddTags',
+        ],
+        resources: ['*'],
+      }),
+    );
+    // EFS Access Point creation — scoped to the provisioned file system
+    const efsFileSystemArn = Stack.of(this).formatArn({
+      service: 'elasticfilesystem',
+      resource: 'file-system',
+      resourceName: aws_ssm.StringParameter.valueForStringParameter(
+        this,
+        ssm.EFS.FILE_SYSTEM_ID,
+      ),
+    });
+    lifecycleLambda.addToRolePolicy(
+      new aws_iam.PolicyStatement({
+        actions: [
+          'elasticfilesystem:CreateAccessPoint',
+          'elasticfilesystem:DeleteAccessPoint',
+          'elasticfilesystem:DescribeAccessPoints',
+          'elasticfilesystem:TagResource',
+        ],
+        resources: [
+          efsFileSystemArn,
+          // Access point ARNs under this file system
+          Stack.of(this).formatArn({
+            service: 'elasticfilesystem',
+            resource: 'access-point',
+            resourceName: '*',
+          }),
+        ],
+      }),
+    );
+
+    // EventBridge Scheduler permissions for cron-aware wakeup
+    // Lifecycle Lambda manages EventBridge rules to pre-wake containers
+    // before OpenClaw's internal CronJobs need to fire
+    lifecycleLambda.addToRolePolicy(
+      new aws_iam.PolicyStatement({
+        actions: [
+          'scheduler:CreateSchedule',
+          'scheduler:UpdateSchedule',
+          'scheduler:DeleteSchedule',
+          'scheduler:GetSchedule',
+          'scheduler:ListSchedules',
+        ],
+        resources: [
+          `arn:aws:scheduler:${this.region}:${this.account}:schedule/teamclaw-cron-${deployEnv}/*`,
+        ],
+      }),
+    );
+    lifecycleLambda.addToRolePolicy(
+      new aws_iam.PolicyStatement({
+        actions: ['iam:PassRole'],
+        resources: [schedulerRole.roleArn],
+        conditions: {
+          StringEquals: { 'iam:PassedToService': 'scheduler.amazonaws.com' },
+        },
+      }),
+    );
+
+    // ─── Auto-stop idle containers every 15 minutes ───
+    const idleCheckRule = new aws_events.Rule(this, 'IdleCheckRule', {
+      schedule: aws_events.Schedule.rate(Duration.minutes(15)),
+      description: 'Check for idle TeamClaw containers and stop them',
+    });
+    idleCheckRule.addTarget(
+      new aws_events_targets.LambdaFunction(lifecycleLambda, {
+        event: aws_events.RuleTargetInput.fromObject({
+          action: 'check-idle',
+          userId: 'system',
+        }),
+      }),
+    );
+  }
+}

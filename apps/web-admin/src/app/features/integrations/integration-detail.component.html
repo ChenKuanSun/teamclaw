@@ -1,0 +1,146 @@
+<div class="detail-container">
+  @if (loading()) {
+    <div class="spinner-wrapper">
+      <mat-progress-spinner mode="indeterminate" diameter="48" />
+    </div>
+  } @else if (detail()) {
+    <div class="header">
+      <button mat-icon-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <mat-icon class="header-icon">{{ detail()!.icon }}</mat-icon>
+      <div>
+        <h2>{{ detail()!.displayName }}</h2>
+        <p class="subtitle">{{ detail()!.description }}</p>
+      </div>
+    </div>
+
+    <!-- Global Configuration -->
+    <mat-card>
+      <mat-card-header
+        ><mat-card-title
+          >Global Configuration</mat-card-title
+        ></mat-card-header
+      >
+      <mat-card-content>
+        <mat-list>
+          <mat-list-item>
+            <span matListItemTitle>Status</span>
+            <mat-slide-toggle
+              matListItemMeta
+              [checked]="detail()!.enabled"
+              (change)="toggleEnabled($event.checked)">
+              {{ detail()!.enabled ? 'Enabled' : 'Disabled' }}
+            </mat-slide-toggle>
+          </mat-list-item>
+          <mat-list-item>
+            <span matListItemTitle>Credential</span>
+            <span matListItemMeta>
+              @if (detail()!.hasCredentials) {
+                <mat-chip highlighted>Configured</mat-chip>
+                <button
+                  mat-stroked-button
+                  (click)="openCredentialDialog('Global')">
+                  <mat-icon matIconPrefix>edit</mat-icon> Replace
+                </button>
+                <button
+                  mat-stroked-button
+                  color="warn"
+                  (click)="removeGlobalCred()">
+                  <mat-icon matIconPrefix>delete</mat-icon> Remove
+                </button>
+              } @else {
+                <mat-chip>Not Set</mat-chip>
+                <button
+                  mat-flat-button
+                  color="primary"
+                  (click)="openCredentialDialog('Global')">
+                  <mat-icon matIconPrefix>add</mat-icon> Set Credential
+                </button>
+              }
+            </span>
+          </mat-list-item>
+        </mat-list>
+        @if (detail()!.updatedAt) {
+          <p class="meta">Last updated: {{ detail()!.updatedAt }}</p>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Team Overrides -->
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Team Overrides</mat-card-title>
+        <span class="spacer"></span>
+        <button
+          mat-stroked-button
+          color="primary"
+          (click)="openTeamOverrideDialog()">
+          <mat-icon matIconPrefix>add</mat-icon> Add Override
+        </button>
+      </mat-card-header>
+      <mat-card-content>
+        @if (detail()!.teamOverrides.length === 0) {
+          <p class="empty-state">
+            No team overrides. All teams use the global credential.
+          </p>
+        } @else {
+          <table
+            mat-table
+            [dataSource]="detail()!.teamOverrides"
+            class="full-width">
+            <ng-container matColumnDef="team">
+              <th mat-header-cell *matHeaderCellDef>Team</th>
+              <td mat-cell *matCellDef="let row">
+                {{ row.teamName || row.teamId }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let row">
+                <mat-chip [highlighted]="row.enabled">{{
+                  row.enabled ? 'Enabled' : 'Disabled'
+                }}</mat-chip>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="credential">
+              <th mat-header-cell *matHeaderCellDef>Credential</th>
+              <td mat-cell *matCellDef="let row">
+                <mat-chip [highlighted]="row.hasCredentials">{{
+                  row.hasCredentials ? 'Own Key' : 'Uses Global'
+                }}</mat-chip>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="userOverride">
+              <th mat-header-cell *matHeaderCellDef>User Override</th>
+              <td mat-cell *matCellDef="let row">
+                <mat-slide-toggle
+                  [checked]="row.allowUserOverride"
+                  (change)="toggleTeamUserOverride(row, $event.checked)">
+                </mat-slide-toggle>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let row">
+                <button mat-icon-button (click)="editTeamOverride(row)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                @if (row.hasCredentials) {
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    (click)="removeTeamCred(row)">
+                    <mat-icon>vpn_key_off</mat-icon>
+                  </button>
+                }
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="teamColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: teamColumns"></tr>
+          </table>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

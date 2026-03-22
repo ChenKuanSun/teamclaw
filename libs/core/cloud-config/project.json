@@ -1,0 +1,9 @@
+{
+  "name": "lib-core-cloud-config",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/core/cloud-config/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project core-cloud-config --web",
+  "targets": {}
+}

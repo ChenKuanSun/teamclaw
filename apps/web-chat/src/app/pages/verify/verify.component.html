@@ -1,0 +1,45 @@
+<div class="login-container">
+  <div class="gradient-orbs" aria-hidden="true">
+    <div class="orb orb-blue"></div>
+    <div class="orb orb-cyan"></div>
+    <div class="orb orb-navy"></div>
+  </div>
+  <div class="login-content">
+    <header class="branding">
+      <h1 class="brand-name">TeamClaw</h1>
+      <p class="tagline">Enterprise AI Collaboration</p>
+    </header>
+    <section class="login-card">
+      <div class="card-header">
+        <h2 class="welcome-title">{{ 'Verify Email' | translate }}</h2>
+      </div>
+      <div class="card-body">
+        <p class="verify-hint">We sent a verification code to <strong>{{ email() }}</strong></p>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'Verification Code' | translate }}</mat-label>
+          <input matInput [ngModel]="code()" (ngModelChange)="code.set($event)"
+            (keyup.enter)="submitVerify()" maxlength="6" autocomplete="one-time-code" />
+        </mat-form-field>
+        @if (errorMessage()) {
+          <div class="error-message"><p>{{ errorMessage() }}</p></div>
+        }
+        @if (success()) {
+          <div class="success-message"><p>Email verified! Redirecting to login...</p></div>
+        }
+        <button mat-raised-button color="primary" class="submit-btn full-width"
+          (click)="submitVerify()" [disabled]="isLoading() || success()">
+          @if (isLoading()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            <span>{{ 'Verify' | translate }}</span>
+          }
+        </button>
+      </div>
+      <footer class="card-footer">
+        <p class="footer-text">
+          <a routerLink="/login">{{ 'Back to Sign In' | translate }}</a>
+        </p>
+      </footer>
+    </section>
+  </div>
+</div>

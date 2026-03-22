@@ -1,0 +1,19 @@
+<div class="side-nav-container">
+  <a class="logo-container" routerLink="/">
+    <span class="logo-text">TeamClaw</span>
+    <span class="logo-subtitle">Admin Panel</span>
+  </a>
+
+  <mat-nav-list class="nav-list">
+    @for (item of menuItems; track item.id) {
+      <a
+        mat-list-item
+        class="nav-item"
+        routerLinkActive="active"
+        [routerLink]="item.route">
+        <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+        <span matListItemTitle>{{ item.label }}</span>
+      </a>
+    }
+  </mat-nav-list>
+</div>

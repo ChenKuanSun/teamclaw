@@ -1,0 +1,26 @@
+<button mat-icon-button [matMenuTriggerFor]="commandMenu" class="menu-trigger">
+  <mat-icon>add_circle_outline</mat-icon>
+</button>
+<mat-menu #commandMenu="matMenu" yPosition="above">
+  <button mat-menu-item (click)="exec('new-session')">
+    <mat-icon>add_comment</mat-icon>
+    <span>New Conversation</span>
+  </button>
+
+  <button mat-menu-item (click)="exec('list-sessions')">
+    <mat-icon>forum</mat-icon>
+    <span>Conversations</span>
+  </button>
+
+  <mat-divider></mat-divider>
+
+  <button mat-menu-item (click)="exec('abort')">
+    <mat-icon>stop_circle</mat-icon>
+    <span>Stop Generating</span>
+  </button>
+
+  <button mat-menu-item (click)="exec('restart')">
+    <mat-icon>restart_alt</mat-icon>
+    <span>Restart Gateway</span>
+  </button>
+</mat-menu>

@@ -1,0 +1,23 @@
+.integrations-container {
+  padding: 24px;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.full-width {
+  width: 100%;
+}
+.spinner-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+.clickable-row {
+  cursor: pointer;
+}
+.clickable-row:hover {
+  background: var(--mat-sys-surface-variant, rgba(0, 0, 0, 0.04));
+}

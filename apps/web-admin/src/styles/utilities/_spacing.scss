@@ -1,0 +1,72 @@
+// =============================================
+// Spacing Utilities
+// =============================================
+
+// Margin utilities
+@each $size in (1, 2, 3, 4, 5, 6, 8, 10, 12, 16) {
+  .m-#{$size} {
+    margin: var(--space-#{$size});
+  }
+  .mt-#{$size} {
+    margin-top: var(--space-#{$size});
+  }
+  .mr-#{$size} {
+    margin-right: var(--space-#{$size});
+  }
+  .mb-#{$size} {
+    margin-bottom: var(--space-#{$size});
+  }
+  .ml-#{$size} {
+    margin-left: var(--space-#{$size});
+  }
+  .mx-#{$size} {
+    margin-left: var(--space-#{$size});
+    margin-right: var(--space-#{$size});
+  }
+  .my-#{$size} {
+    margin-top: var(--space-#{$size});
+    margin-bottom: var(--space-#{$size});
+  }
+}
+
+// Padding utilities
+@each $size in (1, 2, 3, 4, 5, 6, 8, 10, 12, 16) {
+  .p-#{$size} {
+    padding: var(--space-#{$size});
+  }
+  .pt-#{$size} {
+    padding-top: var(--space-#{$size});
+  }
+  .pr-#{$size} {
+    padding-right: var(--space-#{$size});
+  }
+  .pb-#{$size} {
+    padding-bottom: var(--space-#{$size});
+  }
+  .pl-#{$size} {
+    padding-left: var(--space-#{$size});
+  }
+  .px-#{$size} {
+    padding-left: var(--space-#{$size});
+    padding-right: var(--space-#{$size});
+  }
+  .py-#{$size} {
+    padding-top: var(--space-#{$size});
+    padding-bottom: var(--space-#{$size});
+  }
+}
+
+// Gap utilities
+@each $size in (1, 2, 3, 4, 5, 6, 8) {
+  .gap-#{$size} {
+    gap: var(--space-#{$size});
+  }
+}
+
+// Zero margin/padding
+.m-0 {
+  margin: 0;
+}
+.p-0 {
+  padding: 0;
+}

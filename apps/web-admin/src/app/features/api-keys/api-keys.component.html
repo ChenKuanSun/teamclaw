@@ -1,0 +1,89 @@
+<div class="api-keys-container">
+  <div class="header">
+    <h2>API Keys</h2>
+    <button mat-raised-button color="primary" (click)="openAddDialog()">
+      <mat-icon>add</mat-icon> Add Key
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="spinner-wrapper">
+      <mat-progress-spinner mode="indeterminate" diameter="48" />
+    </div>
+  } @else if (rows().length === 0) {
+    <mat-card>
+      <mat-card-content>
+        <p class="empty-state">No API keys configured. Add one to get started.</p>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <mat-card>
+      <table mat-table [dataSource]="rows()" class="full-width">
+        <ng-container matColumnDef="provider">
+          <th mat-header-cell *matHeaderCellDef>Provider</th>
+          <td mat-cell *matCellDef="let row">{{ row.provider }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="authType">
+          <th mat-header-cell *matHeaderCellDef>Type</th>
+          <td mat-cell *matCellDef="let row">
+            <mat-chip [highlighted]="row.authType === 'oauthToken'">
+              {{ row.authType === 'oauthToken' ? 'OAuth Token' : 'API Key' }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="credential">
+          <th mat-header-cell *matHeaderCellDef>Credential</th>
+          <td mat-cell *matCellDef="let row" class="monospace">{{ row.display }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let row">
+            <button mat-icon-button color="warn" (click)="removeKey(row)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </mat-card>
+  }
+
+  <!-- Usage Stats -->
+  @if (usageStats()) {
+    <h3>Usage Statistics</h3>
+    <div class="stats-grid">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-value">{{ usageStats()!.totalRequests | number }}</div>
+          <div class="stat-label">Total Requests</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    @if (usageStats()!.byProvider.length) {
+      <mat-card class="usage-table-card">
+        <table mat-table [dataSource]="usageStats()!.byProvider" class="full-width">
+          <ng-container matColumnDef="provider">
+            <th mat-header-cell *matHeaderCellDef>Provider</th>
+            <td mat-cell *matCellDef="let row">{{ row.provider }}</td>
+          </ng-container>
+          <ng-container matColumnDef="requests">
+            <th mat-header-cell *matHeaderCellDef>Requests</th>
+            <td mat-cell *matCellDef="let row">{{ row.requests | number }}</td>
+          </ng-container>
+          <ng-container matColumnDef="cost">
+            <th mat-header-cell *matHeaderCellDef>Cost</th>
+            <td mat-cell *matCellDef="let row">{{ row.cost ? ('$' + (row.cost | number: '1.2-2')) : 'N/A' }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="usageColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: usageColumns"></tr>
+        </table>
+      </mat-card>
+    }
+  }
+</div>

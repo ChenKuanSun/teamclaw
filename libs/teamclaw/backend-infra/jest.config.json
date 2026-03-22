@@ -1,0 +1,36 @@
+{
+  "displayName": "lib-teamclaw-backend-infra",
+  "preset": "../../../jest.preset.js",
+  "testEnvironment": "node",
+  "roots": ["<rootDir>/src", "<rootDir>/test"],
+  "testMatch": [
+    "<rootDir>/src/**/*.(test|spec).ts",
+    "<rootDir>/test/**/*.(test|spec).ts"
+  ],
+  "transform": {
+    "^.+\\.[tj]s$": [
+      "ts-jest",
+      {
+        "tsconfig": "<rootDir>/tsconfig.spec.json"
+      }
+    ]
+  },
+  "moduleFileExtensions": ["ts", "js", "html"],
+  "coverageDirectory": "../../../coverage/libs/teamclaw/backend-infra",
+  "collectCoverageFrom": [
+    "src/**/*.ts",
+    "!src/**/*.d.ts",
+    "!src/**/*.test.ts",
+    "!src/**/*.spec.ts",
+    "!src/**/test/**/*",
+    "!src/**/local-testing/**/*"
+  ],
+  "coverageThreshold": {
+    "global": {
+      "branches": 80,
+      "functions": 80,
+      "lines": 80,
+      "statements": 80
+    }
+  }
+}

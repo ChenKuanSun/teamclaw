@@ -1,0 +1,5842 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`AdminLambdaStack matches snapshot 1`] = `
+{
+  "Description": "TeamClaw Admin: Lambda Functions for Admin API",
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevcognitouserPoolIdC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/cognito/userPoolId",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevdynamodbconfigTableArnC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/dynamodb/configTableArn",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevdynamodbconfigTableNameC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/dynamodb/configTableName",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/dynamodb/integrationsTableArn",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevdynamodbintegrationsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/dynamodb/integrationsTableName",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevdynamodbskillsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/dynamodb/skillsTableArn",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevdynamodbskillsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/dynamodb/skillsTableName",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevdynamodbteamsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/dynamodb/teamsTableArn",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevdynamodbteamsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/dynamodb/teamsTableName",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevdynamodbusageTableArnC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/dynamodb/usageTableArn",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevdynamodbusageTableNameC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/dynamodb/usageTableName",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/dynamodb/usersTableArn",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevdynamodbusersTableNameC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/dynamodb/usersTableName",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevecsalbDnsNameC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/ecs/albDnsName",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevlifecyclelambdanameC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/lifecycle-lambda-name",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevsecretsapiKeysSecretArnC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/secrets/apiKeysSecretArn",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "TestAdminLambdaAddApiKeyLambda4725A74A": {
+      "DependsOn": [
+        "TestAdminLambdaAddApiKeyLambdaServiceRoleDefaultPolicy455C8661",
+        "TestAdminLambdaAddApiKeyLambdaServiceRole14A01D9C",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "56b204725fb8963649aeeb2c6399399118d6b964731df436f8bc5b66cec66428.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "API_KEYS_SECRET_ARN": {
+              "Ref": "SsmParameterValuetcdevsecretsapiKeysSecretArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "DEPLOY_ENV": "dev",
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaAddApiKeyLambdaServiceRole14A01D9C",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaAddApiKeyLambdaNameParam7F5BAD18": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/addApiKeyLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaAddApiKeyLambda4725A74A",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaAddApiKeyLambdaServiceRole14A01D9C": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaAddApiKeyLambdaServiceRoleDefaultPolicy455C8661": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevsecretsapiKeysSecretArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "secretsmanager:PutSecretValue",
+                "secretsmanager:UpdateSecret",
+                "secretsmanager:UpdateSecretVersionStage",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevsecretsapiKeysSecretArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaAddApiKeyLambdaServiceRoleDefaultPolicy455C8661",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaAddApiKeyLambdaServiceRole14A01D9C",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaConnectIntegrationLambdaC62FCA27": {
+      "DependsOn": [
+        "TestAdminLambdaConnectIntegrationLambdaServiceRoleDefaultPolicy74D0D01D",
+        "TestAdminLambdaConnectIntegrationLambdaServiceRole48527894",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "90e6075497e9cbad1854edad6826ef4d34668cda12766cf0b88ca2b4d2039941.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "INTEGRATIONS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "USERS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbusersTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaConnectIntegrationLambdaServiceRole48527894",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaConnectIntegrationLambdaNameParamE3D8AC3E": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/connectIntegrationLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaConnectIntegrationLambdaC62FCA27",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaConnectIntegrationLambdaServiceRole48527894": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaConnectIntegrationLambdaServiceRoleDefaultPolicy74D0D01D": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": "dynamodb:Query",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+                    },
+                    "/index/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "secretsmanager:CreateSecret",
+                "secretsmanager:PutSecretValue",
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DeleteSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:secretsmanager:",
+                    {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":secret:tc/integrations/dev/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaConnectIntegrationLambdaServiceRoleDefaultPolicy74D0D01D",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaConnectIntegrationLambdaServiceRole48527894",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaCreateTeamLambdaED1F9292": {
+      "DependsOn": [
+        "TestAdminLambdaCreateTeamLambdaServiceRoleDefaultPolicyEAE620D7",
+        "TestAdminLambdaCreateTeamLambdaServiceRoleED1A5638",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "0d54bbea729b89b2de84463a90c6226d35d618c5b0ebefc02748f4ec11bb6c1f.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "TEAMS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbteamsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaCreateTeamLambdaServiceRoleED1A5638",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaCreateTeamLambdaNameParam04D6ED6A": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/createTeamLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaCreateTeamLambdaED1F9292",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaCreateTeamLambdaServiceRoleDefaultPolicyEAE620D7": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbteamsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbteamsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaCreateTeamLambdaServiceRoleDefaultPolicyEAE620D7",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaCreateTeamLambdaServiceRoleED1A5638",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaCreateTeamLambdaServiceRoleED1A5638": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaDeleteIntegrationCredLambda42DF63B7": {
+      "DependsOn": [
+        "TestAdminLambdaDeleteIntegrationCredLambdaServiceRoleDefaultPolicy1EF472E7",
+        "TestAdminLambdaDeleteIntegrationCredLambdaServiceRole1C0140C9",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "7dbe414f23da4a7c6bd10bf470902ef861959745713a60acab1afd5d47ada670.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "INTEGRATIONS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaDeleteIntegrationCredLambdaServiceRole1C0140C9",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaDeleteIntegrationCredLambdaNameParamCA41FEC2": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/deleteIntegrationCredLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaDeleteIntegrationCredLambda42DF63B7",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaDeleteIntegrationCredLambdaServiceRole1C0140C9": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaDeleteIntegrationCredLambdaServiceRoleDefaultPolicy1EF472E7": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "secretsmanager:CreateSecret",
+                "secretsmanager:PutSecretValue",
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DeleteSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:secretsmanager:",
+                    {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":secret:tc/integrations/dev/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaDeleteIntegrationCredLambdaServiceRoleDefaultPolicy1EF472E7",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaDeleteIntegrationCredLambdaServiceRole1C0140C9",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaDeleteTeamCredLambda1BCD816B": {
+      "DependsOn": [
+        "TestAdminLambdaDeleteTeamCredLambdaServiceRoleDefaultPolicy42CCFBC9",
+        "TestAdminLambdaDeleteTeamCredLambdaServiceRole16FA440C",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "5ee6f6644b76123afbed407b29bb1c9aee0134fd6ba0197215b96d9270366acf.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "INTEGRATIONS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaDeleteTeamCredLambdaServiceRole16FA440C",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaDeleteTeamCredLambdaNameParam43ED2018": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/deleteTeamCredLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaDeleteTeamCredLambda1BCD816B",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaDeleteTeamCredLambdaServiceRole16FA440C": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaDeleteTeamCredLambdaServiceRoleDefaultPolicy42CCFBC9": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "secretsmanager:CreateSecret",
+                "secretsmanager:PutSecretValue",
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DeleteSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:secretsmanager:",
+                    {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":secret:tc/integrations/dev/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaDeleteTeamCredLambdaServiceRoleDefaultPolicy42CCFBC9",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaDeleteTeamCredLambdaServiceRole16FA440C",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaDeleteTeamLambdaA9672F4A": {
+      "DependsOn": [
+        "TestAdminLambdaDeleteTeamLambdaServiceRoleDefaultPolicy96070764",
+        "TestAdminLambdaDeleteTeamLambdaServiceRole1920CE8B",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "d118d3c6ee09b3ebe1be646ad734ba8cc5c2c673157e03ac242b189d5161d06d.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "TEAMS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbteamsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "USERS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbusersTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaDeleteTeamLambdaServiceRole1920CE8B",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaDeleteTeamLambdaNameParam1A60BCE1": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/deleteTeamLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaDeleteTeamLambdaA9672F4A",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaDeleteTeamLambdaServiceRole1920CE8B": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaDeleteTeamLambdaServiceRoleDefaultPolicy96070764": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbteamsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbteamsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaDeleteTeamLambdaServiceRoleDefaultPolicy96070764",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaDeleteTeamLambdaServiceRole1920CE8B",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaDeleteUserLambda0FD38C18": {
+      "DependsOn": [
+        "TestAdminLambdaDeleteUserLambdaServiceRoleDefaultPolicyA82A9C00",
+        "TestAdminLambdaDeleteUserLambdaServiceRoleD9FC3160",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "cdb57f08409ba1c5a6961626cb44ee58074f7b57c91c194a6b06d26df9badcbb.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "COGNITO_USER_POOL_ID": {
+              "Ref": "SsmParameterValuetcdevcognitouserPoolIdC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "DEPLOY_ENV": "dev",
+            "LIFECYCLE_FUNCTION_NAME": {
+              "Ref": "SsmParameterValuetcdevlifecyclelambdanameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "USERS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbusersTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaDeleteUserLambdaServiceRoleD9FC3160",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaDeleteUserLambdaNameParam66895CA9": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/deleteUserLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaDeleteUserLambda0FD38C18",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaDeleteUserLambdaServiceRoleD9FC3160": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaDeleteUserLambdaServiceRoleDefaultPolicyA82A9C00": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":lambda:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":function:",
+                      {
+                        "Ref": "SsmParameterValuetcdevlifecyclelambdanameC96584B6F00A464EAD1953AFF4B05118Parameter",
+                      },
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":lambda:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":function:",
+                      {
+                        "Ref": "SsmParameterValuetcdevlifecyclelambdanameC96584B6F00A464EAD1953AFF4B05118Parameter",
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "cognito-idp:AdminDeleteUser",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:cognito-idp:",
+                    {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":userpool/",
+                    {
+                      "Ref": "SsmParameterValuetcdevcognitouserPoolIdC96584B6F00A464EAD1953AFF4B05118Parameter",
+                    },
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": "elasticfilesystem:DeleteAccessPoint",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":elasticfilesystem:",
+                    {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":access-point/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaDeleteUserLambdaServiceRoleDefaultPolicyA82A9C00",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaDeleteUserLambdaServiceRoleD9FC3160",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaDisconnectIntegrationLambda66D4AEEC": {
+      "DependsOn": [
+        "TestAdminLambdaDisconnectIntegrationLambdaServiceRoleDefaultPolicyE32DDBD7",
+        "TestAdminLambdaDisconnectIntegrationLambdaServiceRoleCF25988E",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "6e843263b637936e9b58e11425580fcb2d763c432e3061635532ad92ece5688e.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "INTEGRATIONS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaDisconnectIntegrationLambdaServiceRoleCF25988E",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaDisconnectIntegrationLambdaNameParamD2873DE3": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/disconnectIntegrationLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaDisconnectIntegrationLambda66D4AEEC",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaDisconnectIntegrationLambdaServiceRoleCF25988E": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaDisconnectIntegrationLambdaServiceRoleDefaultPolicyE32DDBD7": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "secretsmanager:CreateSecret",
+                "secretsmanager:PutSecretValue",
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DeleteSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:secretsmanager:",
+                    {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":secret:tc/integrations/dev/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaDisconnectIntegrationLambdaServiceRoleDefaultPolicyE32DDBD7",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaDisconnectIntegrationLambdaServiceRoleCF25988E",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaGetApiKeysLambda8B95AD59": {
+      "DependsOn": [
+        "TestAdminLambdaGetApiKeysLambdaServiceRoleDefaultPolicy30E47E7A",
+        "TestAdminLambdaGetApiKeysLambdaServiceRoleFD57C93C",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "ca3a2c28e1d245676811433d3353532462bee4cfaf959036a8a1227e69902ec6.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "API_KEYS_SECRET_ARN": {
+              "Ref": "SsmParameterValuetcdevsecretsapiKeysSecretArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "DEPLOY_ENV": "dev",
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaGetApiKeysLambdaServiceRoleFD57C93C",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaGetApiKeysLambdaNameParam77D4C485": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/getApiKeysLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaGetApiKeysLambda8B95AD59",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaGetApiKeysLambdaServiceRoleDefaultPolicy30E47E7A": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevsecretsapiKeysSecretArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaGetApiKeysLambdaServiceRoleDefaultPolicy30E47E7A",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaGetApiKeysLambdaServiceRoleFD57C93C",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaGetApiKeysLambdaServiceRoleFD57C93C": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaGetContainerLambdaD9D5ED5E": {
+      "DependsOn": [
+        "TestAdminLambdaGetContainerLambdaServiceRoleDefaultPolicy0A5DE27B",
+        "TestAdminLambdaGetContainerLambdaServiceRole2DA936BC",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "912a814116c11ed121419a70b567f2f230edf7bdad875e9ca8b9275c5faaea25.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "USERS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbusersTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaGetContainerLambdaServiceRole2DA936BC",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaGetContainerLambdaNameParam421EF4D8": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/getContainerLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaGetContainerLambdaD9D5ED5E",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaGetContainerLambdaServiceRole2DA936BC": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaGetContainerLambdaServiceRoleDefaultPolicy0A5DE27B": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaGetContainerLambdaServiceRoleDefaultPolicy0A5DE27B",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaGetContainerLambdaServiceRole2DA936BC",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaGetDashboardStatsLambda73D8ABFC": {
+      "DependsOn": [
+        "TestAdminLambdaGetDashboardStatsLambdaServiceRoleDefaultPolicyC9648B1B",
+        "TestAdminLambdaGetDashboardStatsLambdaServiceRoleA4DB2AA2",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "3c6ad77523cbc53fa534d933c087144ee33717df3eca23a423f6be85acbc0bc5.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "USAGE_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbusageTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "USERS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbusersTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaGetDashboardStatsLambdaServiceRoleA4DB2AA2",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaGetDashboardStatsLambdaNameParam17F8FE60": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/getDashboardStatsLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaGetDashboardStatsLambda73D8ABFC",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaGetDashboardStatsLambdaServiceRoleA4DB2AA2": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaGetDashboardStatsLambdaServiceRoleDefaultPolicyC9648B1B": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusageTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusageTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaGetDashboardStatsLambdaServiceRoleDefaultPolicyC9648B1B",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaGetDashboardStatsLambdaServiceRoleA4DB2AA2",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaGetGlobalConfigLambdaEEAF8B76": {
+      "DependsOn": [
+        "TestAdminLambdaGetGlobalConfigLambdaServiceRoleDefaultPolicy09D80A9D",
+        "TestAdminLambdaGetGlobalConfigLambdaServiceRoleCD4B8EC0",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "5b00ea1175d117d380aee808b19943695290a749b7ecd0b8c9920b759bdf80e8.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "CONFIG_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbconfigTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "DEPLOY_ENV": "dev",
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaGetGlobalConfigLambdaServiceRoleCD4B8EC0",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaGetGlobalConfigLambdaNameParam29B0352D": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/getGlobalConfigLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaGetGlobalConfigLambdaEEAF8B76",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaGetGlobalConfigLambdaServiceRoleCD4B8EC0": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaGetGlobalConfigLambdaServiceRoleDefaultPolicy09D80A9D": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbconfigTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbconfigTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaGetGlobalConfigLambdaServiceRoleDefaultPolicy09D80A9D",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaGetGlobalConfigLambdaServiceRoleCD4B8EC0",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaGetIntegrationLambda03DDFB7F": {
+      "DependsOn": [
+        "TestAdminLambdaGetIntegrationLambdaServiceRoleDefaultPolicy47230E92",
+        "TestAdminLambdaGetIntegrationLambdaServiceRole9532CD18",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "4be856300b4cee216f095c54aef9f0a3bd47ee8729658379430e7ea0d91d69e0.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "INTEGRATIONS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaGetIntegrationLambdaServiceRole9532CD18",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaGetIntegrationLambdaNameParam46080145": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/getIntegrationLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaGetIntegrationLambda03DDFB7F",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaGetIntegrationLambdaServiceRole9532CD18": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaGetIntegrationLambdaServiceRoleDefaultPolicy47230E92": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": "dynamodb:Query",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+                    },
+                    "/index/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaGetIntegrationLambdaServiceRoleDefaultPolicy47230E92",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaGetIntegrationLambdaServiceRole9532CD18",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaGetKeyUsageStatsLambda28BEF12A": {
+      "DependsOn": [
+        "TestAdminLambdaGetKeyUsageStatsLambdaServiceRoleDefaultPolicyD14F65A5",
+        "TestAdminLambdaGetKeyUsageStatsLambdaServiceRoleCC1A0304",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "b366763c08b5cf5b528bc9010c9b860a232f040fcca1cd0bb33564e64963f405.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "USAGE_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbusageTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaGetKeyUsageStatsLambdaServiceRoleCC1A0304",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaGetKeyUsageStatsLambdaNameParam6B8598E0": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/getKeyUsageStatsLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaGetKeyUsageStatsLambda28BEF12A",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaGetKeyUsageStatsLambdaServiceRoleCC1A0304": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaGetKeyUsageStatsLambdaServiceRoleDefaultPolicyD14F65A5": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusageTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusageTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaGetKeyUsageStatsLambdaServiceRoleDefaultPolicyD14F65A5",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaGetKeyUsageStatsLambdaServiceRoleCC1A0304",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaGetOnboardingStatusLambda3DA6B20C": {
+      "DependsOn": [
+        "TestAdminLambdaGetOnboardingStatusLambdaServiceRoleDefaultPolicy2F5F600B",
+        "TestAdminLambdaGetOnboardingStatusLambdaServiceRoleE9CD603C",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "8c5a8bf4bbf60dedb6701d5aff845e4fcead9bf3173c035d6e656590558fd03c.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "API_KEYS_SECRET_ARN": {
+              "Ref": "SsmParameterValuetcdevsecretsapiKeysSecretArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "CONFIG_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbconfigTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "DEPLOY_ENV": "dev",
+            "TEAMS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbteamsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaGetOnboardingStatusLambdaServiceRoleE9CD603C",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaGetOnboardingStatusLambdaNameParam0E2EBAC0": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/getOnboardingStatusLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaGetOnboardingStatusLambda3DA6B20C",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaGetOnboardingStatusLambdaServiceRoleDefaultPolicy2F5F600B": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbteamsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbteamsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbconfigTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbconfigTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevsecretsapiKeysSecretArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaGetOnboardingStatusLambdaServiceRoleDefaultPolicy2F5F600B",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaGetOnboardingStatusLambdaServiceRoleE9CD603C",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaGetOnboardingStatusLambdaServiceRoleE9CD603C": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaGetSystemAnalyticsLambda98FBF4AA": {
+      "DependsOn": [
+        "TestAdminLambdaGetSystemAnalyticsLambdaServiceRoleDefaultPolicyF052CCD4",
+        "TestAdminLambdaGetSystemAnalyticsLambdaServiceRole890B2C8B",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "b67f247ae30ee4c9058063e19e52544d59feff2f2b2665e53098de4a328e3585.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "USAGE_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbusageTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaGetSystemAnalyticsLambdaServiceRole890B2C8B",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaGetSystemAnalyticsLambdaNameParam8A850992": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/getSystemAnalyticsLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaGetSystemAnalyticsLambda98FBF4AA",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaGetSystemAnalyticsLambdaServiceRole890B2C8B": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaGetSystemAnalyticsLambdaServiceRoleDefaultPolicyF052CCD4": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusageTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusageTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaGetSystemAnalyticsLambdaServiceRoleDefaultPolicyF052CCD4",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaGetSystemAnalyticsLambdaServiceRole890B2C8B",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaGetTeamConfigLambda4CB92CCB": {
+      "DependsOn": [
+        "TestAdminLambdaGetTeamConfigLambdaServiceRoleDefaultPolicy1E8C21DA",
+        "TestAdminLambdaGetTeamConfigLambdaServiceRole604839C5",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "9a671866a73c32490e051e15b4e5e77595146f5c2b12ba2d69923b8803f56dee.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "CONFIG_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbconfigTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "DEPLOY_ENV": "dev",
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaGetTeamConfigLambdaServiceRole604839C5",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaGetTeamConfigLambdaNameParamF593EA5E": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/getTeamConfigLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaGetTeamConfigLambda4CB92CCB",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaGetTeamConfigLambdaServiceRole604839C5": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaGetTeamConfigLambdaServiceRoleDefaultPolicy1E8C21DA": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbconfigTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbconfigTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaGetTeamConfigLambdaServiceRoleDefaultPolicy1E8C21DA",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaGetTeamConfigLambdaServiceRole604839C5",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaGetTeamLambda57D1236B": {
+      "DependsOn": [
+        "TestAdminLambdaGetTeamLambdaServiceRoleDefaultPolicy554F83D9",
+        "TestAdminLambdaGetTeamLambdaServiceRole1612702E",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "ce87b80474837596fcfe972af03dddd499f225508257e9753c3f2b4a3230de56.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "TEAMS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbteamsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaGetTeamLambdaServiceRole1612702E",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaGetTeamLambdaNameParam086AB6BD": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/getTeamLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaGetTeamLambda57D1236B",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaGetTeamLambdaServiceRole1612702E": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaGetTeamLambdaServiceRoleDefaultPolicy554F83D9": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbteamsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbteamsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaGetTeamLambdaServiceRoleDefaultPolicy554F83D9",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaGetTeamLambdaServiceRole1612702E",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaGetUsageByProviderLambdaFDC57C49": {
+      "DependsOn": [
+        "TestAdminLambdaGetUsageByProviderLambdaServiceRoleDefaultPolicy4E42E6B9",
+        "TestAdminLambdaGetUsageByProviderLambdaServiceRole64475313",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "59f5eb7186b43befc2d431f9004e2140313c1fa82a3c2971ee5226d069f2fe3f.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "USAGE_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbusageTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaGetUsageByProviderLambdaServiceRole64475313",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaGetUsageByProviderLambdaNameParam1E4A38D6": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/getUsageByProviderLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaGetUsageByProviderLambdaFDC57C49",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaGetUsageByProviderLambdaServiceRole64475313": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaGetUsageByProviderLambdaServiceRoleDefaultPolicy4E42E6B9": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusageTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusageTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaGetUsageByProviderLambdaServiceRoleDefaultPolicy4E42E6B9",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaGetUsageByProviderLambdaServiceRole64475313",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaGetUserConfigLambda5DE57BFB": {
+      "DependsOn": [
+        "TestAdminLambdaGetUserConfigLambdaServiceRoleDefaultPolicyA403358B",
+        "TestAdminLambdaGetUserConfigLambdaServiceRoleFF40EBC5",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "7786d9ae8b181fc3a3cf8aa02bc884d26e7015f05c2af95603c62e448a5a9689.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "CONFIG_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbconfigTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "DEPLOY_ENV": "dev",
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaGetUserConfigLambdaServiceRoleFF40EBC5",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaGetUserConfigLambdaNameParam72919785": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/getUserConfigLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaGetUserConfigLambda5DE57BFB",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaGetUserConfigLambdaServiceRoleDefaultPolicyA403358B": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbconfigTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbconfigTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaGetUserConfigLambdaServiceRoleDefaultPolicyA403358B",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaGetUserConfigLambdaServiceRoleFF40EBC5",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaGetUserConfigLambdaServiceRoleFF40EBC5": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaGetUserLambdaFCD0E66F": {
+      "DependsOn": [
+        "TestAdminLambdaGetUserLambdaServiceRoleDefaultPolicy273E67E7",
+        "TestAdminLambdaGetUserLambdaServiceRole7A4476E5",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "ba3a367d480e8bdfb4226c835f4fd347e6d364789b8c2f3697fdb106fac9a4e0.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "USERS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbusersTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaGetUserLambdaServiceRole7A4476E5",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaGetUserLambdaNameParam112B1B98": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/getUserLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaGetUserLambdaFCD0E66F",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaGetUserLambdaServiceRole7A4476E5": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaGetUserLambdaServiceRoleDefaultPolicy273E67E7": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaGetUserLambdaServiceRoleDefaultPolicy273E67E7",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaGetUserLambdaServiceRole7A4476E5",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaListApprovedSkillsLambda701CBBE0": {
+      "DependsOn": [
+        "TestAdminLambdaListApprovedSkillsLambdaServiceRoleDefaultPolicy98559A35",
+        "TestAdminLambdaListApprovedSkillsLambdaServiceRoleDE1BB69A",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "3dc37d167888883e510eef7a2c20c23376b122964cd5638d1eb32758c03e6856.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "SKILLS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbskillsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaListApprovedSkillsLambdaServiceRoleDE1BB69A",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaListApprovedSkillsLambdaNameParamFE6837A0": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/listApprovedSkillsLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaListApprovedSkillsLambda701CBBE0",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaListApprovedSkillsLambdaServiceRoleDE1BB69A": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaListApprovedSkillsLambdaServiceRoleDefaultPolicy98559A35": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbskillsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbskillsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaListApprovedSkillsLambdaServiceRoleDefaultPolicy98559A35",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaListApprovedSkillsLambdaServiceRoleDE1BB69A",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaListIntegrationsLambda04443DF7": {
+      "DependsOn": [
+        "TestAdminLambdaListIntegrationsLambdaServiceRoleDefaultPolicyAC007EC1",
+        "TestAdminLambdaListIntegrationsLambdaServiceRoleB8C8AC15",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "54cf05790c1f097edf3ca6ee03d35e5f8150b28fb5726d45ef6b3eaa0885f8d9.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "INTEGRATIONS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaListIntegrationsLambdaServiceRoleB8C8AC15",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaListIntegrationsLambdaNameParamFA388A00": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/listIntegrationsLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaListIntegrationsLambda04443DF7",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaListIntegrationsLambdaServiceRoleB8C8AC15": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaListIntegrationsLambdaServiceRoleDefaultPolicyAC007EC1": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": "dynamodb:Query",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+                    },
+                    "/index/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaListIntegrationsLambdaServiceRoleDefaultPolicyAC007EC1",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaListIntegrationsLambdaServiceRoleB8C8AC15",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaListPendingSkillsLambda499AC114": {
+      "DependsOn": [
+        "TestAdminLambdaListPendingSkillsLambdaServiceRoleDefaultPolicyBC37DC7C",
+        "TestAdminLambdaListPendingSkillsLambdaServiceRoleCC36B216",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "63f774ca6f941be2bc993576608a20bd0d814868ceee16c568decc1afe8b9774.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "SKILLS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbskillsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaListPendingSkillsLambdaServiceRoleCC36B216",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaListPendingSkillsLambdaNameParam35ADC470": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/listPendingSkillsLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaListPendingSkillsLambda499AC114",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaListPendingSkillsLambdaServiceRoleCC36B216": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaListPendingSkillsLambdaServiceRoleDefaultPolicyBC37DC7C": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbskillsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbskillsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaListPendingSkillsLambdaServiceRoleDefaultPolicyBC37DC7C",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaListPendingSkillsLambdaServiceRoleCC36B216",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaListTeamOverridesLambda51E3D00C": {
+      "DependsOn": [
+        "TestAdminLambdaListTeamOverridesLambdaServiceRoleDefaultPolicyE9BB04F9",
+        "TestAdminLambdaListTeamOverridesLambdaServiceRole5F01644D",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "fa3515fa2c9dad19d2c4e263d75effe90e8e1d0830543ff03630d0973968f947.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "INTEGRATIONS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaListTeamOverridesLambdaServiceRole5F01644D",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaListTeamOverridesLambdaNameParam540150F3": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/listTeamOverridesLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaListTeamOverridesLambda51E3D00C",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaListTeamOverridesLambdaServiceRole5F01644D": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaListTeamOverridesLambdaServiceRoleDefaultPolicyE9BB04F9": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaListTeamOverridesLambdaServiceRoleDefaultPolicyE9BB04F9",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaListTeamOverridesLambdaServiceRole5F01644D",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaListUserIntegrationsLambda2B2639C5": {
+      "DependsOn": [
+        "TestAdminLambdaListUserIntegrationsLambdaServiceRoleDefaultPolicy5FEE2C01",
+        "TestAdminLambdaListUserIntegrationsLambdaServiceRoleCEB0533F",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "6ff0efb9afba93eb747b97a38d6a33e17d6d2a2975b11b164a44c3eb9b7519da.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "INTEGRATIONS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "USERS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbusersTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaListUserIntegrationsLambdaServiceRoleCEB0533F",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaListUserIntegrationsLambdaNameParamACA0C7BB": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/listUserIntegrationsLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaListUserIntegrationsLambda2B2639C5",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaListUserIntegrationsLambdaServiceRoleCEB0533F": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaListUserIntegrationsLambdaServiceRoleDefaultPolicy5FEE2C01": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": "dynamodb:Query",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+                    },
+                    "/index/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaListUserIntegrationsLambdaServiceRoleDefaultPolicy5FEE2C01",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaListUserIntegrationsLambdaServiceRoleCEB0533F",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaProvisionContainerLambdaA3EEF017": {
+      "DependsOn": [
+        "TestAdminLambdaProvisionContainerLambdaServiceRoleDefaultPolicy14CC4B34",
+        "TestAdminLambdaProvisionContainerLambdaServiceRole33DFFE57",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "e3803443350777ff1c371adcc28d0917a0223bf21d623a8f8e3666fbeea266cd.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "LIFECYCLE_LAMBDA_NAME": {
+              "Ref": "SsmParameterValuetcdevlifecyclelambdanameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaProvisionContainerLambdaServiceRole33DFFE57",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaProvisionContainerLambdaNameParam21A6DD53": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/provisionContainerLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaProvisionContainerLambdaA3EEF017",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaProvisionContainerLambdaServiceRole33DFFE57": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaProvisionContainerLambdaServiceRoleDefaultPolicy14CC4B34": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":lambda:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":function:",
+                      {
+                        "Ref": "SsmParameterValuetcdevlifecyclelambdanameC96584B6F00A464EAD1953AFF4B05118Parameter",
+                      },
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":lambda:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":function:",
+                      {
+                        "Ref": "SsmParameterValuetcdevlifecyclelambdanameC96584B6F00A464EAD1953AFF4B05118Parameter",
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaProvisionContainerLambdaServiceRoleDefaultPolicy14CC4B34",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaProvisionContainerLambdaServiceRole33DFFE57",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaQueryContainersLambda984AB9FB": {
+      "DependsOn": [
+        "TestAdminLambdaQueryContainersLambdaServiceRoleDefaultPolicy702A0B18",
+        "TestAdminLambdaQueryContainersLambdaServiceRole52D17212",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "543a777cecaed2a5be18d7234adb89777fb50987ffb69fc14f86085ef35485d9.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "USERS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbusersTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaQueryContainersLambdaServiceRole52D17212",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaQueryContainersLambdaNameParamD2E524AE": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/queryContainersLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaQueryContainersLambda984AB9FB",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaQueryContainersLambdaServiceRole52D17212": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaQueryContainersLambdaServiceRoleDefaultPolicy702A0B18": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaQueryContainersLambdaServiceRoleDefaultPolicy702A0B18",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaQueryContainersLambdaServiceRole52D17212",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaQueryTeamsLambda398B548A": {
+      "DependsOn": [
+        "TestAdminLambdaQueryTeamsLambdaServiceRoleDefaultPolicy3F2988D1",
+        "TestAdminLambdaQueryTeamsLambdaServiceRole385B34DF",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "9a81e9da9b2ff3d33c995e6d393586da53c4926d18511bb02e530360411ad14b.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "TEAMS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbteamsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaQueryTeamsLambdaServiceRole385B34DF",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaQueryTeamsLambdaNameParam46183EE6": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/queryTeamsLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaQueryTeamsLambda398B548A",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaQueryTeamsLambdaServiceRole385B34DF": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaQueryTeamsLambdaServiceRoleDefaultPolicy3F2988D1": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbteamsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbteamsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaQueryTeamsLambdaServiceRoleDefaultPolicy3F2988D1",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaQueryTeamsLambdaServiceRole385B34DF",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaQueryUsersLambda048C7E22": {
+      "DependsOn": [
+        "TestAdminLambdaQueryUsersLambdaServiceRoleDefaultPolicyED27F0C1",
+        "TestAdminLambdaQueryUsersLambdaServiceRole1A94DB90",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "cef0fb65a8ff470021838da3c8c8e7d93d82bc53b122ec241ac9a86fbae1a8cb.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "USERS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbusersTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaQueryUsersLambdaServiceRole1A94DB90",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaQueryUsersLambdaNameParam68A854B8": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/queryUsersLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaQueryUsersLambda048C7E22",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaQueryUsersLambdaServiceRole1A94DB90": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaQueryUsersLambdaServiceRoleDefaultPolicyED27F0C1": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaQueryUsersLambdaServiceRoleDefaultPolicyED27F0C1",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaQueryUsersLambdaServiceRole1A94DB90",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaQueryUsersUsageLambda284D76A0": {
+      "DependsOn": [
+        "TestAdminLambdaQueryUsersUsageLambdaServiceRoleDefaultPolicyD240EEB9",
+        "TestAdminLambdaQueryUsersUsageLambdaServiceRole0FF85957",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "9ed58fe2cb1ce5c893cf1e7f45f730a2307510b89f4aa214ef1d472fc5754c8e.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "USAGE_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbusageTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaQueryUsersUsageLambdaServiceRole0FF85957",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaQueryUsersUsageLambdaNameParam7C7F6BF3": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/queryUsersUsageLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaQueryUsersUsageLambda284D76A0",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaQueryUsersUsageLambdaServiceRole0FF85957": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaQueryUsersUsageLambdaServiceRoleDefaultPolicyD240EEB9": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusageTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusageTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaQueryUsersUsageLambdaServiceRoleDefaultPolicyD240EEB9",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaQueryUsersUsageLambdaServiceRole0FF85957",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaRemoveApiKeyLambdaE336A8F8": {
+      "DependsOn": [
+        "TestAdminLambdaRemoveApiKeyLambdaServiceRoleDefaultPolicyBE2ABF3F",
+        "TestAdminLambdaRemoveApiKeyLambdaServiceRole7EA0BCDA",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "1e7d336bcd076f27943f7b69b7aa38ba1aedc0ee2fd35a8c65e5413322b44d3d.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "API_KEYS_SECRET_ARN": {
+              "Ref": "SsmParameterValuetcdevsecretsapiKeysSecretArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "DEPLOY_ENV": "dev",
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaRemoveApiKeyLambdaServiceRole7EA0BCDA",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaRemoveApiKeyLambdaNameParamD960ECB8": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/removeApiKeyLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaRemoveApiKeyLambdaE336A8F8",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaRemoveApiKeyLambdaServiceRole7EA0BCDA": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaRemoveApiKeyLambdaServiceRoleDefaultPolicyBE2ABF3F": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevsecretsapiKeysSecretArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "secretsmanager:PutSecretValue",
+                "secretsmanager:UpdateSecret",
+                "secretsmanager:UpdateSecretVersionStage",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevsecretsapiKeysSecretArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaRemoveApiKeyLambdaServiceRoleDefaultPolicyBE2ABF3F",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaRemoveApiKeyLambdaServiceRole7EA0BCDA",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaRequestSkillInstallLambda1BD21FBD": {
+      "DependsOn": [
+        "TestAdminLambdaRequestSkillInstallLambdaServiceRoleDefaultPolicyBEA02302",
+        "TestAdminLambdaRequestSkillInstallLambdaServiceRoleC512C804",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "1a6e46d21f74c5548d5a39937fd3dd659938d31bfad47f02f6988e71caf60f66.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "SKILLS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbskillsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaRequestSkillInstallLambdaServiceRoleC512C804",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaRequestSkillInstallLambdaNameParamA053F52B": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/requestSkillInstallLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaRequestSkillInstallLambda1BD21FBD",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaRequestSkillInstallLambdaServiceRoleC512C804": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaRequestSkillInstallLambdaServiceRoleDefaultPolicyBEA02302": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbskillsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbskillsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaRequestSkillInstallLambdaServiceRoleDefaultPolicyBEA02302",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaRequestSkillInstallLambdaServiceRoleC512C804",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaReviewSkillRequestLambda19A40F0C": {
+      "DependsOn": [
+        "TestAdminLambdaReviewSkillRequestLambdaServiceRoleDefaultPolicy1567E5C2",
+        "TestAdminLambdaReviewSkillRequestLambdaServiceRole0278B985",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "a04b067801ce84591ea4819c955e394624016763a3e10ddacc1ecd47a1bde64c.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "SKILLS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbskillsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaReviewSkillRequestLambdaServiceRole0278B985",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaReviewSkillRequestLambdaNameParamD737BC36": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/reviewSkillRequestLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaReviewSkillRequestLambda19A40F0C",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaReviewSkillRequestLambdaServiceRole0278B985": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaReviewSkillRequestLambdaServiceRoleDefaultPolicy1567E5C2": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbskillsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbskillsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaReviewSkillRequestLambdaServiceRoleDefaultPolicy1567E5C2",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaReviewSkillRequestLambdaServiceRole0278B985",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaStartContainerLambdaA0011839": {
+      "DependsOn": [
+        "TestAdminLambdaStartContainerLambdaServiceRoleDefaultPolicyF2880B0C",
+        "TestAdminLambdaStartContainerLambdaServiceRoleE793B040",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "5c8185d76f35456c7e1ef9d0702bbcdea515a909071042242a7b7ed85218d539.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "LIFECYCLE_LAMBDA_NAME": {
+              "Ref": "SsmParameterValuetcdevlifecyclelambdanameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaStartContainerLambdaServiceRoleE793B040",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaStartContainerLambdaNameParam8021E6F3": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/startContainerLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaStartContainerLambdaA0011839",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaStartContainerLambdaServiceRoleDefaultPolicyF2880B0C": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":lambda:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":function:",
+                      {
+                        "Ref": "SsmParameterValuetcdevlifecyclelambdanameC96584B6F00A464EAD1953AFF4B05118Parameter",
+                      },
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":lambda:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":function:",
+                      {
+                        "Ref": "SsmParameterValuetcdevlifecyclelambdanameC96584B6F00A464EAD1953AFF4B05118Parameter",
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaStartContainerLambdaServiceRoleDefaultPolicyF2880B0C",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaStartContainerLambdaServiceRoleE793B040",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaStartContainerLambdaServiceRoleE793B040": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaStopContainerLambdaC71D2273": {
+      "DependsOn": [
+        "TestAdminLambdaStopContainerLambdaServiceRoleDefaultPolicyE719F22E",
+        "TestAdminLambdaStopContainerLambdaServiceRole4A15F0F3",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "37b4d234606dfc29ccb1098eae178455fea33876dd6f4572a89aa681d9e9ef64.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "LIFECYCLE_LAMBDA_NAME": {
+              "Ref": "SsmParameterValuetcdevlifecyclelambdanameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaStopContainerLambdaServiceRole4A15F0F3",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaStopContainerLambdaNameParam9A5BDB85": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/stopContainerLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaStopContainerLambdaC71D2273",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaStopContainerLambdaServiceRole4A15F0F3": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaStopContainerLambdaServiceRoleDefaultPolicyE719F22E": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":lambda:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":function:",
+                      {
+                        "Ref": "SsmParameterValuetcdevlifecyclelambdanameC96584B6F00A464EAD1953AFF4B05118Parameter",
+                      },
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":lambda:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":function:",
+                      {
+                        "Ref": "SsmParameterValuetcdevlifecyclelambdanameC96584B6F00A464EAD1953AFF4B05118Parameter",
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaStopContainerLambdaServiceRoleDefaultPolicyE719F22E",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaStopContainerLambdaServiceRole4A15F0F3",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaUpdateGlobalConfigLambda7723646D": {
+      "DependsOn": [
+        "TestAdminLambdaUpdateGlobalConfigLambdaServiceRoleDefaultPolicyBE5E01BD",
+        "TestAdminLambdaUpdateGlobalConfigLambdaServiceRole8949A3C0",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "df075e3260af11371eda07ddba5f34d37b6b00efe4e62e3a3e5562c5b91f787b.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "CONFIG_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbconfigTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "DEPLOY_ENV": "dev",
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaUpdateGlobalConfigLambdaServiceRole8949A3C0",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaUpdateGlobalConfigLambdaNameParam2F572A4E": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/updateGlobalConfigLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaUpdateGlobalConfigLambda7723646D",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaUpdateGlobalConfigLambdaServiceRole8949A3C0": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaUpdateGlobalConfigLambdaServiceRoleDefaultPolicyBE5E01BD": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbconfigTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbconfigTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaUpdateGlobalConfigLambdaServiceRoleDefaultPolicyBE5E01BD",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaUpdateGlobalConfigLambdaServiceRole8949A3C0",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaUpdateIntegrationLambda47B3114E": {
+      "DependsOn": [
+        "TestAdminLambdaUpdateIntegrationLambdaServiceRoleDefaultPolicy12DE973B",
+        "TestAdminLambdaUpdateIntegrationLambdaServiceRole6D68A29F",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "c3fa826acc4c1f5804f8e1bb4fec35bb8486f763da04ba08c37a9ff72af64733.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "INTEGRATIONS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaUpdateIntegrationLambdaServiceRole6D68A29F",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaUpdateIntegrationLambdaNameParam8150539C": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/updateIntegrationLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaUpdateIntegrationLambda47B3114E",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaUpdateIntegrationLambdaServiceRole6D68A29F": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaUpdateIntegrationLambdaServiceRoleDefaultPolicy12DE973B": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "secretsmanager:CreateSecret",
+                "secretsmanager:PutSecretValue",
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DeleteSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:secretsmanager:",
+                    {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":secret:tc/integrations/dev/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaUpdateIntegrationLambdaServiceRoleDefaultPolicy12DE973B",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaUpdateIntegrationLambdaServiceRole6D68A29F",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaUpdateTeamConfigLambdaCA34B65F": {
+      "DependsOn": [
+        "TestAdminLambdaUpdateTeamConfigLambdaServiceRoleDefaultPolicyF86320B3",
+        "TestAdminLambdaUpdateTeamConfigLambdaServiceRole2C1672D9",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "5077153ad11c091d15fff7058c1910947d6b60bdb80801b6e6e440dc33fc6da5.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "CONFIG_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbconfigTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "DEPLOY_ENV": "dev",
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaUpdateTeamConfigLambdaServiceRole2C1672D9",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaUpdateTeamConfigLambdaNameParam2AD918F9": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/updateTeamConfigLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaUpdateTeamConfigLambdaCA34B65F",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaUpdateTeamConfigLambdaServiceRole2C1672D9": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaUpdateTeamConfigLambdaServiceRoleDefaultPolicyF86320B3": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbconfigTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbconfigTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaUpdateTeamConfigLambdaServiceRoleDefaultPolicyF86320B3",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaUpdateTeamConfigLambdaServiceRole2C1672D9",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaUpdateTeamLambda6E050403": {
+      "DependsOn": [
+        "TestAdminLambdaUpdateTeamLambdaServiceRoleDefaultPolicy4FDB4662",
+        "TestAdminLambdaUpdateTeamLambdaServiceRole47E97163",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "582842b442098d485f00cf1ae70683ecf8147b9314abf22c93d086ee54311e1f.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "TEAMS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbteamsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaUpdateTeamLambdaServiceRole47E97163",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaUpdateTeamLambdaNameParam2170F755": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/updateTeamLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaUpdateTeamLambda6E050403",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaUpdateTeamLambdaServiceRole47E97163": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaUpdateTeamLambdaServiceRoleDefaultPolicy4FDB4662": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbteamsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbteamsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaUpdateTeamLambdaServiceRoleDefaultPolicy4FDB4662",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaUpdateTeamLambdaServiceRole47E97163",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaUpdateTeamOverrideLambda39DB7E54": {
+      "DependsOn": [
+        "TestAdminLambdaUpdateTeamOverrideLambdaServiceRoleDefaultPolicy5F3EADB5",
+        "TestAdminLambdaUpdateTeamOverrideLambdaServiceRole9FE2102D",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "9afe777d4efeefcfe9f7ed22faa587f9b7984f8812dc236901f5d97dfc86b72a.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "DEPLOY_ENV": "dev",
+            "INTEGRATIONS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaUpdateTeamOverrideLambdaServiceRole9FE2102D",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaUpdateTeamOverrideLambdaNameParam4490D759": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/updateTeamOverrideLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaUpdateTeamOverrideLambda39DB7E54",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaUpdateTeamOverrideLambdaServiceRole9FE2102D": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaUpdateTeamOverrideLambdaServiceRoleDefaultPolicy5F3EADB5": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbintegrationsTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "secretsmanager:CreateSecret",
+                "secretsmanager:PutSecretValue",
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DeleteSecret",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:secretsmanager:",
+                    {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":secret:tc/integrations/dev/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaUpdateTeamOverrideLambdaServiceRoleDefaultPolicy5F3EADB5",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaUpdateTeamOverrideLambdaServiceRole9FE2102D",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaUpdateUserConfigLambda6E48780A": {
+      "DependsOn": [
+        "TestAdminLambdaUpdateUserConfigLambdaServiceRoleDefaultPolicy5BE691DB",
+        "TestAdminLambdaUpdateUserConfigLambdaServiceRole0ABA81CB",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "661aa2fb9e441204de05c1c0f9928dc5db17c3103e1a9a952ff277b8ae1b39e8.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "CONFIG_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbconfigTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "DEPLOY_ENV": "dev",
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaUpdateUserConfigLambdaServiceRole0ABA81CB",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaUpdateUserConfigLambdaNameParam56CF916E": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/updateUserConfigLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaUpdateUserConfigLambda6E48780A",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaUpdateUserConfigLambdaServiceRole0ABA81CB": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaUpdateUserConfigLambdaServiceRoleDefaultPolicy5BE691DB": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbconfigTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbconfigTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaUpdateUserConfigLambdaServiceRoleDefaultPolicy5BE691DB",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaUpdateUserConfigLambdaServiceRole0ABA81CB",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaUpdateUserLambdaC79C9B6E": {
+      "DependsOn": [
+        "TestAdminLambdaUpdateUserLambdaServiceRoleDefaultPolicy340DDC4D",
+        "TestAdminLambdaUpdateUserLambdaServiceRoleE478DC62",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "308703444ecb4840a19bbdd6e834a5b84be7b4d8cfc5452ab6bb39dcee89a18a.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "COGNITO_USER_POOL_ID": {
+              "Ref": "SsmParameterValuetcdevcognitouserPoolIdC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "DEPLOY_ENV": "dev",
+            "USERS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbusersTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaUpdateUserLambdaServiceRoleE478DC62",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaUpdateUserLambdaNameParam7A9F5770": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/updateUserLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaUpdateUserLambdaC79C9B6E",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaUpdateUserLambdaServiceRoleDefaultPolicy340DDC4D": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "cognito-idp:AdminUpdateUserAttributes",
+                "cognito-idp:AdminEnableUser",
+                "cognito-idp:AdminDisableUser",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:cognito-idp:",
+                    {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":userpool/",
+                    {
+                      "Ref": "SsmParameterValuetcdevcognitouserPoolIdC96584B6F00A464EAD1953AFF4B05118Parameter",
+                    },
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaUpdateUserLambdaServiceRoleDefaultPolicy340DDC4D",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaUpdateUserLambdaServiceRoleE478DC62",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "TestAdminLambdaUpdateUserLambdaServiceRoleE478DC62": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaUserSessionLambdaDA44D406": {
+      "DependsOn": [
+        "TestAdminLambdaUserSessionLambdaServiceRoleDefaultPolicy3D904267",
+        "TestAdminLambdaUserSessionLambdaServiceRole4639940C",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "25653232394ed2ca0a073d6224b5f8ae6c2d263a2836e34aff3704bb30abd083.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "ALB_DNS_NAME": {
+              "Ref": "SsmParameterValuetcdevecsalbDnsNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "CONFIG_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbconfigTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "DEPLOY_ENV": "dev",
+            "LIFECYCLE_LAMBDA_NAME": {
+              "Ref": "SsmParameterValuetcdevlifecyclelambdanameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "USERS_TABLE_NAME": {
+              "Ref": "SsmParameterValuetcdevdynamodbusersTableNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "TestAdminLambdaUserSessionLambdaServiceRole4639940C",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "TestAdminLambdaUserSessionLambdaNameParamD3060D03": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/lambda/userSessionLambdaName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminLambdaUserSessionLambdaDA44D406",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminLambdaUserSessionLambdaServiceRole4639940C": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "TestAdminLambdaUserSessionLambdaServiceRoleDefaultPolicy3D904267": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbusersTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbconfigTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Ref": "SsmParameterValuetcdevdynamodbconfigTableArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+              },
+            },
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":lambda:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":function:",
+                      {
+                        "Ref": "SsmParameterValuetcdevlifecyclelambdanameC96584B6F00A464EAD1953AFF4B05118Parameter",
+                      },
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":lambda:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":function:",
+                      {
+                        "Ref": "SsmParameterValuetcdevlifecyclelambdanameC96584B6F00A464EAD1953AFF4B05118Parameter",
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "TestAdminLambdaUserSessionLambdaServiceRoleDefaultPolicy3D904267",
+        "Roles": [
+          {
+            "Ref": "TestAdminLambdaUserSessionLambdaServiceRole4639940C",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;

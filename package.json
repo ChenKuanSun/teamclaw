@@ -75,7 +75,7 @@
     "@typescript-eslint/utils": "^8.40.0",
     "angular-eslint": "^21.0.1",
     "aws-cdk": "^2.232.2",
-    "eslint": "^9.8.0",
+    "eslint": "^10.1.0",
     "eslint-config-prettier": "^10.0.0",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",

@@ -1,0 +1,53 @@
+<div class="login-container">
+  <div class="gradient-orbs" aria-hidden="true">
+    <div class="orb orb-blue"></div>
+    <div class="orb orb-cyan"></div>
+    <div class="orb orb-navy"></div>
+  </div>
+  <div class="login-content">
+    <header class="branding">
+      <h1 class="brand-name">TeamClaw</h1>
+      <p class="tagline">Enterprise AI Collaboration</p>
+    </header>
+    <section class="login-card">
+      <div class="card-header">
+        <h2 class="welcome-title">{{ 'Create Account' | translate }}</h2>
+      </div>
+      <div class="card-body">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'Email' | translate }}</mat-label>
+          <input matInput type="email" autocomplete="email"
+            [ngModel]="email()" (ngModelChange)="email.set($event)" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'Password' | translate }}</mat-label>
+          <input matInput type="password" autocomplete="new-password"
+            [ngModel]="password()" (ngModelChange)="password.set($event)" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'Confirm Password' | translate }}</mat-label>
+          <input matInput type="password" autocomplete="new-password"
+            [ngModel]="confirmPassword()" (ngModelChange)="confirmPassword.set($event)"
+            (keyup.enter)="submitSignup()" />
+        </mat-form-field>
+        @if (errorMessage()) {
+          <div class="error-message"><p>{{ errorMessage() }}</p></div>
+        }
+        <button mat-raised-button color="primary" class="submit-btn full-width"
+          (click)="submitSignup()" [disabled]="isLoading()">
+          @if (isLoading()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            <span>{{ 'Sign Up' | translate }}</span>
+          }
+        </button>
+      </div>
+      <footer class="card-footer">
+        <p class="footer-text">
+          {{ 'Already have an account?' | translate }}
+          <a routerLink="/login">{{ 'Sign In' | translate }}</a>
+        </p>
+      </footer>
+    </section>
+  </div>
+</div>

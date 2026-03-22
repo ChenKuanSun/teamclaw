@@ -1,0 +1,78 @@
+<div class="analytics-container">
+  <h2>Analytics</h2>
+
+  <div class="date-range">
+    <mat-form-field appearance="outline">
+      <mat-label>Start Date</mat-label>
+      <input matInput [matDatepicker]="startPicker" [(ngModel)]="startDate" />
+      <mat-datepicker-toggle matIconSuffix [for]="startPicker" />
+      <mat-datepicker #startPicker />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>End Date</mat-label>
+      <input matInput [matDatepicker]="endPicker" [(ngModel)]="endDate" />
+      <mat-datepicker-toggle matIconSuffix [for]="endPicker" />
+      <mat-datepicker #endPicker />
+    </mat-form-field>
+    <button mat-raised-button color="primary" (click)="loadAnalytics()">
+      <mat-icon>refresh</mat-icon> Refresh
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="spinner-wrapper">
+      <mat-progress-spinner mode="indeterminate" diameter="48" />
+    </div>
+  } @else if (analytics()) {
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-value">{{ analytics()!.totalApiCalls | number }}</div>
+          <div class="stat-label">Total Requests</div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-value">{{ analytics()!.activeUsers | number }}</div>
+          <div class="stat-label">Unique Users</div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-value">
+            {{ analytics()!.activeUsers ? (analytics()!.totalApiCalls / analytics()!.activeUsers | number: '1.1-1') : '0' }}
+          </div>
+          <div class="stat-label">Avg Requests / User</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Provider Breakdown -->
+    @if (providerUsage()) {
+      <h3>Per-Provider Breakdown</h3>
+      <mat-card>
+        <table mat-table [dataSource]="providerUsage()!.providers" class="full-width">
+          <ng-container matColumnDef="provider">
+            <th mat-header-cell *matHeaderCellDef>Provider</th>
+            <td mat-cell *matCellDef="let row">{{ row.provider }}</td>
+          </ng-container>
+          <ng-container matColumnDef="requests">
+            <th mat-header-cell *matHeaderCellDef>Requests</th>
+            <td mat-cell *matCellDef="let row">{{ row.requests | number }}</td>
+          </ng-container>
+          <ng-container matColumnDef="tokens">
+            <th mat-header-cell *matHeaderCellDef>Tokens</th>
+            <td mat-cell *matCellDef="let row">{{ row.tokens | number }}</td>
+          </ng-container>
+          <ng-container matColumnDef="cost">
+            <th mat-header-cell *matHeaderCellDef>Cost</th>
+            <td mat-cell *matCellDef="let row">{{ row.cost != null ? ('$' + (row.cost | number: '1.2-2')) : 'N/A' }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="providerColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: providerColumns"></tr>
+        </table>
+      </mat-card>
+    }
+  }
+</div>

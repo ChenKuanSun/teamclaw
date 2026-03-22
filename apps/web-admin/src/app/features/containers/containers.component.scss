@@ -1,0 +1,9 @@
+.containers-container { padding: 24px; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.status-filter { width: 200px; }
+.full-width { width: 100%; }
+.spinner-wrapper { display: flex; justify-content: center; padding: 48px; }
+.status-running { background-color: #c8e6c9 !important; }
+.status-stopped { background-color: #ffcdd2 !important; }
+.status-provisioning { background-color: #fff9c4 !important; }
+.status-pending { background-color: #e1f5fe !important; }

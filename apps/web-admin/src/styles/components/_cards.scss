@@ -1,0 +1,50 @@
+// =============================================
+// Card Component Overrides
+// =============================================
+
+.mat-mdc-card {
+  background-color: var(--bg-surface) !important;
+  border: var(--border-thin) solid var(--border-default);
+  border-radius: var(--card-radius) !important;
+  box-shadow: var(--shadow-md);
+  padding: var(--card-padding);
+
+  &:hover {
+    border-color: var(--border-strong);
+  }
+
+  // Elevated variant
+  &.card-elevated {
+    background-color: var(--bg-elevated);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+.mat-mdc-card-header {
+  padding: 0 0 var(--space-3) 0;
+}
+
+.mat-mdc-card-content {
+  padding: 0 !important;
+
+  &:last-child {
+    padding-bottom: 0 !important;
+  }
+}
+
+.mat-mdc-card-title {
+  font-family: var(--font-sans);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+
+.mat-mdc-card-subtitle {
+  font-family: var(--font-sans);
+  font-size: var(--text-body-sm);
+  color: var(--text-secondary);
+}
+
+.mat-mdc-card-actions {
+  padding: var(--space-4) 0 0 0 !important;
+}

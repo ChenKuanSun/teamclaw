@@ -1,0 +1,13 @@
+.api-keys-container { padding: 24px; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.full-width { width: 100%; }
+.monospace { font-family: monospace; }
+.spinner-wrapper { display: flex; justify-content: center; padding: 48px; }
+.empty-state { text-align: center; color: var(--mat-sys-on-surface-variant); padding: 24px; }
+h3 { margin-top: 24px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px; }
+.stat-card { text-align: center; }
+.stat-value { font-size: 2rem; font-weight: 600; color: #1976d2; }
+.stat-label { color: #666; margin-top: 4px; }
+.usage-table-card { margin-top: 16px; }
+.expiry-warning { color: var(--mat-sys-error); font-size: 0.85em; }

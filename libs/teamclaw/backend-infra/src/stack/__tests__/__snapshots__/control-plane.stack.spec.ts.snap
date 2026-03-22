@@ -1,0 +1,1225 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`ControlPlaneStack - Teams & Config tables matches snapshot 1`] = `
+{
+  "Description": "TeamClaw Control Plane: Cognito, DynamoDB, Lifecycle Lambda",
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevecrsidecarRepoUriC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/ecr/sidecarRepoUri",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevecsalbDnsNameC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/ecs/albDnsName",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevecsalbListenerArnC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/ecs/albListenerArn",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevecsalbSecurityGroupIdC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/ecs/albSecurityGroupId",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevecsalbTargetGroupArnC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/ecs/albTargetGroupArn",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevecsclusterNameC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/ecs/clusterName",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevefsfileSystemIdC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/efs/fileSystemId",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevsecretsapiKeysSecretArnC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/secrets/apiKeysSecretArn",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevvpcprivateSubnetIdsC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/vpc/privateSubnetIds",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+    "SsmParameterValuetcdevvpcvpcIdC96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Default": "/tc/dev/vpc/vpcId",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "ConfigTableArnParam58D66EB0": {
+      "Properties": {
+        "Name": "/tc/dev/dynamodb/configTableArn",
+        "Type": "String",
+        "Value": {
+          "Fn::GetAtt": [
+            "TestControlPlaneConfigTable1C791B5E",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "ConfigTableNameParam4C88D79D": {
+      "Properties": {
+        "Name": "/tc/dev/dynamodb/configTableName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestControlPlaneConfigTable1C791B5E",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "CronSchedulerRoleDefaultPolicyFBBF7074": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:lambda:",
+                    {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":function:teamclaw-lifecycle-dev",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "CronSchedulerRoleDefaultPolicyFBBF7074",
+        "Roles": [
+          {
+            "Ref": "CronSchedulerRoleE302CC97",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "CronSchedulerRoleE302CC97": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "scheduler.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "RoleName": "teamclaw-cron-scheduler-dev",
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "IdleCheckRule36098383": {
+      "Properties": {
+        "Description": "Check for idle TeamClaw containers and stop them",
+        "ScheduleExpression": "rate(15 minutes)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "LifecycleLambda62FDFE05",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+            "Input": "{"action":"check-idle","userId":"system"}",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "IdleCheckRuleAllowEventRuleTestControlPlaneLifecycleLambdaCC45F2A5A1ADF702": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "LifecycleLambda62FDFE05",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "IdleCheckRule36098383",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "IntegrationsTableArnParam932D7635": {
+      "Properties": {
+        "Name": "/tc/dev/dynamodb/integrationsTableArn",
+        "Type": "String",
+        "Value": {
+          "Fn::GetAtt": [
+            "TestControlPlaneIntegrationsTableF07DF46E",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "IntegrationsTableNameParam946ED6E4": {
+      "Properties": {
+        "Name": "/tc/dev/dynamodb/integrationsTableName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestControlPlaneIntegrationsTableF07DF46E",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "LifecycleLambda62FDFE05": {
+      "DependsOn": [
+        "LifecycleLambdaServiceRoleDefaultPolicyF2D57C7E",
+        "LifecycleLambdaServiceRole7DE0666B",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "e4e22f992f07d9b2efe1ec92e724991fa28001530e582a60a3cccd10348fa60f.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "ALB_DNS_NAME": {
+              "Ref": "SsmParameterValuetcdevecsalbDnsNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "ALB_LISTENER_ARN": {
+              "Ref": "SsmParameterValuetcdevecsalbListenerArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "ALB_TARGET_GROUP_ARN": {
+              "Ref": "SsmParameterValuetcdevecsalbTargetGroupArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "API_KEYS_SECRET_ARN": {
+              "Ref": "SsmParameterValuetcdevsecretsapiKeysSecretArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "DEPLOY_ENV": "dev",
+            "ECS_CLUSTER_NAME": {
+              "Ref": "SsmParameterValuetcdevecsclusterNameC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "EFS_FILE_SYSTEM_ID": {
+              "Ref": "SsmParameterValuetcdevefsfileSystemIdC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "INTEGRATIONS_TABLE_NAME": {
+              "Ref": "TestControlPlaneIntegrationsTableF07DF46E",
+            },
+            "LIFECYCLE_LAMBDA_ARN": {
+              "Fn::Join": [
+                "",
+                [
+                  "arn:aws:lambda:",
+                  {
+                    "Ref": "AWS::Region",
+                  },
+                  ":",
+                  {
+                    "Ref": "AWS::AccountId",
+                  },
+                  ":function:teamclaw-lifecycle-dev",
+                ],
+              ],
+            },
+            "PRIVATE_SUBNET_IDS": {
+              "Ref": "SsmParameterValuetcdevvpcprivateSubnetIdsC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "SCHEDULER_ROLE_ARN": {
+              "Fn::GetAtt": [
+                "CronSchedulerRoleE302CC97",
+                "Arn",
+              ],
+            },
+            "SECURITY_GROUP_ID": {
+              "Ref": "SsmParameterValuetcdevecsalbSecurityGroupIdC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "SIDECAR_IMAGE": {
+              "Ref": "SsmParameterValuetcdevecrsidecarRepoUriC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+            "USAGE_TABLE_NAME": {
+              "Ref": "UsageTable28300137",
+            },
+            "USERS_TABLE_NAME": {
+              "Ref": "UserTableBD4BF69E",
+            },
+            "VPC_ID": {
+              "Ref": "SsmParameterValuetcdevvpcvpcIdC96584B6F00A464EAD1953AFF4B05118Parameter",
+            },
+          },
+        },
+        "FunctionName": "teamclaw-lifecycle-dev",
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "LifecycleLambdaServiceRole7DE0666B",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "LifecycleLambdaServiceRole7DE0666B": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "LifecycleLambdaServiceRoleDefaultPolicyF2D57C7E": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "UserTableBD4BF69E",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "UserTableBD4BF69E",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "TestControlPlaneIntegrationsTableF07DF46E",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "TestControlPlaneIntegrationsTableF07DF46E",
+                          "Arn",
+                        ],
+                      },
+                      "/index/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "TestControlPlaneIntegrationsTableF07DF46E",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "TestControlPlaneIntegrationsTableF07DF46E",
+                          "Arn",
+                        ],
+                      },
+                      "/index/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "secretsmanager:GetSecretValue",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:secretsmanager:",
+                    {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":secret:tc/integrations/dev/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "ecs:RunTask",
+                "ecs:StopTask",
+                "ecs:DescribeTasks",
+                "ecs:ListTasks",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":ecs:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":cluster/teamclaw-*-dev",
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":ecs:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":task/teamclaw-dev/*",
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":ecs:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":task-definition/teamclaw-*-dev:*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "ecs:RegisterTaskDefinition",
+                "ecs:DeregisterTaskDefinition",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": "iam:PassRole",
+              "Condition": {
+                "StringEquals": {
+                  "iam:PassedToService": "ecs-tasks.amazonaws.com",
+                },
+              },
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:iam::",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":role/teamclaw-*-dev*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": [
+                "elasticloadbalancing:RegisterTargets",
+                "elasticloadbalancing:DeregisterTargets",
+                "elasticloadbalancing:CreateTargetGroup",
+                "elasticloadbalancing:DeleteTargetGroup",
+                "elasticloadbalancing:DescribeTargetGroups",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":elasticloadbalancing:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":targetgroup/tc-containers-dev/*",
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":elasticloadbalancing:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":targetgroup/tc-u-*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "elasticloadbalancing:CreateTargetGroup",
+                "elasticloadbalancing:DescribeTargetGroups",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": [
+                "elasticloadbalancing:CreateRule",
+                "elasticloadbalancing:DeleteRule",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Ref": "SsmParameterValuetcdevecsalbListenerArnC96584B6F00A464EAD1953AFF4B05118Parameter",
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":elasticloadbalancing:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":listener-rule/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "elasticloadbalancing:DescribeRules",
+                "elasticloadbalancing:AddTags",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": [
+                "elasticfilesystem:CreateAccessPoint",
+                "elasticfilesystem:DeleteAccessPoint",
+                "elasticfilesystem:DescribeAccessPoints",
+                "elasticfilesystem:TagResource",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":elasticfilesystem:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":file-system/",
+                      {
+                        "Ref": "SsmParameterValuetcdevefsfileSystemIdC96584B6F00A464EAD1953AFF4B05118Parameter",
+                      },
+                    ],
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":elasticfilesystem:",
+                      {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":access-point/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "scheduler:CreateSchedule",
+                "scheduler:UpdateSchedule",
+                "scheduler:DeleteSchedule",
+                "scheduler:GetSchedule",
+                "scheduler:ListSchedules",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:scheduler:",
+                    {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":schedule/teamclaw-cron-dev/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": "iam:PassRole",
+              "Condition": {
+                "StringEquals": {
+                  "iam:PassedToService": "scheduler.amazonaws.com",
+                },
+              },
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "CronSchedulerRoleE302CC97",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "LifecycleLambdaServiceRoleDefaultPolicyF2D57C7E",
+        "Roles": [
+          {
+            "Ref": "LifecycleLambdaServiceRole7DE0666B",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "SkillsApprovalTableBD6AEDC1": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "skillId",
+            "AttributeType": "S",
+          },
+          {
+            "AttributeName": "requestedBy",
+            "AttributeType": "S",
+          },
+          {
+            "AttributeName": "status",
+            "AttributeType": "S",
+          },
+          {
+            "AttributeName": "requestedAt",
+            "AttributeType": "S",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "by-status",
+            "KeySchema": [
+              {
+                "AttributeName": "status",
+                "KeyType": "HASH",
+              },
+              {
+                "AttributeName": "requestedAt",
+                "KeyType": "RANGE",
+              },
+            ],
+            "Projection": {
+              "ProjectionType": "ALL",
+            },
+          },
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "skillId",
+            "KeyType": "HASH",
+          },
+          {
+            "AttributeName": "requestedBy",
+            "KeyType": "RANGE",
+          },
+        ],
+        "TableName": "teamclaw-skills-dev",
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "SkillsTableArnParam82A617CB": {
+      "Properties": {
+        "Name": "/tc/dev/dynamodb/skillsTableArn",
+        "Type": "String",
+        "Value": {
+          "Fn::GetAtt": [
+            "SkillsApprovalTableBD6AEDC1",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "SkillsTableNameParamC98AF169": {
+      "Properties": {
+        "Name": "/tc/dev/dynamodb/skillsTableName",
+        "Type": "String",
+        "Value": {
+          "Ref": "SkillsApprovalTableBD6AEDC1",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TeamsTableArnParamB8C30BA2": {
+      "Properties": {
+        "Name": "/tc/dev/dynamodb/teamsTableArn",
+        "Type": "String",
+        "Value": {
+          "Fn::GetAtt": [
+            "TestControlPlaneTeamsTableD2CED210",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TeamsTableNameParam14D8FAB4": {
+      "Properties": {
+        "Name": "/tc/dev/dynamodb/teamsTableName",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestControlPlaneTeamsTableD2CED210",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestControlPlaneConfigTable1C791B5E": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "scopeKey",
+            "AttributeType": "S",
+          },
+          {
+            "AttributeName": "configKey",
+            "AttributeType": "S",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "scopeKey",
+            "KeyType": "HASH",
+          },
+          {
+            "AttributeName": "configKey",
+            "KeyType": "RANGE",
+          },
+        ],
+        "Replicas": [
+          {
+            "Region": {
+              "Ref": "AWS::Region",
+            },
+          },
+        ],
+        "TableName": "teamclaw-config-dev",
+      },
+      "Type": "AWS::DynamoDB::GlobalTable",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "TestControlPlaneIntegrationsTableF07DF46E": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "integrationId",
+            "AttributeType": "S",
+          },
+          {
+            "AttributeName": "scopeKey",
+            "AttributeType": "S",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "GlobalSecondaryIndexes": [
+          {
+            "IndexName": "by-scope",
+            "KeySchema": [
+              {
+                "AttributeName": "scopeKey",
+                "KeyType": "HASH",
+              },
+              {
+                "AttributeName": "integrationId",
+                "KeyType": "RANGE",
+              },
+            ],
+            "Projection": {
+              "ProjectionType": "ALL",
+            },
+          },
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "integrationId",
+            "KeyType": "HASH",
+          },
+          {
+            "AttributeName": "scopeKey",
+            "KeyType": "RANGE",
+          },
+        ],
+        "Replicas": [
+          {
+            "GlobalSecondaryIndexes": [
+              {
+                "IndexName": "by-scope",
+              },
+            ],
+            "Region": {
+              "Ref": "AWS::Region",
+            },
+          },
+        ],
+        "TableName": "teamclaw-integrations-dev",
+      },
+      "Type": "AWS::DynamoDB::GlobalTable",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "TestControlPlaneLifecycleLambdaNameParamD55E110B": {
+      "Properties": {
+        "Name": "/tc/dev/lifecycle-lambda-name",
+        "Type": "String",
+        "Value": {
+          "Ref": "LifecycleLambda62FDFE05",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestControlPlaneTeamsTableD2CED210": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "teamId",
+            "AttributeType": "S",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "teamId",
+            "KeyType": "HASH",
+          },
+        ],
+        "Replicas": [
+          {
+            "Region": {
+              "Ref": "AWS::Region",
+            },
+          },
+        ],
+        "TableName": "teamclaw-teams-dev",
+      },
+      "Type": "AWS::DynamoDB::GlobalTable",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "UsageTable28300137": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "userId",
+            "AttributeType": "S",
+          },
+          {
+            "AttributeName": "timestamp",
+            "AttributeType": "S",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "userId",
+            "KeyType": "HASH",
+          },
+          {
+            "AttributeName": "timestamp",
+            "KeyType": "RANGE",
+          },
+        ],
+        "TableName": "teamclaw-usage-dev",
+        "TimeToLiveSpecification": {
+          "AttributeName": "ttl",
+          "Enabled": true,
+        },
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "UsageTableArnParam90BBA522": {
+      "Properties": {
+        "Name": "/tc/dev/dynamodb/usageTableArn",
+        "Type": "String",
+        "Value": {
+          "Fn::GetAtt": [
+            "UsageTable28300137",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "UsageTableNameParamE2F60A19": {
+      "Properties": {
+        "Name": "/tc/dev/dynamodb/usageTableName",
+        "Type": "String",
+        "Value": {
+          "Ref": "UsageTable28300137",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "UserPool6BA7E5F2": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AccountRecoverySetting": {
+          "RecoveryMechanisms": [
+            {
+              "Name": "verified_email",
+              "Priority": 1,
+            },
+          ],
+        },
+        "AdminCreateUserConfig": {
+          "AllowAdminCreateUserOnly": false,
+        },
+        "AutoVerifiedAttributes": [
+          "email",
+        ],
+        "EmailVerificationMessage": "The verification code to your new account is {####}",
+        "EmailVerificationSubject": "Verify your new account",
+        "EnabledMfas": [
+          "SOFTWARE_TOKEN_MFA",
+        ],
+        "MfaConfiguration": "OPTIONAL",
+        "Policies": {
+          "PasswordPolicy": {
+            "MinimumLength": 12,
+            "RequireLowercase": true,
+            "RequireNumbers": true,
+            "RequireSymbols": true,
+            "RequireUppercase": true,
+          },
+        },
+        "SmsVerificationMessage": "The verification code to your new account is {####}",
+        "UserPoolName": "teamclaw-dev",
+        "UsernameAttributes": [
+          "email",
+        ],
+        "VerificationMessageTemplate": {
+          "DefaultEmailOption": "CONFIRM_WITH_CODE",
+          "EmailMessage": "The verification code to your new account is {####}",
+          "EmailSubject": "Verify your new account",
+          "SmsMessage": "The verification code to your new account is {####}",
+        },
+      },
+      "Type": "AWS::Cognito::UserPool",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "UserPoolArnParam5D65BFDA": {
+      "Properties": {
+        "Name": "/tc/dev/cognito/userPoolArn",
+        "Type": "String",
+        "Value": {
+          "Fn::GetAtt": [
+            "UserPool6BA7E5F2",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "UserPoolClientIdParam5DF0EADC": {
+      "Properties": {
+        "Name": "/tc/dev/cognito/userPoolClientId",
+        "Type": "String",
+        "Value": {
+          "Ref": "UserPoolWebClient4C9370B0",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "UserPoolIdParam81D6760E": {
+      "Properties": {
+        "Name": "/tc/dev/cognito/userPoolId",
+        "Type": "String",
+        "Value": {
+          "Ref": "UserPool6BA7E5F2",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "UserPoolWebClient4C9370B0": {
+      "Properties": {
+        "AccessTokenValidity": 60,
+        "AllowedOAuthFlows": [
+          "implicit",
+          "code",
+        ],
+        "AllowedOAuthFlowsUserPoolClient": true,
+        "AllowedOAuthScopes": [
+          "profile",
+          "phone",
+          "email",
+          "openid",
+          "aws.cognito.signin.user.admin",
+        ],
+        "CallbackURLs": [
+          "https://example.com",
+        ],
+        "ExplicitAuthFlows": [
+          "ALLOW_USER_SRP_AUTH",
+          "ALLOW_REFRESH_TOKEN_AUTH",
+        ],
+        "GenerateSecret": false,
+        "IdTokenValidity": 60,
+        "RefreshTokenValidity": 43200,
+        "SupportedIdentityProviders": [
+          "COGNITO",
+        ],
+        "TokenValidityUnits": {
+          "AccessToken": "minutes",
+          "IdToken": "minutes",
+          "RefreshToken": "minutes",
+        },
+        "UserPoolId": {
+          "Ref": "UserPool6BA7E5F2",
+        },
+      },
+      "Type": "AWS::Cognito::UserPoolClient",
+    },
+    "UserTableBD4BF69E": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "userId",
+            "AttributeType": "S",
+          },
+        ],
+        "BillingMode": "PAY_PER_REQUEST",
+        "KeySchema": [
+          {
+            "AttributeName": "userId",
+            "KeyType": "HASH",
+          },
+        ],
+        "TableName": "teamclaw-users-dev",
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "UsersTableArnParam90E8C472": {
+      "Properties": {
+        "Name": "/tc/dev/dynamodb/usersTableArn",
+        "Type": "String",
+        "Value": {
+          "Fn::GetAtt": [
+            "UserTableBD4BF69E",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "UsersTableNameParam8531193F": {
+      "Properties": {
+        "Name": "/tc/dev/dynamodb/usersTableName",
+        "Type": "String",
+        "Value": {
+          "Ref": "UserTableBD4BF69E",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;

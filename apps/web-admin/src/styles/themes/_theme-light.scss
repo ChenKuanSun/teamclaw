@@ -1,0 +1,38 @@
+@use '@angular/material' as mat;
+
+// =============================================
+// TeamClaw Light Theme
+// =============================================
+
+@mixin apply() {
+  @include mat.theme(
+    (
+      color: (
+        theme-type: light,
+        primary: mat.$blue-palette,
+        tertiary: mat.$blue-palette,
+        use-system-variables: true,
+      ),
+      typography: Inter,
+      density: 0,
+    )
+  );
+
+  // Override with light theme TeamClaw tokens
+  --mat-sys-surface: var(--bg-surface);
+  --mat-sys-surface-dim: var(--bg-base);
+  --mat-sys-surface-container: var(--bg-surface);
+  --mat-sys-surface-container-high: var(--bg-elevated);
+  --mat-sys-on-surface: var(--text-primary);
+  --mat-sys-on-surface-variant: var(--text-secondary);
+  --mat-sys-primary: var(--accent);
+  --mat-sys-on-primary: #ffffff;
+  --mat-sys-primary-container: var(--accent-bg);
+  --mat-sys-on-primary-container: var(--accent);
+  --mat-sys-outline: var(--border-strong);
+  --mat-sys-outline-variant: var(--border-default);
+  --mat-sys-error: var(--semantic-critical);
+  --mat-sys-error-container: var(--semantic-critical-bg);
+  --mat-sys-background: var(--bg-base);
+  --mat-sys-on-background: var(--text-primary);
+}

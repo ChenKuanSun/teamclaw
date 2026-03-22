@@ -1,0 +1,33 @@
+<h2 mat-dialog-title>Add API Key</h2>
+<mat-dialog-content>
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Provider</mat-label>
+    <mat-select [(ngModel)]="selectedId" (selectionChange)="onProviderChange()" required>
+      @for (p of providerOptions; track p.id) {
+        <mat-option [value]="p.id">{{ p.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  @if (selectedOption?.authType === 'apiKey') {
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>API Key</mat-label>
+      <input matInput [(ngModel)]="credential" type="password" required />
+    </mat-form-field>
+  } @else if (selectedOption?.authType === 'oauthToken') {
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Token</mat-label>
+      <input matInput [(ngModel)]="credential" type="password"
+        placeholder="Paste token here" required />
+      @if (selectedId === 'anthropic-token') {
+        <mat-hint>Run 'claude setup-token' and paste the token here</mat-hint>
+      }
+    </mat-form-field>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-raised-button color="primary"
+    [disabled]="!selectedId || !credential"
+    (click)="submit()">Add</button>
+</mat-dialog-actions>

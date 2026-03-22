@@ -1,0 +1,29 @@
+<header class="tc-header">
+  <div class="header-left">
+    <div class="brand-mark">
+      <mat-icon class="brand-icon">hub</mat-icon>
+    </div>
+    <div class="brand-text">
+      <span class="brand-name">TeamClaw</span>
+      <span class="brand-divider">|</span>
+      <span class="page-label">{{ currentPageLabel() }}</span>
+    </div>
+  </div>
+
+  <span class="spacer"></span>
+
+  <button mat-icon-button routerLink="/integrations" class="nav-btn" aria-label="Integrations">
+    <mat-icon>extension</mat-icon>
+  </button>
+
+  <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-btn" aria-label="User menu">
+    <mat-icon>account_circle</mat-icon>
+  </button>
+
+  <mat-menu #userMenu="matMenu">
+    <button mat-menu-item (click)="signOut()">
+      <mat-icon>logout</mat-icon>
+      <span>{{ 'Sign Out' | translate }}</span>
+    </button>
+  </mat-menu>
+</header>

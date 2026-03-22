@@ -1,0 +1,123 @@
+{
+  "name": "web-chat",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "tc",
+  "sourceRoot": "apps/web-chat/src",
+  "tags": [],
+  "targets": {
+    "i18n:init": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "ngx-translate-extract --input ./src --output ./public/assets/i18n/template.json --key-as-default-value --replace --format json"
+        ],
+        "parallel": false,
+        "cwd": "apps/web-chat"
+      }
+    },
+    "i18n:extract": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "ngx-translate-extract --input ./src --output ./public/assets/i18n/{en,zh,ja,ko}.json --clean --format json"
+        ],
+        "parallel": false,
+        "cwd": "apps/web-chat"
+      }
+    },
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/web-chat",
+        "browser": "apps/web-chat/src/main.ts",
+        "polyfills": ["zone.js"],
+        "tsConfig": "apps/web-chat/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/web-chat/public"
+          }
+        ],
+        "styles": [
+          "node_modules/prismjs/themes/prism-tomorrow.css",
+          "apps/web-chat/src/styles.scss"
+        ]
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "1mb",
+              "maximumError": "1.5mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "10kb",
+              "maximumError": "20kb"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true,
+          "fileReplacements": [
+            {
+              "replace": "apps/web-chat/src/environments/environment.ts",
+              "with": "apps/web-chat/src/environments/environment.development.ts"
+            }
+          ]
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "options": {
+        "port": 4700
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "web-chat:build:production"
+        },
+        "development": {
+          "buildTarget": "web-chat:build:development"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "extract-i18n": {
+      "executor": "@angular/build:extract-i18n",
+      "options": {
+        "buildTarget": "web-chat:build"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/web-chat/jest.config.ts",
+        "tsConfig": "apps/web-chat/tsconfig.spec.json"
+      }
+    },
+    "serve-static": {
+      "continuous": true,
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "web-chat:build",
+        "port": 4700,
+        "staticFilePath": "dist/apps/web-chat/browser",
+        "spa": true
+      }
+    }
+  }
+}

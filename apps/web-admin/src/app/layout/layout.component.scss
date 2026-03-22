@@ -1,0 +1,28 @@
+.admin-sidenav-container {
+  height: 100vh;
+}
+
+.admin-sidenav {
+  width: 260px;
+  background-color: var(--bg-surface);
+  border-right: var(--border-thin) solid var(--border-default);
+}
+
+.admin-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.admin-page-wrapper {
+  flex: 1;
+  padding: var(--space-6);
+  overflow-y: auto;
+  background-color: var(--bg-base);
+}
+
+@media (max-width: 768px) {
+  .admin-page-wrapper {
+    padding: var(--space-4);
+  }
+}

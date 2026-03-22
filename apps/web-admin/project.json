@@ -1,0 +1,120 @@
+{
+  "name": "web-admin",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "tc-admin",
+  "sourceRoot": "apps/web-admin/src",
+  "tags": [],
+  "targets": {
+    "i18n:init": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "ngx-translate-extract --input ./src --output ./public/assets/i18n/template.json --key-as-default-value --replace --format json"
+        ],
+        "parallel": false,
+        "cwd": "apps/web-admin"
+      }
+    },
+    "i18n:extract": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "ngx-translate-extract --input ./src --output ./public/assets/i18n/{en,zh,ja,ko}.json --clean --format json"
+        ],
+        "parallel": false,
+        "cwd": "apps/web-admin"
+      }
+    },
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/web-admin",
+        "browser": "apps/web-admin/src/main.ts",
+        "polyfills": ["zone.js"],
+        "tsConfig": "apps/web-admin/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/web-admin/public"
+          }
+        ],
+        "styles": ["apps/web-admin/src/styles.scss"]
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "1mb",
+              "maximumError": "1.5mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "10kb",
+              "maximumError": "20kb"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true,
+          "fileReplacements": [
+            {
+              "replace": "apps/web-admin/src/environments/environment.ts",
+              "with": "apps/web-admin/src/environments/environment.development.ts"
+            }
+          ]
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "options": {
+        "port": 4900
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "web-admin:build:production"
+        },
+        "development": {
+          "buildTarget": "web-admin:build:development"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "extract-i18n": {
+      "executor": "@angular/build:extract-i18n",
+      "options": {
+        "buildTarget": "web-admin:build"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/web-admin/jest.config.cts",
+        "tsConfig": "apps/web-admin/tsconfig.spec.json"
+      }
+    },
+    "serve-static": {
+      "continuous": true,
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "web-admin:build",
+        "port": 4200,
+        "staticFilePath": "dist/apps/web-admin/browser",
+        "spa": true
+      }
+    }
+  }
+}

@@ -1,0 +1,71 @@
+@use 'sass:map';
+
+// =============================================
+// TeamClaw Custom Palette for Angular Material 3
+// =============================================
+
+// Blue-based palette (primary for interactive elements)
+$teamclaw-blue-palette: (
+  0: #000000,
+  10: #001d36,
+  20: #003258,
+  25: #003d6b,
+  30: #00497e,
+  35: #005591,
+  40: #1976d2,
+  50: #2196f3,
+  60: #42a5f5,
+  70: #64b5f6,
+  80: #90caf9,
+  90: #bbdefb,
+  95: #e3f2fd,
+  98: #f5faff,
+  99: #fbfdff,
+  100: #ffffff,
+);
+
+// Navy-based palette for neutral/surfaces
+$teamclaw-navy-palette: (
+  0: #000000,
+  4: #030610,
+  6: #050a18,
+  10: #0a1929,
+  12: #0c1d33,
+  17: #0f1f3a,
+  20: #142338,
+  22: #17253c,
+  24: #1a2840,
+  25: #1c2a44,
+  30: #1e293b,
+  35: #283548,
+  40: #334155,
+  50: #475569,
+  60: #64748b,
+  70: #94a3b8,
+  80: #cbd5e1,
+  87: #e2e8f0,
+  90: #e7ecf4,
+  92: #edf1f7,
+  94: #f1f5fb,
+  95: #f5f8fc,
+  96: #f8fafc,
+  98: #fbfcfe,
+  99: #fdfeff,
+  100: #ffffff,
+);
+
+// Error palette
+$teamclaw-error-palette: (
+  0: #000000,
+  10: #410002,
+  20: #690005,
+  30: #93000a,
+  40: #ba1a1a,
+  50: #de3730,
+  60: #ff5449,
+  70: #ff897d,
+  80: #ffb4ab,
+  90: #ffdad6,
+  95: #ffedea,
+  100: #ffffff,
+);

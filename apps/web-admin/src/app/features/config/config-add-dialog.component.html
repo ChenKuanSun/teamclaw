@@ -1,0 +1,15 @@
+<h2 mat-dialog-title>Add Config Entry</h2>
+<mat-dialog-content>
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Key</mat-label>
+    <input matInput [(ngModel)]="key" placeholder="e.g. allowedDomains" />
+  </mat-form-field>
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Value</mat-label>
+    <textarea matInput [(ngModel)]="value" rows="4" placeholder='e.g. ["company.com"]'></textarea>
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-raised-button color="primary" [disabled]="!key().trim()" (click)="save()">Save</button>
+</mat-dialog-actions>

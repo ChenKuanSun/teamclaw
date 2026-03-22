@@ -1,0 +1,79 @@
+:host {
+  display: block;
+}
+
+.tc-header {
+  display: flex;
+  align-items: center;
+  height: var(--header-height);
+  padding: 0 var(--space-4);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.brand-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #fff;
+}
+
+.brand-text {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.brand-name {
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+}
+
+.brand-divider {
+  color: var(--border-strong);
+  font-weight: var(--weight-regular);
+}
+
+.page-label {
+  font-size: var(--text-body-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.nav-btn {
+  color: var(--text-secondary);
+  margin-right: 4px;
+}
+
+.user-btn {
+  color: var(--text-secondary);
+}
+
+@media (max-width: 480px) {
+  .brand-divider,
+  .page-label {
+    display: none;
+  }
+}

@@ -1,0 +1,131 @@
+<div class="login-container">
+  <mat-card class="login-card">
+    <mat-card-header>
+      <mat-card-title>TeamClaw Admin</mat-card-title>
+      <mat-card-subtitle>
+        @switch (view) {
+          @case ('login') { Sign in to access the admin panel }
+          @case ('forgot') { Enter your email to receive a reset code }
+          @case ('reset') { Enter the code sent to your email }
+        }
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      @switch (view) {
+        @case ('login') {
+          <form (ngSubmit)="login()" class="login-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Email</mat-label>
+              <input matInput type="email" [(ngModel)]="email" name="email"
+                     required autocomplete="username" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Password</mat-label>
+              <input matInput [type]="hidePassword ? 'password' : 'text'"
+                     [(ngModel)]="password" name="password"
+                     required autocomplete="current-password" />
+              <button mat-icon-button matSuffix type="button"
+                      (click)="hidePassword = !hidePassword">
+                <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+            </mat-form-field>
+
+            @if (authService.error()) {
+              <div class="error-message">{{ authService.error() }}</div>
+            }
+
+            <button mat-raised-button color="primary" type="submit"
+                    class="login-button"
+                    [disabled]="authService.isLoading() || !email || !password">
+              @if (authService.isLoading()) {
+                <mat-spinner diameter="20"></mat-spinner>
+              } @else {
+                Sign in
+              }
+            </button>
+
+            <button mat-button type="button" class="forgot-link"
+                    (click)="showForgotPassword()">
+              Forgot password?
+            </button>
+          </form>
+        }
+
+        @case ('forgot') {
+          <form (ngSubmit)="sendResetCode()" class="login-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Email</mat-label>
+              <input matInput type="email" [(ngModel)]="email" name="email"
+                     required autocomplete="username" />
+            </mat-form-field>
+
+            @if (authService.error()) {
+              <div class="error-message">{{ authService.error() }}</div>
+            }
+
+            <button mat-raised-button color="primary" type="submit"
+                    class="login-button"
+                    [disabled]="authService.isLoading() || !email">
+              @if (authService.isLoading()) {
+                <mat-spinner diameter="20"></mat-spinner>
+              } @else {
+                Send reset code
+              }
+            </button>
+
+            <button mat-button type="button" class="forgot-link"
+                    (click)="backToLogin()">
+              Back to sign in
+            </button>
+          </form>
+        }
+
+        @case ('reset') {
+          <form (ngSubmit)="resetPassword()" class="login-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Verification code</mat-label>
+              <input matInput type="text" [(ngModel)]="resetCode" name="code"
+                     required autocomplete="one-time-code" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>New password</mat-label>
+              <input matInput [type]="hidePassword ? 'password' : 'text'"
+                     [(ngModel)]="newPassword" name="newPassword"
+                     required autocomplete="new-password" />
+              <button mat-icon-button matSuffix type="button"
+                      (click)="hidePassword = !hidePassword">
+                <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+            </mat-form-field>
+
+            @if (authService.error()) {
+              <div class="error-message">{{ authService.error() }}</div>
+            }
+
+            @if (successMessage) {
+              <div class="success-message">{{ successMessage }}</div>
+            }
+
+            <button mat-raised-button color="primary" type="submit"
+                    class="login-button"
+                    [disabled]="authService.isLoading() || !resetCode || !newPassword">
+              @if (authService.isLoading()) {
+                <mat-spinner diameter="20"></mat-spinner>
+              } @else {
+                Reset password
+              }
+            </button>
+
+            <button mat-button type="button" class="forgot-link"
+                    (click)="backToLogin()">
+              Back to sign in
+            </button>
+          </form>
+        }
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

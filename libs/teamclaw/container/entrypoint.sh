@@ -1,0 +1,34 @@
+#!/bin/sh
+set -e
+
+# ─── Security Controls (zero source code modification) ───
+# Strip all provider API keys — sidecar proxy handles all provider auth
+unset ANTHROPIC_API_KEY ANTHROPIC_OAUTH_TOKEN OPENAI_API_KEY GOOGLE_API_KEY GEMINI_API_KEY
+
+export OPENCLAW_TUNNEL=false
+
+# Audit log to persistent EFS
+export OPENCLAW_AUDIT_DIR="/efs/users/${USER_ID}/audit"
+export OPENCLAW_TRANSCRIPT_DIR="/efs/users/${USER_ID}/transcripts"
+mkdir -p "$OPENCLAW_AUDIT_DIR" "$OPENCLAW_TRANSCRIPT_DIR" 2>/dev/null || true
+
+# User skills directory (users can create custom SKILL.md files here)
+mkdir -p "/efs/users/${USER_ID}/user-skills" 2>/dev/null || true
+
+# ─── Generate merged config (Global → Team → User) ───
+node /scripts/generate-config.js
+
+# Persist sessions on EFS if mounted (survives container restarts)
+EFS_SESSION_DIR="/efs/users/${USER_ID}/sessions"
+if mkdir -p "$EFS_SESSION_DIR" 2>/dev/null; then
+  OPENCLAW_STATE_DIR="${HOME}/.openclaw/agents/main/sessions"
+  mkdir -p "$(dirname "$OPENCLAW_STATE_DIR")"
+  rm -rf "$OPENCLAW_STATE_DIR"
+  ln -sf "$EFS_SESSION_DIR" "$OPENCLAW_STATE_DIR"
+  echo "[entrypoint] Sessions persisted to EFS"
+fi
+
+# ─── Start OpenClaw Gateway (upstream binary) ───
+# All model API calls are routed through sidecar proxy (http://localhost:3000).
+# Auth is handled by ALB/CloudFront upstream; container is in private subnet.
+exec openclaw gateway run --port 18789 --bind lan --auth trusted-proxy --allow-unconfigured

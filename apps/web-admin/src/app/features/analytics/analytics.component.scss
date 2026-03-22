@@ -1,0 +1,9 @@
+.analytics-container { padding: 24px; }
+.date-range { display: flex; gap: 16px; align-items: center; margin-bottom: 24px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card { text-align: center; }
+.stat-value { font-size: 2rem; font-weight: 600; color: #1976d2; }
+.stat-label { color: #666; margin-top: 4px; }
+.full-width { width: 100%; }
+.spinner-wrapper { display: flex; justify-content: center; padding: 48px; }
+h3 { margin-top: 24px; }

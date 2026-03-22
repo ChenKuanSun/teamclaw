@@ -1,0 +1,49 @@
+<h2 mat-dialog-title>
+  <mat-icon>groups</mat-icon>
+  {{ data.existingTeamId ? 'Edit' : 'Add' }} Team Override —
+  {{ data.integrationName }}
+</h2>
+<mat-dialog-content>
+  @if (!data.existingTeamId) {
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Team</mat-label>
+      <mat-select [(ngModel)]="selectedTeamId">
+        @for (team of teams(); track team.teamId) {
+          <mat-option [value]="team.teamId">{{ team.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  }
+
+  <div class="toggle-section">
+    <mat-slide-toggle [(ngModel)]="enabled">Enabled</mat-slide-toggle>
+  </div>
+  <div class="toggle-section">
+    <mat-checkbox [(ngModel)]="allowUserOverride"
+      >Allow users to provide their own credentials</mat-checkbox
+    >
+  </div>
+
+  <h3>Team Credentials (optional)</h3>
+  @for (field of data.schema; track field.key) {
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ field.label }}</mat-label>
+      <input
+        matInput
+        [type]="field.type === 'secret' ? 'password' : 'text'"
+        [placeholder]="field.placeholder || ''"
+        [ngModel]="credValues()[field.key] || ''"
+        (ngModelChange)="setCredValue(field.key, $event)" />
+    </mat-form-field>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button
+    mat-flat-button
+    color="primary"
+    [disabled]="!canSave()"
+    (click)="save()">
+    Save
+  </button>
+</mat-dialog-actions>

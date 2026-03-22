@@ -1,0 +1,78 @@
+// =============================================
+// Priority Indicator Utilities
+// Task left-edge color bars
+// =============================================
+
+// Priority classes for task items
+.priority-critical {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: var(--task-priority-width-critical);
+    background-color: var(--priority-critical);
+    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  }
+
+  // Glow effect for dark mode
+  [data-theme='dark'] & {
+    box-shadow: var(--shadow-glow-critical);
+  }
+}
+
+.priority-high {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: var(--task-priority-width-high);
+    background-color: var(--priority-high);
+    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  }
+}
+
+.priority-medium {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: var(--task-priority-width-medium);
+    background-color: var(--priority-medium);
+    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  }
+}
+
+// Priority badge colors
+.priority-badge {
+  &--critical {
+    background-color: var(--semantic-critical-bg);
+    color: var(--semantic-critical);
+  }
+
+  &--high {
+    background-color: var(--semantic-high-bg);
+    color: var(--semantic-high);
+  }
+
+  &--medium {
+    background-color: rgba(148, 163, 184, 0.15);
+    color: var(--text-tertiary);
+  }
+
+  &--low {
+    background-color: var(--bg-elevated);
+    color: var(--text-muted);
+  }
+}

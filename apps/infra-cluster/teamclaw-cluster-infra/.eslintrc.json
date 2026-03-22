@@ -1,0 +1,38 @@
+{
+  "extends": ["../../../.eslintrc.json"],
+  "ignorePatterns": ["!**/*"],
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
+      "parserOptions": {
+        "project": [
+          "apps/infra-cluster/teamclaw-cluster-infra/tsconfig.*?.json"
+        ]
+      },
+      "rules": {
+        "@nx/workspace/aliases": "off",
+        "@nx/workspace/no-legacy-api": "off"
+      }
+    },
+    {
+      "files": ["*.ts", "*.tsx"],
+      "rules": {}
+    },
+    {
+      "files": ["cdk/*.ts"],
+      "rules": {
+        "@typescript-eslint/naming-convention": [
+          "warn",
+          {
+            "selector": ["variable", "function"],
+            "format": ["strictCamelCase", "StrictPascalCase", "UPPER_CASE"]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["*.js", "*.jsx"],
+      "rules": {}
+    }
+  ]
+}

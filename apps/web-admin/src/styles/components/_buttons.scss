@@ -1,0 +1,59 @@
+// =============================================
+// Button Component Overrides
+// =============================================
+
+// Primary button (blue)
+.mat-mdc-unelevated-button.mat-primary,
+.mat-mdc-raised-button.mat-primary {
+  --mdc-filled-button-container-color: var(--accent);
+  --mdc-filled-button-label-text-color: #ffffff;
+  font-weight: var(--btn-font-weight);
+  letter-spacing: var(--tracking-wide);
+
+  &:hover {
+    --mdc-filled-button-container-color: var(--accent-soft);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+// Outlined button
+.mat-mdc-outlined-button {
+  --mdc-outlined-button-outline-color: var(--border-strong);
+  --mdc-outlined-button-label-text-color: var(--text-primary);
+
+  &:hover {
+    background-color: var(--accent-bg);
+    --mdc-outlined-button-outline-color: var(--accent);
+  }
+}
+
+// Text button
+.mat-mdc-button {
+  --mdc-text-button-label-text-color: var(--accent);
+
+  &:hover {
+    background-color: var(--accent-bg);
+  }
+}
+
+// Icon button
+.mat-mdc-icon-button {
+  --mdc-icon-button-icon-color: var(--text-secondary);
+
+  &:hover {
+    background-color: var(--accent-bg);
+    --mdc-icon-button-icon-color: var(--accent);
+  }
+}
+
+// FAB
+.mat-mdc-fab,
+.mat-mdc-mini-fab {
+  --mdc-fab-container-color: var(--accent);
+  --mdc-fab-icon-color: #ffffff;
+  box-shadow: var(--shadow-lg), var(--shadow-glow-accent);
+}

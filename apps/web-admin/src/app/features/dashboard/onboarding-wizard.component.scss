@@ -1,0 +1,10 @@
+.onboarding-container { padding: 24px; max-width: 720px; margin: 0 auto; }
+h1 { margin-bottom: 8px; }
+.subtitle { color: var(--mat-sys-on-surface-variant); margin-bottom: 32px; }
+.step-content { padding: 16px 0; max-width: 480px; }
+.step-actions { display: flex; gap: 8px; margin-top: 24px; }
+.full-width { width: 100%; }
+.step-done { display: flex; align-items: center; gap: 8px; color: var(--mat-sys-primary); margin: 16px 0; }
+.error { color: var(--mat-sys-error); margin-top: 8px; }
+.done-content { text-align: center; padding: 32px 0; }
+.done-icon { font-size: 64px; width: 64px; height: 64px; color: var(--mat-sys-primary); }

@@ -70,7 +70,7 @@
     "@swc/helpers": "~0.5.18",
     "@types/aws-lambda": "^8.10.161",
     "@types/jest": "^30.0.0",
-    "@types/node": "^22.0.0",
+    "@types/node": "^25.5.0",
     "@types/pino": "^7.0.4",
     "@typescript-eslint/utils": "^8.40.0",
     "angular-eslint": "^21.0.1",

@@ -1,0 +1,31 @@
+<h2 mat-dialog-title>
+  @if (data.icon) {
+    <mat-icon [class]="'icon-' + (data.confirmColor || 'primary')">{{ data.icon }}</mat-icon>
+  }
+  {{ data.title }}
+</h2>
+<mat-dialog-content>
+  <p>{{ data.message }}</p>
+  @if (data.requireConfirmation) {
+    <mat-form-field appearance="outline" class="confirmation-field">
+      <mat-label>{{ data.confirmationLabel || 'Type to confirm' }}</mat-label>
+      <input
+        matInput
+        [ngModel]="confirmationInput()"
+        (ngModelChange)="confirmationInput.set($event)"
+        [placeholder]="data.requireConfirmation"
+        autocomplete="off" />
+      <mat-hint>Type "{{ data.requireConfirmation }}" to confirm</mat-hint>
+    </mat-form-field>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>{{ data.cancelText || 'Cancel' }}</button>
+  <button
+    mat-raised-button
+    [color]="data.confirmColor || 'primary'"
+    [disabled]="!canConfirm()"
+    (click)="confirm()">
+    {{ data.confirmText || 'Confirm' }}
+  </button>
+</mat-dialog-actions>

@@ -1,0 +1,44 @@
+// =============================================
+// Dialog/Modal Component Overrides
+// =============================================
+
+.mat-mdc-dialog-container {
+  --mdc-dialog-container-color: var(--bg-elevated);
+  --mdc-dialog-container-shape: var(--radius-lg);
+
+  .mat-mdc-dialog-surface {
+    border: var(--border-thin) solid var(--border-default);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+.mat-mdc-dialog-title {
+  font-family: var(--font-sans);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+
+.mat-mdc-dialog-content {
+  color: var(--text-secondary);
+}
+
+.mat-mdc-dialog-actions {
+  padding: var(--space-4) var(--space-6);
+  gap: var(--space-3);
+}
+
+// Snackbar
+.mat-mdc-snack-bar-container {
+  --mdc-snackbar-container-color: var(--bg-overlay);
+  --mdc-snackbar-supporting-text-color: var(--text-primary);
+  border-radius: var(--radius-lg) !important;
+  border: var(--border-thin) solid var(--border-default);
+}
+
+// Tooltip
+.mat-mdc-tooltip {
+  --mdc-plain-tooltip-container-color: var(--bg-overlay);
+  --mdc-plain-tooltip-supporting-text-color: var(--text-primary);
+  border-radius: var(--radius-sm) !important;
+}

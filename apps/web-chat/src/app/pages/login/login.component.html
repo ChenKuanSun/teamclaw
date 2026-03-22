@@ -1,0 +1,81 @@
+<div class="login-container">
+  <!-- Animated background orbs -->
+  <div class="gradient-orbs" aria-hidden="true">
+    <div class="orb orb-blue"></div>
+    <div class="orb orb-cyan"></div>
+    <div class="orb orb-navy"></div>
+  </div>
+
+  <!-- Main content -->
+  <div class="login-content">
+    <!-- Branding -->
+    <header class="branding">
+      <h1 class="brand-name">TeamClaw</h1>
+      <p class="tagline">Enterprise AI Collaboration</p>
+    </header>
+
+    <!-- Login card -->
+    <section class="login-card" aria-labelledby="login-title">
+      <div class="card-header">
+        <h2 id="login-title" class="welcome-title">
+          {{ 'Welcome Back' | translate }}
+        </h2>
+      </div>
+
+      <div class="card-body">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'Email' | translate }}</mat-label>
+          <input
+            matInput
+            type="email"
+            autocomplete="email"
+            [ngModel]="email()"
+            (ngModelChange)="email.set($event)" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'Password' | translate }}</mat-label>
+          <input
+            matInput
+            type="password"
+            autocomplete="current-password"
+            [ngModel]="password()"
+            (ngModelChange)="password.set($event)"
+            (keyup.enter)="submitLogin()" />
+        </mat-form-field>
+
+        @if (errorMessage()) {
+          <div class="error-message">
+            <p>{{ errorMessage() }}</p>
+          </div>
+        }
+
+        <button
+          mat-raised-button
+          color="primary"
+          class="submit-btn full-width"
+          (click)="submitLogin()"
+          [disabled]="authService.isLoading()">
+          @if (authService.isLoading()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            <span>{{ 'Sign In' | translate }}</span>
+          }
+        </button>
+      </div>
+
+      <footer class="card-footer">
+        <p class="footer-text">
+          <a routerLink="/forgot-password">{{ 'Forgot Password?' | translate }}</a>
+        </p>
+        <p class="footer-text">
+          {{ "Don't have an account?" | translate }}
+          <a routerLink="/signup">{{ 'Sign Up' | translate }}</a>
+        </p>
+        <p class="footer-text">
+          {{ 'Powered by OpenClaw' | translate }}
+        </p>
+      </footer>
+    </section>
+  </div>
+</div>

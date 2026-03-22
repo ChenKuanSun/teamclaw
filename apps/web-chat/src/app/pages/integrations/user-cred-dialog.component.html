@@ -1,0 +1,28 @@
+<h2 mat-dialog-title>
+  <mat-icon>vpn_key</mat-icon>
+  {{ 'Connect' | translate }} {{ data.integrationName }}
+</h2>
+<mat-dialog-content>
+  @for (field of data.schema; track field.key) {
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ field.label }}</mat-label>
+      <input
+        matInput
+        [type]="field.type === 'secret' ? 'password' : 'text'"
+        [placeholder]="field.placeholder || ''"
+        [required]="field.required"
+        [ngModel]="values()[field.key] || ''"
+        (ngModelChange)="setValue(field.key, $event)" />
+    </mat-form-field>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>{{ 'Cancel' | translate }}</button>
+  <button
+    mat-raised-button
+    color="primary"
+    [disabled]="!isValid()"
+    (click)="save()">
+    {{ 'Connect' | translate }}
+  </button>
+</mat-dialog-actions>

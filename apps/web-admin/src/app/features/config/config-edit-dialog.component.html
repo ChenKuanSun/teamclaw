@@ -1,0 +1,19 @@
+<h2 mat-dialog-title>Edit Config</h2>
+<mat-dialog-content>
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Key</mat-label>
+    <input matInput [value]="data.configKey" disabled />
+  </mat-form-field>
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Value</mat-label>
+    @if (data.isLargeText) {
+      <textarea matInput [(ngModel)]="value" rows="15" class="monospace"></textarea>
+    } @else {
+      <textarea matInput [(ngModel)]="value" rows="4"></textarea>
+    }
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-raised-button color="primary" (click)="save()">Save</button>
+</mat-dialog-actions>

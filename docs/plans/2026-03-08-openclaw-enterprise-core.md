@@ -563,12 +563,12 @@ git commit -m "feat: add openclaw cloud-config library (lambda/fargate props)"
 - Create: `libs/openclaw/backend-infra/src/stack/foundation.stack.ts`
 - Create: `libs/openclaw/backend-infra/project.json`
 - Create: `libs/openclaw/backend-infra/tsconfig.json`
-- Create: `apps/00-foundation/openclaw-foundation-infra/cdk/main.ts`
-- Create: `apps/00-foundation/openclaw-foundation-infra/cdk/app.ts`
-- Create: `apps/00-foundation/openclaw-foundation-infra/start-cdk.mjs`
-- Create: `apps/00-foundation/openclaw-foundation-infra/cdk.json`
-- Create: `apps/00-foundation/openclaw-foundation-infra/project.json`
-- Create: `apps/00-foundation/openclaw-foundation-infra/tsconfig.json`
+- Create: `apps/infra-foundation/openclaw-foundation-infra/cdk/main.ts`
+- Create: `apps/infra-foundation/openclaw-foundation-infra/cdk/app.ts`
+- Create: `apps/infra-foundation/openclaw-foundation-infra/start-cdk.mjs`
+- Create: `apps/infra-foundation/openclaw-foundation-infra/cdk.json`
+- Create: `apps/infra-foundation/openclaw-foundation-infra/project.json`
+- Create: `apps/infra-foundation/openclaw-foundation-infra/tsconfig.json`
 
 **Step 1: Create FoundationStack**
 
@@ -701,7 +701,7 @@ export * from './stack/foundation.stack';
 
 **Step 3: Create Foundation CDK app**
 
-`apps/00-foundation/openclaw-foundation-infra/cdk/app.ts`:
+`apps/infra-foundation/openclaw-foundation-infra/cdk/app.ts`:
 ```typescript
 import { FoundationStack } from '@OpenClaw/openclaw/backend-infra';
 import { OC_AWS_CLOUD, OC_STACK_PREFIX } from '@OpenClaw/core/cloud-config';
@@ -727,7 +727,7 @@ export const createApp = (): App => {
 };
 ```
 
-`apps/00-foundation/openclaw-foundation-infra/cdk/main.ts`:
+`apps/infra-foundation/openclaw-foundation-infra/cdk/main.ts`:
 ```typescript
 import { createApp } from './app';
 
@@ -735,7 +735,7 @@ const app = createApp();
 app.synth();
 ```
 
-`apps/00-foundation/openclaw-foundation-infra/start-cdk.mjs`:
+`apps/infra-foundation/openclaw-foundation-infra/start-cdk.mjs`:
 ```javascript
 import { spawn } from 'node:child_process';
 
@@ -747,7 +747,7 @@ spawn('node', ['--require', 'ts-node/register', 'cdk/main.ts'], {
 });
 ```
 
-`apps/00-foundation/openclaw-foundation-infra/cdk.json`:
+`apps/infra-foundation/openclaw-foundation-infra/cdk.json`:
 ```json
 {
   "app": "node ./start-cdk.mjs",
@@ -766,7 +766,7 @@ spawn('node', ['--require', 'ts-node/register', 'cdk/main.ts'], {
 }
 ```
 
-`apps/00-foundation/openclaw-foundation-infra/tsconfig.json`:
+`apps/infra-foundation/openclaw-foundation-infra/tsconfig.json`:
 ```json
 {
   "extends": "../../../tsconfig.base.json",
@@ -778,8 +778,8 @@ spawn('node', ['--require', 'ts-node/register', 'cdk/main.ts'], {
 }
 ```
 
-`apps/00-foundation/openclaw-foundation-infra/project.json`:
-Copy the exact same project.json target pattern from Affiora (deploy, diff, synth, list, destroy, bootstrap, drift) but with `cwd` set to `apps/00-foundation/openclaw-foundation-infra`.
+`apps/infra-foundation/openclaw-foundation-infra/project.json`:
+Copy the exact same project.json target pattern from Affiora (deploy, diff, synth, list, destroy, bootstrap, drift) but with `cwd` set to `apps/infra-foundation/openclaw-foundation-infra`.
 
 **Step 4: Verify CDK synth compiles**
 
@@ -789,7 +789,7 @@ Expected: CloudFormation template generated in `cdk.out/`
 **Step 5: Commit**
 
 ```bash
-git add libs/openclaw/backend-infra/ apps/00-foundation/
+git add libs/openclaw/backend-infra/ apps/infra-foundation/
 git commit -m "feat: add Foundation CDK stack (VPC, EFS, ECR, Secrets)"
 ```
 
@@ -800,12 +800,12 @@ git commit -m "feat: add Foundation CDK stack (VPC, EFS, ECR, Secrets)"
 **Files:**
 - Create: `libs/openclaw/backend-infra/src/stack/cluster.stack.ts`
 - Modify: `libs/openclaw/backend-infra/src/index.ts`
-- Create: `apps/10-cluster/openclaw-cluster-infra/cdk/app.ts`
-- Create: `apps/10-cluster/openclaw-cluster-infra/cdk/main.ts`
-- Create: `apps/10-cluster/openclaw-cluster-infra/start-cdk.mjs`
-- Create: `apps/10-cluster/openclaw-cluster-infra/cdk.json`
-- Create: `apps/10-cluster/openclaw-cluster-infra/project.json`
-- Create: `apps/10-cluster/openclaw-cluster-infra/tsconfig.json`
+- Create: `apps/infra-cluster/openclaw-cluster-infra/cdk/app.ts`
+- Create: `apps/infra-cluster/openclaw-cluster-infra/cdk/main.ts`
+- Create: `apps/infra-cluster/openclaw-cluster-infra/start-cdk.mjs`
+- Create: `apps/infra-cluster/openclaw-cluster-infra/cdk.json`
+- Create: `apps/infra-cluster/openclaw-cluster-infra/project.json`
+- Create: `apps/infra-cluster/openclaw-cluster-infra/tsconfig.json`
 
 **Step 1: Create ClusterStack**
 
@@ -904,7 +904,7 @@ export * from './stack/cluster.stack';
 
 **Step 3: Create CDK app files (same pattern as Task 4)**
 
-`apps/10-cluster/openclaw-cluster-infra/cdk/app.ts`:
+`apps/infra-cluster/openclaw-cluster-infra/cdk/app.ts`:
 ```typescript
 import { ClusterStack } from '@OpenClaw/openclaw/backend-infra';
 import { OC_AWS_CLOUD, OC_STACK_PREFIX } from '@OpenClaw/core/cloud-config';
@@ -930,12 +930,12 @@ export const createApp = (): App => {
 };
 ```
 
-Create `cdk/main.ts`, `start-cdk.mjs`, `cdk.json`, `project.json`, `tsconfig.json` — identical pattern to Task 4, with `cwd` updated to `apps/10-cluster/openclaw-cluster-infra`.
+Create `cdk/main.ts`, `start-cdk.mjs`, `cdk.json`, `project.json`, `tsconfig.json` — identical pattern to Task 4, with `cwd` updated to `apps/infra-cluster/openclaw-cluster-infra`.
 
 **Step 4: Commit**
 
 ```bash
-git add libs/openclaw/backend-infra/src/stack/cluster.stack.ts libs/openclaw/backend-infra/src/index.ts apps/10-cluster/
+git add libs/openclaw/backend-infra/src/stack/cluster.stack.ts libs/openclaw/backend-infra/src/index.ts apps/infra-cluster/
 git commit -m "feat: add Cluster CDK stack (ECS, ALB, Security Groups)"
 ```
 
@@ -948,12 +948,12 @@ git commit -m "feat: add Cluster CDK stack (ECS, ALB, Security Groups)"
 - Create: `libs/openclaw/backend-infra/src/lambda/key-pool-proxy/index.ts`
 - Create: `libs/openclaw/backend-infra/src/lambda/lifecycle/index.ts`
 - Modify: `libs/openclaw/backend-infra/src/index.ts`
-- Create: `apps/20-control-plane/openclaw-control-plane-infra/cdk/app.ts`
-- Create: `apps/20-control-plane/openclaw-control-plane-infra/cdk/main.ts`
-- Create: `apps/20-control-plane/openclaw-control-plane-infra/start-cdk.mjs`
-- Create: `apps/20-control-plane/openclaw-control-plane-infra/cdk.json`
-- Create: `apps/20-control-plane/openclaw-control-plane-infra/project.json`
-- Create: `apps/20-control-plane/openclaw-control-plane-infra/tsconfig.json`
+- Create: `apps/infra-control-plane/openclaw-control-plane-infra/cdk/app.ts`
+- Create: `apps/infra-control-plane/openclaw-control-plane-infra/cdk/main.ts`
+- Create: `apps/infra-control-plane/openclaw-control-plane-infra/start-cdk.mjs`
+- Create: `apps/infra-control-plane/openclaw-control-plane-infra/cdk.json`
+- Create: `apps/infra-control-plane/openclaw-control-plane-infra/project.json`
+- Create: `apps/infra-control-plane/openclaw-control-plane-infra/tsconfig.json`
 
 **Step 1: Create Cognito + Key Pool Proxy + Lifecycle Lambda stack**
 
@@ -1406,7 +1406,7 @@ export * from './stack/control-plane.stack';
 
 **Step 5: Create CDK app files (same pattern)**
 
-`apps/20-control-plane/openclaw-control-plane-infra/cdk/app.ts`:
+`apps/infra-control-plane/openclaw-control-plane-infra/cdk/app.ts`:
 ```typescript
 import { ControlPlaneStack } from '@OpenClaw/openclaw/backend-infra';
 import { OC_AWS_CLOUD, OC_STACK_PREFIX } from '@OpenClaw/core/cloud-config';
@@ -1437,7 +1437,7 @@ Create `cdk/main.ts`, `start-cdk.mjs`, `cdk.json`, `project.json`, `tsconfig.jso
 **Step 6: Commit**
 
 ```bash
-git add libs/openclaw/backend-infra/ apps/20-control-plane/
+git add libs/openclaw/backend-infra/ apps/infra-control-plane/
 git commit -m "feat: add Control Plane stack (Cognito, Key Pool Proxy, Lifecycle Lambda)"
 ```
 
@@ -1641,8 +1641,8 @@ Run: `yarn install`
 ```bash
 cd /Users/cksun/Project/openclaw-enterprise
 npx nx g @nx/angular:application \
-  --name=enterprise-chat \
-  --directory=apps/enterprise-chat \
+  --name=web-chat \
+  --directory=apps/web-chat \
   --style=scss \
   --routing=true \
   --standalone=true \
@@ -1651,7 +1651,7 @@ npx nx g @nx/angular:application \
 
 **Step 3: Create OpenClaw WebSocket service**
 
-Create `apps/enterprise-chat/src/app/services/openclaw-ws.service.ts`:
+Create `apps/web-chat/src/app/services/openclaw-ws.service.ts`:
 ```typescript
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
@@ -1683,7 +1683,7 @@ export class OpenClawWsService implements OnDestroy {
         payload: {
           minProtocol: 1,
           maxProtocol: 1,
-          client: { id: 'enterprise-chat', version: '1.0.0', platform: 'web' },
+          client: { id: 'web-chat', version: '1.0.0', platform: 'web' },
           role: 'user',
           scopes: ['chat'],
           auth: { token },
@@ -1782,7 +1782,7 @@ export class OpenClawWsService implements OnDestroy {
 
 **Step 4: Create Cognito auth service**
 
-Create `apps/enterprise-chat/src/app/services/auth.service.ts`:
+Create `apps/web-chat/src/app/services/auth.service.ts`:
 ```typescript
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
@@ -1848,7 +1848,7 @@ export class AuthService {
 
 **Step 5: Create chat page component**
 
-Create `apps/enterprise-chat/src/app/pages/chat/chat.component.ts`:
+Create `apps/web-chat/src/app/pages/chat/chat.component.ts`:
 ```typescript
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -1931,7 +1931,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
 **Step 6: Create login page component**
 
-Create `apps/enterprise-chat/src/app/pages/login/login.component.ts`:
+Create `apps/web-chat/src/app/pages/login/login.component.ts`:
 ```typescript
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -1998,7 +1998,7 @@ export class LoginComponent {
 
 **Step 7: Create environment files**
 
-Create `apps/enterprise-chat/src/environments/environment.ts`:
+Create `apps/web-chat/src/environments/environment.ts`:
 ```typescript
 export const environment = {
   production: false,
@@ -2010,7 +2010,7 @@ export const environment = {
 };
 ```
 
-Create `apps/enterprise-chat/src/environments/environment.prod.ts`:
+Create `apps/web-chat/src/environments/environment.prod.ts`:
 ```typescript
 export const environment = {
   production: true,
@@ -2024,7 +2024,7 @@ export const environment = {
 
 **Step 8: Set up routing**
 
-Create `apps/enterprise-chat/src/app/app.routes.ts`:
+Create `apps/web-chat/src/app/app.routes.ts`:
 ```typescript
 import { Routes } from '@angular/router';
 
@@ -2038,13 +2038,13 @@ export const appRoutes: Routes = [
 
 **Step 9: Verify build**
 
-Run: `npx nx build enterprise-chat`
+Run: `npx nx build web-chat`
 Expected: Build succeeds
 
 **Step 10: Commit**
 
 ```bash
-git add apps/enterprise-chat/ libs/enterprise/
+git add apps/web-chat/ libs/enterprise/
 git commit -m "feat: add Angular chat frontend with Nebular UI and Cognito auth"
 ```
 

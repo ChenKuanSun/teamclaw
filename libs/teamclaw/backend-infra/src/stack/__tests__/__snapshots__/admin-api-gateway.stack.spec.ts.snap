@@ -1,0 +1,148 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`AdminApiGatewayStack matches snapshot 1`] = `
+{
+  "Description": "TeamClaw Admin: HTTP API Gateway",
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "TestAdminApiGwAdminHttpApiDBF91494": {
+      "Properties": {
+        "CorsConfiguration": {
+          "AllowCredentials": false,
+          "AllowHeaders": [
+            "Content-Type",
+            "X-Amz-Date",
+            "Authorization",
+            "X-Api-Key",
+          ],
+          "AllowMethods": [
+            "OPTIONS",
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+          ],
+          "AllowOrigins": [
+            "https://main.d2vihiromwsqa2.amplifyapp.com",
+            "https://main.d1qn1f00108uy9.amplifyapp.com",
+            "http://localhost:4900",
+            "http://localhost:4200",
+          ],
+          "MaxAge": 3600,
+        },
+        "Name": "teamclaw-admin-api-dev",
+        "ProtocolType": "HTTP",
+      },
+      "Type": "AWS::ApiGatewayV2::Api",
+    },
+    "TestAdminApiGwAdminHttpApiDefaultStage73D7CA98": {
+      "Properties": {
+        "ApiId": {
+          "Ref": "TestAdminApiGwAdminHttpApiDBF91494",
+        },
+        "AutoDeploy": true,
+        "StageName": "$default",
+      },
+      "Type": "AWS::ApiGatewayV2::Stage",
+    },
+    "TestAdminApiGwAdminHttpApiEndpointA0E99A15": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/httpApiEndpoint",
+        "Type": "String",
+        "Value": {
+          "Fn::GetAtt": [
+            "TestAdminApiGwAdminHttpApiDBF91494",
+            "ApiEndpoint",
+          ],
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminApiGwAdminHttpApiIdBFE98D3C": {
+      "Properties": {
+        "Name": "/tc/dev/admin-api/httpApiId",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminApiGwAdminHttpApiDBF91494",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminApiGwApiGatewayAccount": {
+      "Properties": {
+        "CloudWatchRoleArn": {
+          "Fn::GetAtt": [
+            "TestAdminApiGwApiGatewayCloudWatchRole890DC75B",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::ApiGateway::Account",
+    },
+    "TestAdminApiGwApiGatewayCloudWatchRole890DC75B": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "apigateway.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;

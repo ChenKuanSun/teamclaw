@@ -1,0 +1,32 @@
+<div class="session-init-container">
+  @if (error()) {
+    <div class="state-card">
+      <div class="icon-wrap error-wrap">
+        <mat-icon class="state-icon">error_outline</mat-icon>
+      </div>
+      <h2>Access Denied</h2>
+      <p>{{ error() }}</p>
+      <button mat-raised-button color="primary" (click)="retry()">
+        <mat-icon>refresh</mat-icon>
+        Retry
+      </button>
+    </div>
+  } @else {
+    <div class="state-card">
+      <mat-progress-spinner mode="indeterminate" [diameter]="48" />
+      <h2>{{ statusMessage() }}</h2>
+      <p class="hint">This may take a moment while we prepare your workspace.</p>
+      <div class="progress-steps">
+        <span class="step" [class.active]="statusMessage().includes('Connecting')">Connecting</span>
+        <span class="step-arrow">
+          <mat-icon>chevron_right</mat-icon>
+        </span>
+        <span class="step" [class.active]="statusMessage().includes('Setting up') || statusMessage().includes('provisioning')">Setting up</span>
+        <span class="step-arrow">
+          <mat-icon>chevron_right</mat-icon>
+        </span>
+        <span class="step" [class.active]="statusMessage().includes('Starting')">Starting</span>
+      </div>
+    </div>
+  }
+</div>

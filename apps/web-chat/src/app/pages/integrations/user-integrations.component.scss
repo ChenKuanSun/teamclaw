@@ -1,0 +1,27 @@
+.integrations-page {
+  padding: 24px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+.spinner-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+.empty-state {
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+  padding: 24px;
+}
+.integration-row {
+  height: auto !important;
+  min-height: 64px;
+}
+.status-line {
+  font-size: 0.85rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}

@@ -1,0 +1,92 @@
+// =============================================
+// Chip/Badge Component Overrides
+// =============================================
+
+.mat-mdc-chip {
+  --mdc-chip-container-shape-radius: var(--radius-sm);
+  --mdc-chip-label-text-color: var(--text-primary);
+  --mdc-chip-elevated-container-color: var(--bg-elevated);
+  --mdc-chip-with-icon-icon-color: var(--text-secondary);
+
+  font-family: var(--font-mono);
+  font-size: var(--badge-font-size);
+  font-weight: var(--badge-font-weight);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+
+  &.mat-primary {
+    --mdc-chip-elevated-container-color: var(--accent-bg);
+    --mdc-chip-label-text-color: var(--accent);
+  }
+}
+
+// Custom TeamClaw badges (non-Material)
+.tc-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--badge-padding);
+  border-radius: var(--badge-radius);
+  font-family: var(--font-mono);
+  font-size: var(--badge-font-size);
+  font-weight: var(--badge-font-weight);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  // Variants
+  &--default {
+    background-color: var(--bg-elevated);
+    color: var(--text-secondary);
+  }
+
+  &--primary {
+    background-color: var(--accent-bg);
+    color: var(--accent);
+  }
+
+  &--success {
+    background-color: var(--semantic-success-bg);
+    color: var(--semantic-success);
+  }
+
+  &--warning {
+    background-color: var(--semantic-high-bg);
+    color: var(--semantic-high);
+  }
+
+  &--danger {
+    background-color: var(--semantic-critical-bg);
+    color: var(--semantic-critical);
+  }
+
+  &--info {
+    background-color: var(--semantic-info-bg);
+    color: var(--semantic-info);
+  }
+}
+
+// Status badges
+.status-badge {
+  @extend .tc-badge;
+
+  &--active {
+    background-color: var(--semantic-success-bg);
+    color: var(--semantic-success);
+  }
+
+  &--inactive {
+    background-color: var(--bg-elevated);
+    color: var(--text-muted);
+  }
+
+  &--pending {
+    background-color: var(--semantic-high-bg);
+    color: var(--semantic-high);
+  }
+
+  &--error {
+    background-color: var(--semantic-critical-bg);
+    color: var(--semantic-critical);
+  }
+}

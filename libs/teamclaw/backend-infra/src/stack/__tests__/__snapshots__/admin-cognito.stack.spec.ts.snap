@@ -1,0 +1,166 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`AdminCognitoStack matches snapshot 1`] = `
+{
+  "Description": "TeamClaw Admin: Cognito User Pool for Admin Panel",
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "TestAdminCognitoAdminManagedLoginBranding": {
+      "Properties": {
+        "ClientId": {
+          "Ref": "TestAdminCognitoAdminUserPoolTestAdminCognitoAdminClientB73D8019",
+        },
+        "UseCognitoProvidedValues": true,
+        "UserPoolId": {
+          "Ref": "TestAdminCognitoAdminUserPoolF28B737B",
+        },
+      },
+      "Type": "AWS::Cognito::ManagedLoginBranding",
+    },
+    "TestAdminCognitoAdminUserPoolClientId1783DF21": {
+      "Properties": {
+        "Name": "/tc/prod/admin-cognito/userPoolClientId",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminCognitoAdminUserPoolTestAdminCognitoAdminClientB73D8019",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminCognitoAdminUserPoolDomain41FD6220": {
+      "Properties": {
+        "Name": "/tc/prod/admin-cognito/userPoolDomain",
+        "Type": "String",
+        "Value": "teamclaw-admin",
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminCognitoAdminUserPoolF28B737B": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AccountRecoverySetting": {
+          "RecoveryMechanisms": [
+            {
+              "Name": "verified_email",
+              "Priority": 1,
+            },
+          ],
+        },
+        "AdminCreateUserConfig": {
+          "AllowAdminCreateUserOnly": true,
+        },
+        "AutoVerifiedAttributes": [
+          "email",
+        ],
+        "EmailVerificationMessage": "The verification code to your new account is {####}",
+        "EmailVerificationSubject": "Verify your new account",
+        "Policies": {
+          "PasswordPolicy": {
+            "MinimumLength": 12,
+            "RequireLowercase": true,
+            "RequireNumbers": true,
+            "RequireSymbols": true,
+            "RequireUppercase": true,
+          },
+        },
+        "SmsVerificationMessage": "The verification code to your new account is {####}",
+        "UsernameAttributes": [
+          "email",
+        ],
+        "VerificationMessageTemplate": {
+          "DefaultEmailOption": "CONFIRM_WITH_CODE",
+          "EmailMessage": "The verification code to your new account is {####}",
+          "EmailSubject": "Verify your new account",
+          "SmsMessage": "The verification code to your new account is {####}",
+        },
+      },
+      "Type": "AWS::Cognito::UserPool",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "TestAdminCognitoAdminUserPoolId885722B4": {
+      "Properties": {
+        "Name": "/tc/prod/admin-cognito/userPoolId",
+        "Type": "String",
+        "Value": {
+          "Ref": "TestAdminCognitoAdminUserPoolF28B737B",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "TestAdminCognitoAdminUserPoolTestAdminCognitoAdminClientB73D8019": {
+      "Properties": {
+        "AllowedOAuthFlows": [
+          "code",
+        ],
+        "AllowedOAuthFlowsUserPoolClient": true,
+        "AllowedOAuthScopes": [
+          "openid",
+          "email",
+          "profile",
+        ],
+        "CallbackURLs": [
+          "https://main.d2vihiromwsqa2.amplifyapp.com/auth/callback",
+        ],
+        "ExplicitAuthFlows": [
+          "ALLOW_USER_SRP_AUTH",
+          "ALLOW_REFRESH_TOKEN_AUTH",
+        ],
+        "GenerateSecret": false,
+        "LogoutURLs": [
+          "https://main.d2vihiromwsqa2.amplifyapp.com/auth/login",
+        ],
+        "SupportedIdentityProviders": [
+          "COGNITO",
+        ],
+        "UserPoolId": {
+          "Ref": "TestAdminCognitoAdminUserPoolF28B737B",
+        },
+      },
+      "Type": "AWS::Cognito::UserPoolClient",
+    },
+    "TestAdminCognitoAdminUserPooldefault2C179FB1": {
+      "Properties": {
+        "Domain": "teamclaw-admin",
+        "ManagedLoginVersion": 2,
+        "UserPoolId": {
+          "Ref": "TestAdminCognitoAdminUserPoolF28B737B",
+        },
+      },
+      "Type": "AWS::Cognito::UserPoolDomain",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;

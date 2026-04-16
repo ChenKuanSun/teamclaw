@@ -20,6 +20,12 @@ import {
 import { Construct } from 'constructs';
 
 export class ClusterStack extends Stack {
+  // Security baseline:
+  // - Fargate runtime (managed kernel, default seccomp/capability drops)
+  // - initProcessEnabled: true (proper signal handling, zombie reaping)
+  // - Sidecar: readonlyRootFilesystem (stateless proxy — no write surface)
+  // - EFS: IAM auth + transit encryption
+  // - ALB: internet-facing, but origin-only via CloudFront (no direct)
   constructor(scope: Construct, id: string, props: StackPropsWithEnv) {
     super(scope, id, {
       ...props,
@@ -264,6 +270,10 @@ export class ClusterStack extends Stack {
       },
     });
 
+    // Writable ephemeral /tmp for sidecar (readonlyRootFilesystem blocks root writes,
+    // but Node/AWS SDK may use os.tmpdir() under some conditions — belt-and-suspenders).
+    taskDefinition.addVolume({ name: 'sidecar-tmp' });
+
     // Main container
     const mainContainer = taskDefinition.addContainer('teamclaw', {
       containerName: 'teamclaw',
@@ -279,6 +289,13 @@ export class ClusterStack extends Stack {
         streamPrefix: 'teamclaw',
         logGroup: mainLogGroup,
       }),
+      linuxParameters: new aws_ecs.LinuxParameters(
+        this,
+        'MainContainerLinuxParams',
+        {
+          initProcessEnabled: true,
+        },
+      ),
       healthCheck: {
         command: [
           'CMD-SHELL',
@@ -306,6 +323,14 @@ export class ClusterStack extends Stack {
         streamPrefix: 'sidecar',
         logGroup: sidecarLogGroup,
       }),
+      linuxParameters: new aws_ecs.LinuxParameters(
+        this,
+        'SidecarContainerLinuxParams',
+        {
+          initProcessEnabled: true,
+        },
+      ),
+      readonlyRootFilesystem: true,
       healthCheck: {
         command: [
           'CMD-SHELL',
@@ -316,6 +341,11 @@ export class ClusterStack extends Stack {
         retries: 3,
         startPeriod: Duration.seconds(30),
       },
+    });
+    sidecarContainer.addMountPoints({
+      containerPath: '/tmp',
+      sourceVolume: 'sidecar-tmp',
+      readOnly: false,
     });
 
     // Sidecar must be healthy before main container starts

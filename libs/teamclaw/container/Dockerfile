@@ -1,7 +1,7 @@
 FROM node:22-bookworm AS build
 
 # Install upstream OpenClaw (pinned version) — NOT our TeamClaw wrapper
-ARG OPENCLAW_VERSION=2026.3.13
+ARG OPENCLAW_VERSION=2026.4.14
 RUN npm install -g openclaw@${OPENCLAW_VERSION}
 
 # Runtime stage

@@ -1,8 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 
-const userId = process.env.USER_ID || 'default';
-const teamId = process.env.TEAM_ID || '';
 const SIDECAR_URL = 'http://localhost:3000';
 
 // ALL providers routed through sidecar proxy (centralized key pool + usage tracking)
@@ -11,21 +9,35 @@ const PROXY_PROVIDERS = [
   'openrouter', 'mistral', 'together', 'groq', 'xai', 'deepseek', 'fireworks',
 ];
 
-// Providers that use OAuth tokens (setup tokens) need a fake key containing
-// 'sk-ant-oat' so OpenClaw's isOAuthToken() detection triggers the correct
-// code path (Claude Code identity headers, system prompt prefix, etc.).
-// The sidecar strips this fake key and injects real credentials.
-const OAUTH_PROVIDERS = new Set(['anthropic', 'anthropic-token']);
+// Only 'anthropic-token' is OAuth/setup-token mode (Claude Code identity headers).
+// 'anthropic' uses apiKey (x-api-key) — must NOT carry sk-ant-oat prefix, or upstream
+// silently falls back from 1M context to standard context window.
+const OAUTH_PROVIDERS = new Set(['anthropic-token']);
 const FAKE_OAUTH_KEY = 'sk-ant-oat-proxy-managed-by-teamclaw-sidecar-00000000000000000000000000000000';
 const FAKE_API_KEY = 'proxy-managed';
 
-const providers = {};
-for (const id of PROXY_PROVIDERS) {
-  providers[id] = {
-    baseUrl: `${SIDECAR_URL}/${id}`,
-    apiKey: OAUTH_PROVIDERS.has(id) ? FAKE_OAUTH_KEY : FAKE_API_KEY,
-    models: [],
-  };
+const BOOTSTRAP_FILES = [
+  'AGENTS.md',
+  'SOUL.md',
+  'TOOLS.md',
+  'BOOTSTRAP.md',
+  'IDENTITY.md',
+  'USER.md',
+];
+
+function buildProviders() {
+  const providers = {};
+  for (const id of PROXY_PROVIDERS) {
+    providers[id] = {
+      baseUrl: `${SIDECAR_URL}/${id}`,
+      apiKey: OAUTH_PROVIDERS.has(id) ? FAKE_OAUTH_KEY : FAKE_API_KEY,
+      models: [],
+      request: {
+        allowPrivateNetwork: true,
+      },
+    };
+  }
+  return providers;
 }
 
 // Load and merge configs: Global → Team → User (each level can only be more restrictive)
@@ -50,95 +62,93 @@ function deepMerge(target, source) {
   return target;
 }
 
-const globalConfig = loadJson('/efs/system/global-config.json');
-const teamConfig = teamId ? loadJson(`/efs/teams/${teamId}/team-config.json`) : {};
-const userConfig = loadJson(`/efs/users/${userId}/user-config.json`);
-
-const allowedOrigins = process.env.ALLOWED_ORIGINS;
-if (!allowedOrigins) {
-  console.warn('[generate-config] ALLOWED_ORIGINS not set — using empty allowlist');
-}
-
-// Base OpenClaw gateway config (upstream reads this)
-const baseConfig = {
-  gateway: {
-    port: 18789,
-    trustedProxies: ['0.0.0.0/0'],
-    auth: {
-      mode: 'trusted-proxy',
-      trustedProxy: {
-        userHeader: 'x-forwarded-for',
+function buildBaseConfig({ providers, allowedOrigins, allowHostHeaderFallback, teamId, userId }) {
+  return {
+    gateway: {
+      port: 18789,
+      trustedProxies: ['0.0.0.0/0'],
+      auth: {
+        mode: 'trusted-proxy',
+        trustedProxy: {
+          userHeader: 'x-forwarded-for',
+        },
+      },
+      controlUi: {
+        dangerouslyAllowHostHeaderOriginFallback: allowHostHeaderFallback === true,
+        allowedOrigins: allowedOrigins ? allowedOrigins.split(',') : [],
+      },
+      http: {
+        securityHeaders: {
+          strictTransportSecurity: 'max-age=31536000; includeSubDomains',
+        },
       },
     },
-    controlUi: {
-      dangerouslyAllowHostHeaderOriginFallback: process.env.OPENCLAW_ALLOW_HOST_HEADER_FALLBACK === 'true',
-      allowedOrigins: allowedOrigins ? allowedOrigins.split(',') : [],
+    models: {
+      providers,
     },
-  },
-  models: {
-    providers,
-  },
-  agents: {
-    defaults: {
-      model: 'anthropic/claude-sonnet-4-6',
+    agents: {
+      defaults: {
+        model: 'anthropic/claude-sonnet-4-6',
+      },
     },
-  },
-  session: {
-    dmScope: 'per-channel-peer',
-  },
-  skills: {
-    load: {
-      extraDirs: [
-        '/efs/system/approved-skills',
-        ...(teamId ? [`/efs/teams/${teamId}/team-skills`] : []),
-        `/efs/users/${userId}/user-skills`,
-      ],
+    session: {
+      dmScope: 'per-channel-peer',
     },
-  },
-};
-
-// Merge: base → global → team → user
-const merged = deepMerge(deepMerge(deepMerge(baseConfig, globalConfig), teamConfig), userConfig);
-
-// Write final config to OpenClaw's expected location
-const configDir = path.join(process.env.HOME || '/home/node', '.openclaw');
-fs.mkdirSync(configDir, { recursive: true });
-fs.writeFileSync(path.join(configDir, 'openclaw.json'), JSON.stringify(merged, null, 2));
-
-// Copy SOUL.md files if they exist
-const soulSources = [
-  `/efs/system/SOUL.md`,
-  teamId ? `/efs/teams/${teamId}/SOUL.md` : null,
-  `/efs/users/${userId}/SOUL.md`,
-].filter(Boolean);
-
-let soulContent = '';
-for (const src of soulSources) {
-  try {
-    soulContent += fs.readFileSync(src, 'utf-8') + '\n\n';
-  } catch { /* file doesn't exist, skip */ }
+    skills: {
+      load: {
+        extraDirs: [
+          '/efs/system/approved-skills',
+          ...(teamId ? [`/efs/teams/${teamId}/team-skills`] : []),
+          `/efs/users/${userId}/user-skills`,
+        ],
+      },
+    },
+  };
 }
 
-if (soulContent.trim()) {
-  fs.writeFileSync('/workspace/SOUL.md', soulContent);
-}
+function layerBootstrapFile(fileName, { efsRoot, teamId, userId }) {
+  const sources = [
+    `${efsRoot}/system/${fileName}`,
+    teamId ? `${efsRoot}/teams/${teamId}/${fileName}` : null,
+    `${efsRoot}/users/${userId}/${fileName}`,
+  ].filter(Boolean);
 
-// Copy MEMORY.md if exists
-try {
-  const memoryPath = `/efs/users/${userId}/MEMORY.md`;
-  if (fs.existsSync(memoryPath)) {
-    fs.copyFileSync(memoryPath, '/workspace/MEMORY.md');
+  let content = '';
+  for (const src of sources) {
+    try {
+      content += fs.readFileSync(src, 'utf-8') + '\n\n';
+    } catch { /* missing file, skip */ }
   }
-} catch { /* skip */ }
 
-// Decode integration secret ARNs from env var and fetch actual credentials
-// from Secrets Manager at runtime using the task role.
-async function loadIntegrationCredentials() {
-  const integrationSecretArnsB64 = process.env.INTEGRATION_SECRET_ARNS;
+  return content.trim() ? content : null;
+}
+
+// Decode integration secret ARNs and fetch actual credentials from Secrets Manager
+// at runtime using the task role.
+async function loadIntegrationCredentials(integrationSecretArnsB64, smClient) {
   if (!integrationSecretArnsB64) return;
 
-  const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
-  const smClient = new SecretsManagerClient({});
+  // Lazy-resolve SDK client so unit tests can pass a mock without pulling the SDK.
+  let client = smClient;
+  let GetSecretValueCommand;
+  try {
+    // eslint-disable-next-line global-require
+    const sdk = require('@aws-sdk/client-secrets-manager');
+    GetSecretValueCommand = sdk.GetSecretValueCommand;
+    if (!client) {
+      client = new sdk.SecretsManagerClient({});
+    }
+  } catch (err) {
+    // If SDK is unavailable and caller didn't inject a client, surface a clear warning.
+    if (!client) {
+      console.warn('[generate-config] @aws-sdk/client-secrets-manager unavailable:', err.message);
+      return;
+    }
+    // If a mock client was injected, fall back to a plain command wrapper.
+    GetSecretValueCommand = class {
+      constructor(input) { this.input = input; }
+    };
+  }
 
   try {
     // Format: { integrationId: { secretArn: "arn1,arn2,...", envVarPrefix: "PREFIX" } }
@@ -153,7 +163,7 @@ async function loadIntegrationCredentials() {
       let fetched = false;
       for (const arn of candidateArns) {
         try {
-          const secret = await smClient.send(new GetSecretValueCommand({ SecretId: arn.trim() }));
+          const secret = await client.send(new GetSecretValueCommand({ SecretId: arn.trim() }));
           if (secret.SecretString) {
             const fields = JSON.parse(secret.SecretString);
             for (const [key, value] of Object.entries(fields)) {
@@ -187,11 +197,80 @@ async function loadIntegrationCredentials() {
   }
 }
 
-(async () => {
+async function main() {
+  const userId = process.env.USER_ID || 'default';
+  const teamId = process.env.TEAM_ID || '';
+
+  const providers = buildProviders();
+
+  const globalConfig = loadJson('/efs/system/global-config.json');
+  const teamConfig = teamId ? loadJson(`/efs/teams/${teamId}/team-config.json`) : {};
+  const userConfig = loadJson(`/efs/users/${userId}/user-config.json`);
+
+  const allowedOrigins = process.env.ALLOWED_ORIGINS;
+  if (!allowedOrigins) {
+    console.warn('[generate-config] ALLOWED_ORIGINS not set — using empty allowlist');
+  }
+
+  const baseConfig = buildBaseConfig({
+    providers,
+    allowedOrigins,
+    allowHostHeaderFallback: process.env.OPENCLAW_ALLOW_HOST_HEADER_FALLBACK === 'true',
+    teamId,
+    userId,
+  });
+
+  // Merge: base → global → team → user
+  const merged = deepMerge(deepMerge(deepMerge(baseConfig, globalConfig), teamConfig), userConfig);
+
+  // Write final config to OpenClaw's expected location
+  const configDir = path.join(process.env.HOME || '/home/node', '.openclaw');
+  fs.mkdirSync(configDir, { recursive: true });
+  fs.writeFileSync(path.join(configDir, 'openclaw.json'), JSON.stringify(merged, null, 2));
+
+  // Layer bootstrap files: system → team → user (concatenated per file)
+  for (const fileName of BOOTSTRAP_FILES) {
+    const content = layerBootstrapFile(fileName, { efsRoot: '/efs', teamId, userId });
+    if (content) {
+      fs.writeFileSync(`/workspace/${fileName}`, content);
+    }
+  }
+
+  // Copy MEMORY.md if exists
   try {
-    await loadIntegrationCredentials();
+    const memoryPath = `/efs/users/${userId}/MEMORY.md`;
+    if (fs.existsSync(memoryPath)) {
+      fs.copyFileSync(memoryPath, '/workspace/MEMORY.md');
+    }
+  } catch { /* skip */ }
+
+  try {
+    await loadIntegrationCredentials(process.env.INTEGRATION_SECRET_ARNS);
     console.log(`[generate-config] Config generated for user=${userId} team=${teamId}`);
   } catch (err) {
     console.error('[generate-config] Failed to load integration credentials:', err.message);
   }
-})();
+}
+
+if (require.main === module) {
+  main().catch(err => {
+    console.error(err);
+    process.exit(1);
+  });
+}
+
+module.exports = {
+  PROXY_PROVIDERS,
+  OAUTH_PROVIDERS,
+  BOOTSTRAP_FILES,
+  FAKE_OAUTH_KEY,
+  FAKE_API_KEY,
+  SIDECAR_URL,
+  buildProviders,
+  buildBaseConfig,
+  layerBootstrapFile,
+  loadJson,
+  deepMerge,
+  loadIntegrationCredentials,
+  main,
+};

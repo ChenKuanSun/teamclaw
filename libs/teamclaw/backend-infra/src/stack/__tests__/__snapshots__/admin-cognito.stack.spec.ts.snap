@@ -105,7 +105,7 @@ exports[`AdminCognitoStack matches snapshot 1`] = `
           "profile",
         ],
         "CallbackURLs": [
-          "https://main.d2vihiromwsqa2.amplifyapp.com/auth/callback",
+          "https://YOUR_ADMIN_AMPLIFY_DOMAIN/auth/callback",
         ],
         "ExplicitAuthFlows": [
           "ALLOW_USER_SRP_AUTH",
@@ -113,7 +113,7 @@ exports[`AdminCognitoStack matches snapshot 1`] = `
         ],
         "GenerateSecret": false,
         "LogoutURLs": [
-          "https://main.d2vihiromwsqa2.amplifyapp.com/auth/login",
+          "https://YOUR_ADMIN_AMPLIFY_DOMAIN/auth/login",
         ],
         "SupportedIdentityProviders": [
           "COGNITO",

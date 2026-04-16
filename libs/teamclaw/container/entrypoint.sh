@@ -5,28 +5,25 @@ set -e
 # Strip all provider API keys — sidecar proxy handles all provider auth
 unset ANTHROPIC_API_KEY ANTHROPIC_OAUTH_TOKEN OPENAI_API_KEY GOOGLE_API_KEY GEMINI_API_KEY
 
-export OPENCLAW_TUNNEL=false
+# Point upstream at EFS for all state (sessions, audit, transcripts under this root)
+# Upstream env var reference: src/config/paths.ts
+export OPENCLAW_STATE_DIR="/efs/users/${USER_ID}/openclaw-state"
+if ! mkdir -p "$OPENCLAW_STATE_DIR"; then
+  echo "[entrypoint] FATAL: cannot create $OPENCLAW_STATE_DIR — EFS mount failed?" >&2
+  exit 1
+fi
+if ! (touch "$OPENCLAW_STATE_DIR/.write-probe" && rm -f "$OPENCLAW_STATE_DIR/.write-probe"); then
+  echo "[entrypoint] FATAL: $OPENCLAW_STATE_DIR not writable — check EFS IAM / access point" >&2
+  exit 1
+fi
 
-# Audit log to persistent EFS
-export OPENCLAW_AUDIT_DIR="/efs/users/${USER_ID}/audit"
-export OPENCLAW_TRANSCRIPT_DIR="/efs/users/${USER_ID}/transcripts"
-mkdir -p "$OPENCLAW_AUDIT_DIR" "$OPENCLAW_TRANSCRIPT_DIR" 2>/dev/null || true
-
-# User skills directory (users can create custom SKILL.md files here)
-mkdir -p "/efs/users/${USER_ID}/user-skills" 2>/dev/null || true
+# User skills directory (users can create custom SKILL.md files here).
+# EFS is already verified above; a soft failure here only disables user-authored skills.
+mkdir -p "/efs/users/${USER_ID}/user-skills" || \
+  echo "[entrypoint] WARN: user-skills dir not created — custom skills disabled" >&2
 
 # ─── Generate merged config (Global → Team → User) ───
 node /scripts/generate-config.js
-
-# Persist sessions on EFS if mounted (survives container restarts)
-EFS_SESSION_DIR="/efs/users/${USER_ID}/sessions"
-if mkdir -p "$EFS_SESSION_DIR" 2>/dev/null; then
-  OPENCLAW_STATE_DIR="${HOME}/.openclaw/agents/main/sessions"
-  mkdir -p "$(dirname "$OPENCLAW_STATE_DIR")"
-  rm -rf "$OPENCLAW_STATE_DIR"
-  ln -sf "$EFS_SESSION_DIR" "$OPENCLAW_STATE_DIR"
-  echo "[entrypoint] Sessions persisted to EFS"
-fi
 
 # ─── Start OpenClaw Gateway (upstream binary) ───
 # All model API calls are routed through sidecar proxy (http://localhost:3000).

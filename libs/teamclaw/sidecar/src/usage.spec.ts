@@ -118,4 +118,41 @@ describe('logUsage', () => {
     // Overwhelmingly likely to differ
     expect(ts1).not.toBe(ts2);
   });
+
+  it('omits downgradeReason attribute when no meta is passed (backwards compat)', async () => {
+    mockSend.mockResolvedValue({});
+
+    const { logUsage } = freshImport();
+    await logUsage('anthropic', 'claude-sonnet-4-20250514');
+
+    const item = mockSend.mock.calls[0][0].input.Item;
+    expect(item.downgradeReason).toBeUndefined();
+  });
+
+  it('omits downgradeReason attribute when meta is an empty object', async () => {
+    mockSend.mockResolvedValue({});
+
+    const { logUsage } = freshImport();
+    await logUsage('anthropic', 'claude-sonnet-4-20250514', {});
+
+    expect(mockSend).toHaveBeenCalledTimes(1);
+    const item = mockSend.mock.calls[0][0].input.Item;
+    expect(item.downgradeReason).toBeUndefined();
+  });
+
+  it('records downgradeReason in the DDB item when meta.downgradeReason is set', async () => {
+    mockSend.mockResolvedValue({});
+
+    const { logUsage } = freshImport();
+    await logUsage('anthropic', 'claude-sonnet-4-20250514', {
+      downgradeReason: 'oauth-no-1m',
+    });
+
+    expect(mockSend).toHaveBeenCalledTimes(1);
+    const item = mockSend.mock.calls[0][0].input.Item;
+    expect(item.downgradeReason).toEqual({ S: 'oauth-no-1m' });
+    // Existing attributes still present
+    expect(item.provider.S).toBe('anthropic');
+    expect(item.model.S).toBe('claude-sonnet-4-20250514');
+  });
 });

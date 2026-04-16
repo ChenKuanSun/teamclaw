@@ -16,7 +16,7 @@ describe('AdminAmplifyStack', () => {
 
   test('creates Amplify App with GitHub source', () => {
     template.hasResourceProperties('AWS::Amplify::App', {
-      Repository: 'https://github.com/ChannelDAO/teamclaw',
+      Repository: 'https://github.com/ChenKuanSun/teamclaw',
       OauthToken: Match.anyValue(),
     });
   });

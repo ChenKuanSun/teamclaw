@@ -374,6 +374,53 @@ describe('ClusterStack', () => {
     });
   });
 
+  // ─── Security Hardening ───
+
+  test('teamclaw container has initProcessEnabled', () => {
+    template.hasResourceProperties('AWS::ECS::TaskDefinition', {
+      ContainerDefinitions: Match.arrayWith([
+        Match.objectLike({
+          Name: 'teamclaw',
+          LinuxParameters: Match.objectLike({
+            InitProcessEnabled: true,
+          }),
+        }),
+      ]),
+    });
+  });
+
+  test('proxy-sidecar container has initProcessEnabled', () => {
+    template.hasResourceProperties('AWS::ECS::TaskDefinition', {
+      ContainerDefinitions: Match.arrayWith([
+        Match.objectLike({
+          Name: 'proxy-sidecar',
+          LinuxParameters: Match.objectLike({
+            InitProcessEnabled: true,
+          }),
+        }),
+      ]),
+    });
+  });
+
+  test('proxy-sidecar container has readonlyRootFilesystem', () => {
+    template.hasResourceProperties('AWS::ECS::TaskDefinition', {
+      ContainerDefinitions: Match.arrayWith([
+        Match.objectLike({
+          Name: 'proxy-sidecar',
+          ReadonlyRootFilesystem: true,
+        }),
+      ]),
+    });
+  });
+
+  test('teamclaw container does not have readonlyRootFilesystem', () => {
+    const taskDefs = template.findResources('AWS::ECS::TaskDefinition');
+    const taskDef = Object.values(taskDefs)[0] as any;
+    const containers = taskDef.Properties.ContainerDefinitions;
+    const main = containers.find((c: any) => c.Name === 'teamclaw');
+    expect(main.ReadonlyRootFilesystem).toBeUndefined();
+  });
+
   // ─── Snapshot ───
 
   test('matches snapshot', () => {

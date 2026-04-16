@@ -435,12 +435,12 @@ exports[`ClusterStack matches snapshot 1`] = `
             {
               "Action": "secretsmanager:GetSecretValue",
               "Effect": "Allow",
-              "Resource": "arn:aws:secretsmanager:us-west-1:023371593417:secret:dev/teamclaw/*",
+              "Resource": "arn:aws:secretsmanager:us-west-1:123456789012:secret:dev/teamclaw/*",
             },
             {
               "Action": "dynamodb:PutItem",
               "Effect": "Allow",
-              "Resource": "arn:aws:dynamodb:us-west-1:023371593417:table/teamclaw-usage-dev",
+              "Resource": "arn:aws:dynamodb:us-west-1:123456789012:table/teamclaw-usage-dev",
             },
             {
               "Action": [
@@ -449,7 +449,7 @@ exports[`ClusterStack matches snapshot 1`] = `
                 "elasticfilesystem:ClientRootAccess",
               ],
               "Effect": "Allow",
-              "Resource": "arn:aws:elasticfilesystem:us-west-1:023371593417:file-system/*",
+              "Resource": "arn:aws:elasticfilesystem:us-west-1:123456789012:file-system/*",
             },
           ],
           "Version": "2012-10-17",
@@ -504,6 +504,10 @@ exports[`ClusterStack matches snapshot 1`] = `
                 ],
               ],
             },
+            "LinuxParameters": {
+              "Capabilities": {},
+              "InitProcessEnabled": true,
+            },
             "LogConfiguration": {
               "LogDriver": "awslogs",
               "Options": {
@@ -552,6 +556,10 @@ exports[`ClusterStack matches snapshot 1`] = `
                 ],
               ],
             },
+            "LinuxParameters": {
+              "Capabilities": {},
+              "InitProcessEnabled": true,
+            },
             "LogConfiguration": {
               "LogDriver": "awslogs",
               "Options": {
@@ -562,6 +570,13 @@ exports[`ClusterStack matches snapshot 1`] = `
                 "awslogs-stream-prefix": "sidecar",
               },
             },
+            "MountPoints": [
+              {
+                "ContainerPath": "/tmp",
+                "ReadOnly": false,
+                "SourceVolume": "sidecar-tmp",
+              },
+            ],
             "Name": "proxy-sidecar",
             "PortMappings": [
               {
@@ -569,6 +584,7 @@ exports[`ClusterStack matches snapshot 1`] = `
                 "Protocol": "tcp",
               },
             ],
+            "ReadonlyRootFilesystem": true,
           },
         ],
         "Cpu": "1024",
@@ -602,6 +618,9 @@ exports[`ClusterStack matches snapshot 1`] = `
               "TransitEncryption": "ENABLED",
             },
             "Name": "efs-user-data",
+          },
+          {
+            "Name": "sidecar-tmp",
           },
         ],
       },

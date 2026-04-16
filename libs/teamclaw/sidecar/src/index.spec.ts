@@ -81,7 +81,18 @@ function buildServerHandler() {
         const providerId = match[1];
         const remainingPath = match[2] || '/';
 
-        const auth = await resolveAuth(providerId, remainingPath);
+        const incomingHeaderSubset: Record<string, string> = {};
+        const incomingBetaRaw = req.headers['anthropic-beta'];
+        const incomingBeta = Array.isArray(incomingBetaRaw)
+          ? incomingBetaRaw[0]
+          : incomingBetaRaw;
+        if (incomingBeta) incomingHeaderSubset['anthropic-beta'] = incomingBeta;
+
+        const auth = await resolveAuth(
+          providerId,
+          remainingPath,
+          incomingHeaderSubset,
+        );
         if (!auth) {
           res.writeHead(404, { 'content-type': 'application/json' });
           res.end(
@@ -90,6 +101,17 @@ function buildServerHandler() {
             }),
           );
           return;
+        }
+
+        const requestBetaIncludes1m =
+          !!incomingBeta && incomingBeta.includes('context-1m-2025-08-07');
+        let downgradeReason: 'oauth-no-1m' | undefined;
+        if (auth.authType === 'oauthToken' && requestBetaIncludes1m) {
+          downgradeReason = 'oauth-no-1m';
+          console.warn(
+            `[sidecar] 1M context requested with OAuth token for ${providerId} — upstream will downgrade to standard window`,
+          );
+          res.setHeader('x-teamclaw-downgrade', 'oauth-no-1m');
         }
 
         const { URL } = require('url');
@@ -147,7 +169,11 @@ function buildServerHandler() {
           } catch {
             /* not JSON or no model field */
           }
-          logUsage(providerId, model);
+          logUsage(
+            providerId,
+            model,
+            downgradeReason ? { downgradeReason } : undefined,
+          );
         });
         req.on('error', () => proxyReq.destroy());
       }),
@@ -244,6 +270,7 @@ describe('successful proxy', () => {
         'x-api-key': 'sk-real-key',
         'anthropic-version': '2023-06-01',
       },
+      authType: 'apiKey',
     });
 
     // Create a fake upstream response
@@ -285,7 +312,11 @@ describe('successful proxy', () => {
     expect(res.statusCode).toBe(200);
 
     // Verify resolveAuth was called with correct provider and path
-    expect(mockResolveAuth).toHaveBeenCalledWith('anthropic', '/v1/messages');
+    expect(mockResolveAuth).toHaveBeenCalledWith(
+      'anthropic',
+      '/v1/messages',
+      expect.any(Object),
+    );
 
     // Verify https.request was called with the injected headers
     const reqOpts = mockHttpsRequest.mock.calls[0][0] as https.RequestOptions;
@@ -302,6 +333,7 @@ describe('successful proxy', () => {
     mockResolveAuth.mockResolvedValue({
       targetUrl: 'https://api.openai.com/v1/chat/completions',
       headers: { authorization: 'Bearer sk-real' },
+      authType: 'apiKey',
     });
 
     const fakeUpstreamRes = new PassThrough();
@@ -326,13 +358,14 @@ describe('successful proxy', () => {
     // Give the 'end' handler time to fire
     await new Promise(r => setTimeout(r, 50));
 
-    expect(mockLogUsage).toHaveBeenCalledWith('openai', 'gpt-4o');
+    expect(mockLogUsage).toHaveBeenCalledWith('openai', 'gpt-4o', undefined);
   });
 
   it('logs model as "unknown" when request body is not JSON', async () => {
     mockResolveAuth.mockResolvedValue({
       targetUrl: 'https://api.openai.com/v1/chat/completions',
       headers: { authorization: 'Bearer sk-real' },
+      authType: 'apiKey',
     });
 
     const fakeUpstreamRes = new PassThrough();
@@ -355,7 +388,7 @@ describe('successful proxy', () => {
 
     await new Promise(r => setTimeout(r, 50));
 
-    expect(mockLogUsage).toHaveBeenCalledWith('openai', 'unknown');
+    expect(mockLogUsage).toHaveBeenCalledWith('openai', 'unknown', undefined);
   });
 });
 
@@ -367,6 +400,7 @@ describe('upstream error', () => {
     mockResolveAuth.mockResolvedValue({
       targetUrl: 'https://api.anthropic.com/v1/messages',
       headers: { 'x-api-key': 'sk-real' },
+      authType: 'apiKey',
     });
 
     const fakeProxyReq = new PassThrough();
@@ -395,6 +429,7 @@ describe('header stripping', () => {
     mockResolveAuth.mockResolvedValue({
       targetUrl: 'https://api.anthropic.com/v1/messages',
       headers: { 'x-api-key': 'sk-real' },
+      authType: 'apiKey',
     });
 
     const fakeUpstreamRes = new PassThrough();
@@ -419,5 +454,123 @@ describe('header stripping', () => {
 
     const reqOpts = mockHttpsRequest.mock.calls[0][0] as https.RequestOptions;
     expect((reqOpts.headers as any)['accept-encoding']).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// OAuth + 1M context downgrade warning
+// ---------------------------------------------------------------------------
+describe('OAuth + 1M context safety', () => {
+  it('logs a warning, sets downgrade header, and records downgradeReason when OAuth token + 1M context requested', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+    mockResolveAuth.mockResolvedValue({
+      targetUrl: 'https://api.anthropic.com/v1/messages',
+      headers: {
+        authorization: 'Bearer sk-ant-oat-abc',
+        'anthropic-version': '2023-06-01',
+        'anthropic-beta': 'oauth-2025-04-20',
+      },
+      authType: 'oauthToken',
+    });
+
+    const fakeUpstreamRes = new PassThrough();
+    Object.assign(fakeUpstreamRes, {
+      statusCode: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+    const fakeProxyReq = new PassThrough();
+    Object.assign(fakeProxyReq, { destroy: jest.fn() });
+
+    mockHttpsRequest.mockImplementation((_opts: any, callback: any) => {
+      process.nextTick(() => {
+        callback(fakeUpstreamRes);
+        fakeUpstreamRes.end('{"id":"msg_1"}');
+      });
+      return fakeProxyReq as any;
+    });
+
+    const res = await makeRequest(
+      'POST',
+      '/anthropic/v1/messages',
+      JSON.stringify({ model: 'claude-sonnet-4-20250514', messages: [] }),
+      { 'anthropic-beta': 'context-1m-2025-08-07,oauth-2025-04-20' },
+    );
+
+    expect(res.statusCode).toBe(200);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        '1M context requested with OAuth token for anthropic',
+      ),
+    );
+    // still forwarded
+    expect(mockHttpsRequest).toHaveBeenCalled();
+
+    // Response carries the downgrade header for clients to surface
+    expect(res.headers['x-teamclaw-downgrade']).toBe('oauth-no-1m');
+
+    // Give the 'end' handler time to fire
+    await new Promise(r => setTimeout(r, 50));
+
+    expect(mockLogUsage).toHaveBeenCalledWith(
+      'anthropic',
+      'claude-sonnet-4-20250514',
+      { downgradeReason: 'oauth-no-1m' },
+    );
+
+    warnSpy.mockRestore();
+  });
+
+  it('does NOT warn, set downgrade header, or record meta when apiKey auth is used with 1M context', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+    mockResolveAuth.mockResolvedValue({
+      targetUrl: 'https://api.anthropic.com/v1/messages',
+      headers: {
+        'x-api-key': 'sk-ant-real',
+        'anthropic-beta': 'context-1m-2025-08-07',
+      },
+      authType: 'apiKey',
+    });
+
+    const fakeUpstreamRes = new PassThrough();
+    Object.assign(fakeUpstreamRes, {
+      statusCode: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+    const fakeProxyReq = new PassThrough();
+    Object.assign(fakeProxyReq, { destroy: jest.fn() });
+
+    mockHttpsRequest.mockImplementation((_opts: any, callback: any) => {
+      process.nextTick(() => {
+        callback(fakeUpstreamRes);
+        fakeUpstreamRes.end('{}');
+      });
+      return fakeProxyReq as any;
+    });
+
+    const res = await makeRequest(
+      'POST',
+      '/anthropic/v1/messages',
+      JSON.stringify({ model: 'claude-sonnet-4-20250514' }),
+      { 'anthropic-beta': 'context-1m-2025-08-07' },
+    );
+
+    const downgradeWarns = warnSpy.mock.calls.filter(call =>
+      String(call[0]).includes('1M context requested with OAuth token'),
+    );
+    expect(downgradeWarns.length).toBe(0);
+
+    expect(res.headers['x-teamclaw-downgrade']).toBeUndefined();
+
+    await new Promise(r => setTimeout(r, 50));
+
+    expect(mockLogUsage).toHaveBeenCalledWith(
+      'anthropic',
+      'claude-sonnet-4-20250514',
+      undefined,
+    );
+
+    warnSpy.mockRestore();
   });
 });

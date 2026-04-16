@@ -29,7 +29,7 @@ const PROVIDER_META: Record<string, ProviderMeta> = {
     rawHeader: true,
     extraHeaders: {
       'anthropic-version': '2023-06-01',
-      'anthropic-beta': 'fine-grained-tool-streaming-2025-05-14,interleaved-thinking-2025-05-14',
+      'anthropic-beta': 'context-1m-2025-08-07,fine-grained-tool-streaming-2025-05-14,interleaved-thinking-2025-05-14',
     },
   },
   'anthropic-token': {
@@ -54,6 +54,31 @@ const PROVIDER_META: Record<string, ProviderMeta> = {
   deepseek: { baseUrl: 'https://api.deepseek.com' },
   fireworks: { baseUrl: 'https://api.fireworks.ai/inference' },
 };
+
+// Anthropic beta flags allowed to pass through the sidecar.
+// This is a governance control point — betas not in this list are dropped
+// before being forwarded to Anthropic's API. Update when adopting new betas.
+export const BETA_ALLOWLIST = new Set<string>([
+  // Core features TeamClaw ships by default — MUST stay in sync with PROVIDER_META extraHeaders
+  'fine-grained-tool-streaming-2025-05-14',
+  'interleaved-thinking-2025-05-14',
+  'context-1m-2025-08-07',
+  'claude-code-20250219',
+  'oauth-2025-04-20',
+  // Standard features commonly requested by clients
+  'prompt-caching-2024-07-31',
+  'token-efficient-tools-2025-02-19',
+]);
+
+// Self-check: our own defaults must pass the allowlist filter
+for (const meta of Object.values(PROVIDER_META)) {
+  const ourBetas = meta.extraHeaders?.['anthropic-beta']?.split(',').map(s => s.trim()) ?? [];
+  for (const beta of ourBetas) {
+    if (!BETA_ALLOWLIST.has(beta)) {
+      throw new Error(`[sidecar/auth] PROVIDER_META contains beta "${beta}" not in BETA_ALLOWLIST — governance drift`);
+    }
+  }
+}
 
 const smClient = new SecretsManagerClient({});
 let cachedSecret: ProvidersSecret | null = null;
@@ -90,9 +115,37 @@ export async function loadSecrets(): Promise<ProvidersSecret> {
 export interface AuthResult {
   targetUrl: string;
   headers: Record<string, string>;
+  authType: ProviderAuthType;
 }
 
-export async function resolveAuth(providerId: string, path: string): Promise<AuthResult | null> {
+export function mergeBetaHeader(existing: string | undefined, ours: string): string {
+  const combined = new Set([
+    ...(existing ? existing.split(',').map(s => s.trim()).filter(Boolean) : []),
+    ...ours.split(',').map(s => s.trim()).filter(Boolean),
+  ]);
+
+  const allowed: string[] = [];
+  const dropped: string[] = [];
+  for (const beta of combined) {
+    if (BETA_ALLOWLIST.has(beta)) allowed.push(beta);
+    else dropped.push(beta);
+  }
+
+  if (dropped.length > 0) {
+    console.warn(
+      `[sidecar/auth] Dropped disallowed beta flag(s): ${dropped.join(',')} — ` +
+      `update BETA_ALLOWLIST in auth.ts if intended.`,
+    );
+  }
+
+  return allowed.join(',');
+}
+
+export async function resolveAuth(
+  providerId: string,
+  path: string,
+  incomingHeaders?: Record<string, string>,
+): Promise<AuthResult | null> {
   const secret = await loadSecrets();
   const entry = secret.providers[providerId];
   // For OAuth tokens on anthropic provider, use anthropic-token meta (has OAuth beta headers)
@@ -156,8 +209,14 @@ export async function resolveAuth(providerId: string, path: string): Promise<Aut
         if (meta.extraHeaders) {
           Object.assign(headers, meta.extraHeaders);
         }
+        if (headers['anthropic-beta']) {
+          headers['anthropic-beta'] = mergeBetaHeader(
+            incomingHeaders?.['anthropic-beta'],
+            headers['anthropic-beta'],
+          );
+        }
         const targetUrl = `${meta.baseUrl}${path}`;
-        return { targetUrl, headers };
+        return { targetUrl, headers, authType: 'oauthToken' };
       }
     }
 
@@ -171,9 +230,15 @@ export async function resolveAuth(providerId: string, path: string): Promise<Aut
   if (meta.extraHeaders) {
     Object.assign(headers, meta.extraHeaders);
   }
+  if (headers['anthropic-beta']) {
+    headers['anthropic-beta'] = mergeBetaHeader(
+      incomingHeaders?.['anthropic-beta'],
+      headers['anthropic-beta'],
+    );
+  }
 
   const targetUrl = `${meta.baseUrl}${path}`;
-  return { targetUrl, headers };
+  return { targetUrl, headers, authType: entry.authType };
 }
 
 export function invalidateCache(): void {

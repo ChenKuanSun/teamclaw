@@ -29,8 +29,8 @@ exports[`AdminApiGatewayStack matches snapshot 1`] = `
             "DELETE",
           ],
           "AllowOrigins": [
-            "https://main.d2vihiromwsqa2.amplifyapp.com",
-            "https://main.d1qn1f00108uy9.amplifyapp.com",
+            "https://YOUR_ADMIN_AMPLIFY_DOMAIN",
+            "https://YOUR_CHAT_AMPLIFY_DOMAIN",
             "http://localhost:4900",
             "http://localhost:4200",
           ],

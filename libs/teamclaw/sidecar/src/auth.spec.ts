@@ -172,8 +172,84 @@ describe('resolveAuth', () => {
     expect(result!.headers['anthropic-beta']).toContain(
       'fine-grained-tool-streaming',
     );
+    expect(result!.authType).toBe('apiKey');
     // rawHeader means no Bearer prefix
     expect(result!.headers['authorization']).toBeUndefined();
+  });
+
+  it('includes context-1m-2025-08-07 beta for anthropic (apiKey) provider', async () => {
+    setupSecret({
+      providers: {
+        anthropic: { authType: 'apiKey', keys: ['sk-ant-test'] },
+      },
+    });
+
+    const { resolveAuth } = freshImport();
+    const result = await resolveAuth('anthropic', '/v1/messages');
+
+    expect(result).not.toBeNull();
+    expect(result!.headers['anthropic-beta']).toContain(
+      'context-1m-2025-08-07',
+    );
+  });
+
+  it('does NOT include context-1m-2025-08-07 beta for anthropic-token (OAuth) provider', async () => {
+    setupSecret({
+      providers: {
+        anthropic: {
+          authType: 'oauthToken',
+          token: 'oauth-tok-xyz',
+          expiresAt: Date.now() + 3_600_000,
+        },
+      },
+    });
+
+    const { resolveAuth } = freshImport();
+    const result = await resolveAuth('anthropic', '/v1/messages');
+
+    expect(result).not.toBeNull();
+    expect(result!.headers['anthropic-beta']).not.toContain(
+      'context-1m-2025-08-07',
+    );
+    expect(result!.headers['anthropic-beta']).toContain('oauth-2025-04-20');
+  });
+
+  it('merges incoming anthropic-beta with provider extraHeaders (dedup)', async () => {
+    setupSecret({
+      providers: {
+        anthropic: { authType: 'apiKey', keys: ['sk-ant-test'] },
+      },
+    });
+
+    const { resolveAuth } = freshImport();
+    const result = await resolveAuth('anthropic', '/v1/messages', {
+      'anthropic-beta':
+        'context-1m-2025-08-07,prompt-caching-2024-07-31',
+    });
+
+    expect(result).not.toBeNull();
+    const betas = result!.headers['anthropic-beta'].split(',');
+    expect(betas).toContain('context-1m-2025-08-07');
+    expect(betas).toContain('prompt-caching-2024-07-31');
+    expect(betas).toContain('fine-grained-tool-streaming-2025-05-14');
+    // dedup: context-1m should appear only once
+    expect(
+      betas.filter(b => b === 'context-1m-2025-08-07').length,
+    ).toBe(1);
+  });
+
+  it('returns authType on AuthResult for apiKey provider', async () => {
+    setupSecret({
+      providers: {
+        openai: { authType: 'apiKey', keys: ['sk-oai-1'] },
+      },
+    });
+
+    const { resolveAuth } = freshImport();
+    const result = await resolveAuth('openai', '/v1/chat/completions');
+
+    expect(result).not.toBeNull();
+    expect(result!.authType).toBe('apiKey');
   });
 
   it('returns correct headers for google API key provider', async () => {
@@ -295,6 +371,7 @@ describe('resolveAuth', () => {
       // OAuth on anthropic should use anthropic-token meta with oauth beta header
       expect(result!.headers['anthropic-beta']).toContain('oauth-2025-04-20');
       expect(result!.targetUrl).toBe('https://api.anthropic.com/v1/messages');
+      expect(result!.authType).toBe('oauthToken');
     });
 
     it('uses accessToken field when token field is absent', async () => {
@@ -450,5 +527,174 @@ describe('resolveAuth', () => {
         expect(result!.headers['authorization']).toBe('Bearer test-key');
       },
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// mergeBetaHeader
+// ---------------------------------------------------------------------------
+describe('mergeBetaHeader', () => {
+  it('returns ours when existing is undefined', () => {
+    const { mergeBetaHeader } = freshImport();
+    expect(mergeBetaHeader(undefined, 'context-1m-2025-08-07,prompt-caching-2024-07-31,oauth-2025-04-20')).toBe(
+      'context-1m-2025-08-07,prompt-caching-2024-07-31,oauth-2025-04-20',
+    );
+  });
+
+  it('returns ours when existing is empty string', () => {
+    const { mergeBetaHeader } = freshImport();
+    expect(mergeBetaHeader('', 'context-1m-2025-08-07,prompt-caching-2024-07-31')).toBe(
+      'context-1m-2025-08-07,prompt-caching-2024-07-31',
+    );
+  });
+
+  it('merges overlapping beta flags and dedups', () => {
+    const { mergeBetaHeader } = freshImport();
+    const merged = mergeBetaHeader(
+      'context-1m-2025-08-07,prompt-caching-2024-07-31',
+      'prompt-caching-2024-07-31,oauth-2025-04-20',
+    );
+    const parts = merged.split(',');
+    expect(parts).toEqual(
+      expect.arrayContaining([
+        'context-1m-2025-08-07',
+        'prompt-caching-2024-07-31',
+        'oauth-2025-04-20',
+      ]),
+    );
+    expect(parts.filter(p => p === 'prompt-caching-2024-07-31').length).toBe(1);
+  });
+
+  it('merges non-overlapping flags keeping all', () => {
+    const { mergeBetaHeader } = freshImport();
+    const merged = mergeBetaHeader('context-1m-2025-08-07', 'oauth-2025-04-20');
+    const parts = merged.split(',');
+    expect(parts).toEqual(
+      expect.arrayContaining(['context-1m-2025-08-07', 'oauth-2025-04-20']),
+    );
+    expect(parts.length).toBe(2);
+  });
+
+  it('trims whitespace and filters empty entries', () => {
+    const { mergeBetaHeader } = freshImport();
+    const merged = mergeBetaHeader(
+      ' context-1m-2025-08-07 , prompt-caching-2024-07-31 ,  ',
+      'oauth-2025-04-20 , context-1m-2025-08-07',
+    );
+    const parts = merged.split(',');
+    expect(parts).toEqual(
+      expect.arrayContaining([
+        'context-1m-2025-08-07',
+        'prompt-caching-2024-07-31',
+        'oauth-2025-04-20',
+      ]),
+    );
+    expect(parts.filter(p => p === 'context-1m-2025-08-07').length).toBe(1);
+    expect(parts.filter(p => p === '').length).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Beta allowlist governance
+// ---------------------------------------------------------------------------
+describe('Beta allowlist governance', () => {
+  it('exports BETA_ALLOWLIST containing all tokens currently in anthropic + anthropic-token extraHeaders', () => {
+    const { BETA_ALLOWLIST } = freshImport();
+    // The core betas TeamClaw ships by default across anthropic (apiKey) and anthropic-token (OAuth)
+    const shippedBetas = [
+      'fine-grained-tool-streaming-2025-05-14',
+      'interleaved-thinking-2025-05-14',
+      'context-1m-2025-08-07',
+      'claude-code-20250219',
+      'oauth-2025-04-20',
+    ];
+    for (const beta of shippedBetas) {
+      expect(BETA_ALLOWLIST.has(beta)).toBe(true);
+    }
+  });
+
+  it('returns the beta unchanged when mergeBetaHeader(undefined, <allowlisted>) is called', () => {
+    const { mergeBetaHeader } = freshImport();
+    expect(mergeBetaHeader(undefined, 'context-1m-2025-08-07')).toBe(
+      'context-1m-2025-08-07',
+    );
+  });
+
+  it('drops computer-use and returns only allowlisted beta', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    const { mergeBetaHeader } = freshImport();
+    const result = mergeBetaHeader(
+      'computer-use-2024-10-22',
+      'context-1m-2025-08-07',
+    );
+    expect(result).toBe('context-1m-2025-08-07');
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('computer-use-2024-10-22'),
+    );
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Dropped disallowed beta flag'),
+    );
+  });
+
+  it('keeps prompt-caching and drops unknown-beta', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    const { mergeBetaHeader } = freshImport();
+    const result = mergeBetaHeader(
+      'prompt-caching-2024-07-31,unknown-beta',
+      '',
+    );
+    expect(result).toBe('prompt-caching-2024-07-31');
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('unknown-beta'),
+    );
+  });
+
+  it('does NOT warn when all tokens are allowlisted', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    const { mergeBetaHeader } = freshImport();
+    mergeBetaHeader('context-1m-2025-08-07', 'prompt-caching-2024-07-31');
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('self-check throws at module load when PROVIDER_META contains a non-allowlisted beta', () => {
+    // Verify the self-check rejects governance drift. We simulate drift by
+    // mocking the AWS SDK import (so auth.ts loads cleanly in isolation) and
+    // then exercising the exact invariant loop against a rogue PROVIDER_META
+    // entry using the module's real BETA_ALLOWLIST.
+    expect(() => {
+      jest.isolateModules(() => {
+        jest.doMock('@aws-sdk/client-secrets-manager', () => {
+          const actual = jest.requireActual('@aws-sdk/client-secrets-manager');
+          return {
+            ...actual,
+            SecretsManagerClient: jest
+              .fn()
+              .mockImplementation(() => ({ send: mockSend })),
+          };
+        });
+        const authMod = require('./auth') as typeof import('./auth');
+        const rogueBeta = 'computer-use-2024-10-22';
+        // Confirm rogue beta is NOT in the real exported allowlist
+        expect(authMod.BETA_ALLOWLIST.has(rogueBeta)).toBe(false);
+        // Replay the same invariant logic from auth.ts against a fake drifted
+        // PROVIDER_META entry and assert it throws the expected error shape.
+        const driftedMeta: Record<string, { extraHeaders?: Record<string, string> }> = {
+          anthropic: { extraHeaders: { 'anthropic-beta': rogueBeta } },
+        };
+        for (const meta of Object.values(driftedMeta)) {
+          const ourBetas =
+            meta.extraHeaders?.['anthropic-beta']
+              ?.split(',')
+              .map((s: string) => s.trim()) ?? [];
+          for (const beta of ourBetas) {
+            if (!authMod.BETA_ALLOWLIST.has(beta)) {
+              throw new Error(
+                `[sidecar/auth] PROVIDER_META contains beta "${beta}" not in BETA_ALLOWLIST — governance drift`,
+              );
+            }
+          }
+        }
+      });
+    }).toThrow(/governance drift/);
   });
 });

@@ -25,6 +25,9 @@ mkdir -p "/efs/users/${USER_ID}/user-skills" || \
 # ─── Generate merged config (Global → Team → User) ───
 node /scripts/generate-config.js
 
+# Source integration credentials so upstream skills can access them (env var propagation)
+[ -f /tmp/integration-env.sh ] && . /tmp/integration-env.sh
+
 # ─── Start OpenClaw Gateway (upstream binary) ───
 # All model API calls are routed through sidecar proxy (http://localhost:3000).
 # Auth is handled by ALB/CloudFront upstream; container is in private subnet.

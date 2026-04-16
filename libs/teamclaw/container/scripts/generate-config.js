@@ -97,6 +97,7 @@ function buildBaseConfig({ providers, allowedOrigins, allowHostHeaderFallback, t
     skills: {
       load: {
         extraDirs: [
+          '/skills', // bundled TeamClaw skills (Jira, Confluence, Linear)
           '/efs/system/approved-skills',
           ...(teamId ? [`/efs/teams/${teamId}/team-skills`] : []),
           `/efs/users/${userId}/user-skills`,
@@ -223,6 +224,22 @@ async function main() {
   // Merge: base → global → team → user
   const merged = deepMerge(deepMerge(deepMerge(baseConfig, globalConfig), teamConfig), userConfig);
 
+  // Inject known integration credentials into upstream-expected config paths.
+  // Notion: skills.entries.notion.apiKey
+  if (process.env.NOTION_TOKEN) {
+    if (!merged.skills) merged.skills = {};
+    if (!merged.skills.entries) merged.skills.entries = {};
+    if (!merged.skills.entries.notion) merged.skills.entries.notion = {};
+    merged.skills.entries.notion.apiKey = process.env.NOTION_TOKEN;
+  }
+
+  // Slack: channels.slack.botToken
+  if (process.env.SLACK_BOTTOKEN) {
+    if (!merged.channels) merged.channels = {};
+    if (!merged.channels.slack) merged.channels.slack = {};
+    merged.channels.slack.botToken = process.env.SLACK_BOTTOKEN;
+  }
+
   // Write final config to OpenClaw's expected location
   const configDir = path.join(process.env.HOME || '/home/node', '.openclaw');
   fs.mkdirSync(configDir, { recursive: true });
@@ -246,6 +263,31 @@ async function main() {
 
   try {
     await loadIntegrationCredentials(process.env.INTEGRATION_SECRET_ARNS);
+
+    // Write integration env vars to a sourceable file so entrypoint.sh can
+    // propagate them to the openclaw gateway process (fixes env var loss bug).
+    const integrationEnvLines = [];
+    const INTEGRATION_PREFIXES = ['NOTION_', 'SLACK_', 'GITHUB_', 'JIRA_', 'CONFLUENCE_', 'LINEAR_'];
+    for (const [key, value] of Object.entries(process.env)) {
+      if (INTEGRATION_PREFIXES.some(p => key.startsWith(p))) {
+        const escaped = value.replace(/'/g, "'\\''");
+        integrationEnvLines.push(`export ${key}='${escaped}'`);
+      }
+    }
+
+    // Add upstream-compatible aliases
+    if (process.env.NOTION_TOKEN) {
+      integrationEnvLines.push(`export NOTION_API_KEY='${process.env.NOTION_TOKEN.replace(/'/g, "'\\''")}'`);
+    }
+    if (process.env.GITHUB_TOKEN) {
+      integrationEnvLines.push(`export GH_TOKEN='${process.env.GITHUB_TOKEN.replace(/'/g, "'\\''")}'`);
+    }
+
+    if (integrationEnvLines.length > 0) {
+      fs.writeFileSync('/tmp/integration-env.sh', integrationEnvLines.join('\n') + '\n', { mode: 0o600 });
+      console.log(`[generate-config] Wrote ${integrationEnvLines.length} integration env vars to /tmp/integration-env.sh`);
+    }
+
     console.log(`[generate-config] Config generated for user=${userId} team=${teamId}`);
   } catch (err) {
     console.error('[generate-config] Failed to load integration credentials:', err.message);

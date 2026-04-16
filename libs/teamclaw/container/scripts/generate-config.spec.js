@@ -11,6 +11,7 @@ const {
   layerBootstrapFile,
   deepMerge,
   loadIntegrationCredentials,
+  main,
 } = require('./generate-config');
 
 describe('buildProviders', () => {
@@ -305,5 +306,191 @@ describe('loadIntegrationCredentials', () => {
     expect(console.warn).toHaveBeenCalledWith(
       expect.stringContaining('Skipping invalid env var name')
     );
+  });
+});
+
+describe('integration env file (/tmp/integration-env.sh)', () => {
+  const ORIGINAL_ENV = { ...process.env };
+
+  beforeEach(() => {
+    for (const k of Object.keys(process.env)) {
+      if (['NOTION_', 'SLACK_', 'GITHUB_', 'JIRA_', 'CONFLUENCE_', 'LINEAR_'].some(p => k.startsWith(p))) {
+        delete process.env[k];
+      }
+    }
+    delete process.env.INTEGRATION_SECRET_ARNS;
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    process.env = { ...ORIGINAL_ENV };
+  });
+
+  function b64(obj) {
+    return Buffer.from(JSON.stringify(obj)).toString('base64');
+  }
+
+  function mkClient(sendImpl) {
+    return { send: jest.fn(sendImpl) };
+  }
+
+  it('writes integration env vars to /tmp/integration-env.sh with correct format', async () => {
+    const writeCalls = {};
+    jest.spyOn(fs, 'writeFileSync').mockImplementation((p, content, opts) => {
+      writeCalls[p] = { content, opts };
+    });
+    jest.spyOn(fs, 'readFileSync').mockImplementation(() => { throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' }); });
+    jest.spyOn(fs, 'mkdirSync').mockImplementation(() => {});
+    jest.spyOn(fs, 'existsSync').mockReturnValue(false);
+
+    // Pre-set the env var as if loadIntegrationCredentials already ran
+    process.env.NOTION_TOKEN = 'my-notion-token';
+    process.env.USER_ID = 'test-user';
+
+    await main();
+
+    expect(writeCalls['/tmp/integration-env.sh']).toBeDefined();
+    const content = writeCalls['/tmp/integration-env.sh'].content;
+    expect(content).toContain("export NOTION_TOKEN='my-notion-token'");
+    expect(writeCalls['/tmp/integration-env.sh'].opts).toEqual({ mode: 0o600 });
+  });
+
+  it('writes NOTION_TOKEN → NOTION_API_KEY alias', async () => {
+    const writeCalls = {};
+    jest.spyOn(fs, 'writeFileSync').mockImplementation((p, content, opts) => {
+      writeCalls[p] = { content, opts };
+    });
+    jest.spyOn(fs, 'readFileSync').mockImplementation(() => { throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' }); });
+    jest.spyOn(fs, 'mkdirSync').mockImplementation(() => {});
+    jest.spyOn(fs, 'existsSync').mockReturnValue(false);
+
+    process.env.NOTION_TOKEN = 'notion-tok';
+    process.env.USER_ID = 'test-user';
+
+    await main();
+
+    const content = writeCalls['/tmp/integration-env.sh'].content;
+    expect(content).toContain("export NOTION_API_KEY='notion-tok'");
+  });
+
+  it('writes GITHUB_TOKEN → GH_TOKEN alias', async () => {
+    const writeCalls = {};
+    jest.spyOn(fs, 'writeFileSync').mockImplementation((p, content, opts) => {
+      writeCalls[p] = { content, opts };
+    });
+    jest.spyOn(fs, 'readFileSync').mockImplementation(() => { throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' }); });
+    jest.spyOn(fs, 'mkdirSync').mockImplementation(() => {});
+    jest.spyOn(fs, 'existsSync').mockReturnValue(false);
+
+    process.env.GITHUB_TOKEN = 'gh-tok-123';
+    process.env.USER_ID = 'test-user';
+
+    await main();
+
+    const content = writeCalls['/tmp/integration-env.sh'].content;
+    expect(content).toContain("export GH_TOKEN='gh-tok-123'");
+  });
+
+  it('escapes single quotes in values for shell safety', async () => {
+    const writeCalls = {};
+    jest.spyOn(fs, 'writeFileSync').mockImplementation((p, content, opts) => {
+      writeCalls[p] = { content, opts };
+    });
+    jest.spyOn(fs, 'readFileSync').mockImplementation(() => { throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' }); });
+    jest.spyOn(fs, 'mkdirSync').mockImplementation(() => {});
+    jest.spyOn(fs, 'existsSync').mockReturnValue(false);
+
+    process.env.SLACK_TOKEN = "it's a test";
+    process.env.USER_ID = 'test-user';
+
+    await main();
+
+    const content = writeCalls['/tmp/integration-env.sh'].content;
+    expect(content).toContain("export SLACK_TOKEN='it'\\''s a test'");
+  });
+});
+
+describe('config injection for integrations', () => {
+  const ORIGINAL_ENV = { ...process.env };
+
+  beforeEach(() => {
+    for (const k of Object.keys(process.env)) {
+      if (['NOTION_', 'SLACK_', 'GITHUB_'].some(p => k.startsWith(p))) {
+        delete process.env[k];
+      }
+    }
+    delete process.env.INTEGRATION_SECRET_ARNS;
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    process.env = { ...ORIGINAL_ENV };
+  });
+
+  function b64(obj) {
+    return Buffer.from(JSON.stringify(obj)).toString('base64');
+  }
+
+  function mkClient(sendImpl) {
+    return { send: jest.fn(sendImpl) };
+  }
+
+  it('injects skills.entries.notion.apiKey when NOTION_TOKEN is set', async () => {
+    let writtenConfig = null;
+    jest.spyOn(fs, 'writeFileSync').mockImplementation((p, content) => {
+      if (p.endsWith('openclaw.json')) {
+        writtenConfig = JSON.parse(content);
+      }
+    });
+    jest.spyOn(fs, 'readFileSync').mockImplementation(() => { throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' }); });
+    jest.spyOn(fs, 'mkdirSync').mockImplementation(() => {});
+    jest.spyOn(fs, 'existsSync').mockReturnValue(false);
+
+    process.env.NOTION_TOKEN = 'ntn_secret_123';
+    process.env.USER_ID = 'test-user';
+
+    await main();
+
+    expect(writtenConfig.skills.entries.notion.apiKey).toBe('ntn_secret_123');
+  });
+
+  it('injects channels.slack.botToken when SLACK_BOTTOKEN is set', async () => {
+    let writtenConfig = null;
+    jest.spyOn(fs, 'writeFileSync').mockImplementation((p, content) => {
+      if (p.endsWith('openclaw.json')) {
+        writtenConfig = JSON.parse(content);
+      }
+    });
+    jest.spyOn(fs, 'readFileSync').mockImplementation(() => { throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' }); });
+    jest.spyOn(fs, 'mkdirSync').mockImplementation(() => {});
+    jest.spyOn(fs, 'existsSync').mockReturnValue(false);
+
+    process.env.SLACK_BOTTOKEN = 'xoxb-slack-token';
+    process.env.USER_ID = 'test-user';
+
+    await main();
+
+    expect(writtenConfig.channels.slack.botToken).toBe('xoxb-slack-token');
+  });
+});
+
+describe('bundled skills path', () => {
+  it('includes /skills as the first entry in skills.load.extraDirs', () => {
+    const providers = buildProviders();
+    const cfg = buildBaseConfig({ providers, allowedOrigins: '', allowHostHeaderFallback: false, teamId: '', userId: 'u1' });
+    expect(cfg.skills.load.extraDirs[0]).toBe('/skills');
+  });
+
+  it('keeps /skills first even when teamId is provided', () => {
+    const providers = buildProviders();
+    const cfg = buildBaseConfig({ providers, allowedOrigins: '', allowHostHeaderFallback: false, teamId: 'eng', userId: 'u1' });
+    expect(cfg.skills.load.extraDirs[0]).toBe('/skills');
+    expect(cfg.skills.load.extraDirs).toContain('/efs/teams/eng/team-skills');
   });
 });

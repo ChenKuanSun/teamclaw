@@ -80,12 +80,15 @@ export const createApp = (): App => {
   adminApiGatewayRouteStack.addDependency(adminLambdaStack);
 
   // ==========================================================
-  // Admin Amplify (always deploys to PROD region)
+  // Admin Amplify — single app in ap-southeast-1 with main + dev branches.
+  // Only deploy from prod; dev branch auto-builds from repo's dev branch.
   // ==========================================================
-  new AdminAmplifyStack(app, stackPrefix + 'AmplifyStack', {
-    env: TC_AWS_CLOUD[ENVIRONMENT.PROD],
-    deployEnv,
-  });
+  if (deployEnv === ENVIRONMENT.PROD) {
+    new AdminAmplifyStack(app, stackPrefix + 'AmplifyStack', {
+      env: TC_AWS_CLOUD[ENVIRONMENT.PROD],
+      deployEnv,
+    });
+  }
 
   return app;
 };

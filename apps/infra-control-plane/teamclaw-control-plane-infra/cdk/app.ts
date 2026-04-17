@@ -27,11 +27,15 @@ export const createApp = (): App => {
     deployEnv,
   });
 
-  // Amplify always deploys to PROD region (ap-southeast-1), matching Affiora pattern
-  new AmplifyStack(app, stackPrefix + 'AmplifyStack', {
-    env: TC_AWS_CLOUD[ENVIRONMENT.PROD],
-    deployEnv,
-  });
+  // Amplify hosts both prod and dev branches from a single app in ap-southeast-1.
+  // Only deploy it once from the prod deployment — the dev branch auto-builds
+  // from the repo's `dev` branch and serves the dev frontend.
+  if (deployEnv === ENVIRONMENT.PROD) {
+    new AmplifyStack(app, stackPrefix + 'AmplifyStack', {
+      env: TC_AWS_CLOUD[ENVIRONMENT.PROD],
+      deployEnv,
+    });
+  }
 
   return app;
 };

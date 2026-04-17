@@ -5,16 +5,20 @@ export enum ENVIRONMENT {
   PROD = 'prod',
 }
 
+// Region is fixed per environment — do NOT read CDK_DEFAULT_REGION, which would
+// let the active AWS profile's region override the intended deployment target
+// (e.g. cross-region stacks like Amplify deploying to prod region from a dev profile).
+// Account is still env-driven because it varies per-account but never needs to cross.
 export const TC_AWS_CLOUD = {
   [ENVIRONMENT.PROD]: {
     account:
       process.env['CDK_DEFAULT_ACCOUNT'] || process.env['AWS_ACCOUNT_ID'] || '',
-    region: process.env['CDK_DEFAULT_REGION'] || 'ap-southeast-1',
+    region: 'ap-southeast-1',
   } as Environment,
   [ENVIRONMENT.DEV]: {
     account:
       process.env['CDK_DEFAULT_ACCOUNT'] || process.env['AWS_ACCOUNT_ID'] || '',
-    region: process.env['CDK_DEFAULT_REGION'] || 'us-west-1',
+    region: 'us-west-1',
   } as Environment,
 };
 

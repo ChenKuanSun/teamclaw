@@ -116,7 +116,61 @@ Use Nx to understand project dependencies:
 nx graph
 ```
 
+## Pull Request Checklist
+
+Before submitting your PR, verify:
+
+- [ ] Code compiles without errors (`nx run-many -t build`)
+- [ ] All existing tests pass (`nx run-many -t test`)
+- [ ] New tests are added for new functionality
+- [ ] Lint passes (`nx run-many -t lint`)
+- [ ] Commit messages follow Conventional Commits format
+- [ ] PR description explains what and why
+- [ ] No secrets, API keys, or production URLs in committed files
+- [ ] CDK stacks synthesize without errors (if infra changed)
+
+## Adding a New Skill
+
+1. Create a directory under `libs/teamclaw/container/skills/<skill-name>/`.
+2. Add a `SKILL.md` file with YAML frontmatter:
+   ```yaml
+   ---
+   name: skill-name
+   description: One-line hint for the AI model
+   homepage: https://api-docs-url
+   metadata: { "openclaw": { "emoji": "...", "requires": { "env": ["ENV_VAR"] }, "primaryEnv": "ENV_VAR" } }
+   ---
+   ```
+3. Write the skill prompt in the Markdown body (auth, common operations with
+   cURL examples, tips).
+4. Add the corresponding integration to `libs/teamclaw/backend-infra/src/lambda/admin/integrations/catalog-seed.ts`.
+5. The skill is bundled into the container image via `COPY skills/ /skills/`
+   in the Dockerfile.
+
+## Adding a New Integration
+
+1. Add the definition to `catalog-seed.ts` with `integrationId`, `displayName`,
+   `credentialSchema`, and `envVarPrefix`.
+2. Add the env var prefix to `INTEGRATION_PREFIXES` in
+   `libs/teamclaw/container/scripts/generate-config.js`.
+3. If upstream OpenClaw expects a specific config path (like
+   `skills.entries.<name>.apiKey`), add the injection in `generate-config.js`.
+4. If upstream expects a specific env var name different from ours, add an
+   alias in the env file writer section of `generate-config.js`.
+5. Update tests in `generate-config.spec.js` and add a skill SKILL.md if
+   applicable.
+
+## Adding a New CDK Stack
+
+1. Create the stack class in `libs/teamclaw/backend-infra/src/stack/`.
+2. Create the app entry point in `apps/infra-<name>/src/main.ts`.
+3. Add tests in `libs/teamclaw/backend-infra/src/stack/__tests__/`.
+4. Document the deploy order in `README.md` if it has dependencies.
+5. Add the stack to `.github/workflows/cdk-deploy.yml`.
+
 ## Questions?
 
 Open an issue for discussion before starting large changes. This helps avoid
 duplicate work and ensures alignment with the project direction.
+
+For security vulnerabilities, see [SECURITY.md](SECURITY.md).

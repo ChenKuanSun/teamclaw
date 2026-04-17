@@ -82,24 +82,27 @@ All customization happens outside OpenClaw's codebase:
 | Mechanism | What It Controls |
 |-----------|-----------------|
 | `openclaw.json` config | Agents, models, session behavior, plugins |
-| Environment variables | `OPENCLAW_GATEWAY_TOKEN`, `OPENCLAW_TUNNEL`, audit paths |
+| Environment variables | `OPENCLAW_STATE_DIR` (state on EFS), integration env vars via `/tmp/integration-env.sh` |
 | Docker entrypoint wrapper | Security hardening, config merge, key stripping |
 | Provider `baseUrl` proxy | API key injection without exposing keys to containers |
 | SOUL.md / MEMORY.md files | Agent personality and knowledge layering |
 
 This means you can upgrade OpenClaw versions without merge conflicts.
 
-### 3. API Key Pool Proxy
+### 3. Sidecar Proxy (API Key Pool)
 
-Containers never see real API keys. Instead:
+Containers never see real API keys. A co-located sidecar proxy handles credential injection:
 
 ```
-Container (ANTHROPIC_API_KEY unset)
-  → models.providers.anthropic.baseUrl = "https://key-pool-proxy.example.com/anthropic"
-    → Key Pool Proxy Lambda picks key via round-robin
-      → Forwards to real provider API with injected key
-        → Tracks usage per user in DynamoDB
+OpenClaw (ANTHROPIC_API_KEY = "proxy-managed")
+  → models.providers.anthropic.baseUrl = "http://localhost:3000/anthropic"
+    → Sidecar resolves real key from Secrets Manager (round-robin across pool)
+      → Injects auth headers + anthropic-beta (governed by BETA_ALLOWLIST)
+        → Forwards to real provider API
+          → Logs usage to DynamoDB (provider, model, timestamp, downgradeReason)
 ```
+
+The sidecar provides: round-robin key rotation, OAuth token refresh with expiry detection, per-request usage logging, and beta header governance.
 
 ### 4. Config Hierarchy (Global → Team → User)
 
@@ -111,12 +114,12 @@ Container (ANTHROPIC_API_KEY unset)
 
 At container startup, `generate-config.js` deep-merges these into a single `openclaw.json`. Each level can only be more restrictive than the level above.
 
-SOUL.md follows the same pattern but concatenates (not merges):
+Six workspace bootstrap files follow the same pattern but concatenate (not merge):
 ```
-Enterprise SOUL.md  (compliance rules, company identity)
-+ Team SOUL.md      (domain expertise, team conventions)
-+ User SOUL.md      (personal style preferences)
-= Final SOUL.md in container workspace
+Enterprise {AGENTS,SOUL,TOOLS,BOOTSTRAP,IDENTITY,USER}.md
++ Team {AGENTS,SOUL,TOOLS,BOOTSTRAP,IDENTITY,USER}.md
++ User {AGENTS,SOUL,TOOLS,BOOTSTRAP,IDENTITY,USER}.md
+= Final files in container /workspace/
 ```
 
 ### 5. Scale-to-Zero with Cron-Aware Wakeup
@@ -145,14 +148,17 @@ libs/
     types/              # UserConfig, TeamConfig, TeamClawConfig interfaces
   teamclaw/
     cloud-config/       # TC_LAMBDA_DEFAULT_PROPS, TC_FARGATE_DEFAULTS
-    backend-infra/      # CDK stacks, Lambda handlers
-    container/          # Dockerfile, entrypoint.sh, generate-config.js
+    backend-infra/      # CDK stacks, Lambda handlers (44 handlers)
+    container/          # Dockerfile, entrypoint.sh, generate-config.js, skills/
+    sidecar/            # API key pool proxy (auth, usage logging, beta governance)
 
 apps/
-  infra-foundation/teamclaw-foundation-infra/   # VPC, EFS, ECR, Secrets
-  infra-cluster/teamclaw-cluster-infra/         # ECS Cluster, ALB
-  infra-control-plane/teamclaw-control-plane-infra/  # Cognito, Lambdas, DynamoDB
-  web-chat/                           # Angular 21 + Material chat UI
+  infra-foundation/     # VPC, EFS, ECR, Secrets Manager
+  infra-cluster/        # ECS Cluster, ALB, CloudFront, Task Definition
+  infra-control-plane/  # Cognito, Lifecycle Lambda, DynamoDB
+  infra-admin/          # API Gateway, 44 Lambda handlers
+  web-chat/             # Angular 21 + Material chat UI (WebSocket)
+  web-admin/            # Angular 21 admin dashboard (Skills, Integrations, Config)
 ```
 
 Path aliases: `@TeamClaw/core/*`, `@TeamClaw/teamclaw/*`
@@ -169,7 +175,7 @@ Path aliases: `@TeamClaw/core/*`, `@TeamClaw/teamclaw/*`
 | Auth | Cognito with MFA (TOTP), admin-only user creation |
 | Password policy | 12+ chars, upper/lower/digit/symbol required |
 | Audit | Transcripts + audit logs persisted to EFS |
-| Container hardening | `curl`/`wget`/`netcat` removed, non-root user |
+| Container hardening | Non-root user, `initProcessEnabled`, sidecar `readonlyRootFilesystem` |
 | Compliance | SOC 2 achievable; HIPAA partially blocked (provider BAA) |
 
 ---
@@ -187,6 +193,29 @@ Path aliases: `@TeamClaw/core/*`, `@TeamClaw/teamclaw/*`
 | Built-in WebChat | `/webchat` endpoint | Fallback/simple deployment option |
 | OpenResponses HTTP API | `POST /v1/responses` | Programmatic access for integrations |
 | CronJobs | `cron` config in `openclaw.json` | Scheduled tasks with EventBridge wakeup |
+
+---
+
+## Skills System
+
+TeamClaw bundles 3 custom skills and leverages 3 upstream OpenClaw skills:
+
+| Skill | Source | Credential | API |
+|-------|--------|-----------|-----|
+| Notion | Upstream | `NOTION_API_KEY` (aliased from `NOTION_TOKEN`) | REST v2025 |
+| Slack | Upstream | `channels.slack.botToken` config | Events API |
+| GitHub | Upstream | `GH_TOKEN` (aliased from `GITHUB_TOKEN`) | `gh` CLI |
+| Jira | Bundled | `JIRA_TOKEN` + `JIRA_BASEURL` | Atlassian REST v3 |
+| Confluence | Bundled | `CONFLUENCE_TOKEN` + `CONFLUENCE_BASEURL` | Atlassian REST v2 |
+| Linear | Bundled | `LINEAR_TOKEN` | GraphQL |
+
+Skills are loaded from multiple directories (in priority order):
+1. `/skills/` — bundled in container image
+2. `/efs/system/approved-skills/` — admin-installed, available to all users
+3. `/efs/teams/{teamId}/team-skills/` — team-scoped
+4. `/efs/users/{userId}/user-skills/` — user-created
+
+Integration credentials flow: Admin panel → Secrets Manager → `generate-config.js` loads at boot → writes `/tmp/integration-env.sh` → entrypoint.sh sources before `exec openclaw`.
 
 ---
 

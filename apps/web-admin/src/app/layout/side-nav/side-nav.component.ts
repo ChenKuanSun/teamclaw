@@ -29,6 +29,12 @@ const ADMIN_MENU_ITEMS: MenuItem[] = [
     route: '/integrations',
   },
   {
+    id: 'skills',
+    label: 'Skills',
+    icon: 'psychology',
+    route: '/skills',
+  },
+  {
     id: 'analytics',
     label: 'Analytics',
     icon: 'insights',

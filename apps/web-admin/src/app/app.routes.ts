@@ -84,6 +84,13 @@ export const appRoutes: Routes = [
           ),
       },
       {
+        path: 'skills',
+        loadComponent: () =>
+          import('./features/skills/skills.component').then(
+            m => m.SkillsComponent,
+          ),
+      },
+      {
         path: 'analytics',
         loadComponent: () =>
           import('./features/analytics/analytics.component').then(

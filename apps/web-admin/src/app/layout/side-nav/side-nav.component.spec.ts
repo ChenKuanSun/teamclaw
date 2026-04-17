@@ -25,8 +25,8 @@ describe('SideNavComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should have 8 menu items', () => {
-    expect(component.menuItems.length).toBe(8);
+  it('should have 9 menu items', () => {
+    expect(component.menuItems.length).toBe(9);
   });
 
   it('should have correct menu item routes', () => {
@@ -39,6 +39,7 @@ describe('SideNavComponent', () => {
       '/config',
       '/api-keys',
       '/integrations',
+      '/skills',
       '/analytics',
     ]);
   });
@@ -52,6 +53,7 @@ describe('SideNavComponent', () => {
     expect(compiled.textContent).toContain('Config');
     expect(compiled.textContent).toContain('API Keys');
     expect(compiled.textContent).toContain('Integrations');
+    expect(compiled.textContent).toContain('Skills');
     expect(compiled.textContent).toContain('Analytics');
   });
 
@@ -64,6 +66,6 @@ describe('SideNavComponent', () => {
   it('should render navigation links with correct hrefs', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const links = compiled.querySelectorAll('a.nav-item');
-    expect(links.length).toBe(8);
+    expect(links.length).toBe(9);
   });
 });

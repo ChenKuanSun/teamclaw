@@ -23,7 +23,7 @@ export class AdminAmplifyStack extends Stack {
     const githubOwner =
       props.githubOwner ??
       this.node.tryGetContext('githubOwner') ??
-      'ChenKuanSun';
+      'ChannelDAO';
     const githubRepo =
       props.githubRepo ?? this.node.tryGetContext('githubRepo') ?? 'teamclaw';
 

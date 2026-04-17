@@ -3,7 +3,7 @@ import {
   TC_SECRET_MANAGER_ARN,
 } from '@TeamClaw/core/cloud-config';
 import * as aws_amplify from '@aws-cdk/aws-amplify-alpha';
-import { SecretValue, Stack, aws_iam } from 'aws-cdk-lib';
+import { SecretValue, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
 export interface AdminAmplifyStackProps extends StackPropsWithEnv {
@@ -29,21 +29,16 @@ export class AdminAmplifyStack extends Stack {
 
     const secretArn = TC_SECRET_MANAGER_ARN[deployEnv].GITHUB_OAUTH_TOKEN;
 
-    // IAM role with Amplify build permissions
-    const amplifyRole = new aws_iam.Role(this, 'TeamClawAdminAppRole', {
-      assumedBy: new aws_iam.ServicePrincipal('amplify.amazonaws.com'),
-      managedPolicies: [
-        aws_iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess-Amplify'),
-      ],
-    });
-
+    // Note: Do NOT specify a `role` here. Amplify Gen1 hosting uses an internal
+    // service-linked mechanism when no role is specified. Providing a custom
+    // IAM role (even with AdministratorAccess-Amplify) causes build failures
+    // with "Unable to assume specified IAM Role" in newer regions/accounts.
     this.app = new aws_amplify.App(this, 'TeamClawAdminApp', {
       sourceCodeProvider: new aws_amplify.GitHubSourceCodeProvider({
         owner: githubOwner,
         repository: githubRepo,
         oauthToken: SecretValue.secretsManager(secretArn),
       }),
-      role: amplifyRole,
       environmentVariables: {
         AMPLIFY_MONOREPO_APP_ROOT: 'apps/web-admin',
         AMPLIFY_DIFF_DEPLOY: 'false',

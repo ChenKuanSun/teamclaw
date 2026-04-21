@@ -2,14 +2,16 @@
  * Development environment configuration for TeamClaw Admin Panel
  *
  * Admin Panel uses a separate Cognito User Pool from TeamClaw App.
- * OAuth PKCE flow via Cognito Hosted UI (no direct password auth).
+ * SRP auth via Cognito (matching prod behavior).
+ *
+ * Values sourced from SSM at `/tc/dev/admin-*` (chddev account, us-west-1).
  */
 export const environment = {
   isProduction: false,
   auth: {
-    clientId: '44k5e77m24b00mkah09j435jb6',
-    // TODO: Update after deploying Cognito domain — get from SSM or CDK output
+    userPoolId: 'us-west-1_t8qDzd1mU',
+    clientId: '535jegk3vn11ss5fr3i53s49lg',
     domain: 'teamclaw-admin-dev.auth.us-west-1.amazoncognito.com',
   },
-  adminApiUrl: 'https://9qt1dgv5d5.execute-api.us-west-1.amazonaws.com',
+  adminApiUrl: 'https://adojhfztx1.execute-api.us-west-1.amazonaws.com',
 };
